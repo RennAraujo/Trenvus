@@ -16,7 +16,7 @@ export function Landing() {
             </Link>
             <nav className="nav">
               <a href="#features">{t('landing.nav.features')}</a>
-              <a href="#security">{t('landing.nav.security')}</a>
+              <Link to="/security">{t('landing.nav.security')}</Link>
             </nav>
           </div>
 
