@@ -89,8 +89,7 @@ input {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: radial-gradient(16px 16px at 30% 30%, rgba(255, 255, 255, 0.35), transparent),
-    linear-gradient(135deg, var(--accent-2), var(--accent));
+  background: url("/brand-mark.png") center / cover no-repeat;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
