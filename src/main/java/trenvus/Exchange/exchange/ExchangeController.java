@@ -35,7 +35,21 @@ public class ExchangeController {
 		return ResponseEntity.ok(new ConvertResponse(result.usdCents(), result.vpsCents(), result.transactionId(), result.feeUsdCents()));
 	}
 
+	@PostMapping("/convert-vps-to-usd")
+	public ResponseEntity<ConvertResponse> convertVpsToUsd(
+			@Valid @RequestBody ConvertVpsRequest request,
+			@RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+			@AuthenticationPrincipal Jwt jwt
+	) {
+		Long userId = Long.valueOf(jwt.getSubject());
+		long cents = MoneyCents.parseToCents(request.amountVps());
+		var result = exchangeService.convertVpsToUsd(userId, cents, idempotencyKey);
+		return ResponseEntity.ok(new ConvertResponse(result.usdCents(), result.vpsCents(), result.transactionId(), result.feeUsdCents()));
+	}
+
 	public record ConvertRequest(@NotBlank String amountUsd) {}
+
+	public record ConvertVpsRequest(@NotBlank String amountVps) {}
 
 	public record ConvertResponse(long usdCents, long vpsCents, Long transactionId, long feeUsdCents) {}
 }

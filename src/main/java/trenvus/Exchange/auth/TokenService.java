@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -42,6 +43,7 @@ public class TokenService {
 				.expiresAt(expiresAt)
 				.subject(String.valueOf(user.getId()))
 				.claim("email", user.getEmail())
+				.claim("roles", List.of((user.getRole() == null ? "USER" : user.getRole().name())))
 				.build();
 
 		var header = JwsHeader.with(SignatureAlgorithm.RS256).build();
@@ -71,4 +73,3 @@ public class TokenService {
 	public record AccessTokenResult(String token, Instant expiresAt) {}
 	public record RefreshTokenResult(String token, String tokenHash, Instant expiresAt) {}
 }
-

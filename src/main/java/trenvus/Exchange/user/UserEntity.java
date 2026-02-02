@@ -2,10 +2,12 @@ package trenvus.Exchange.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Enumerated;
 import java.time.Instant;
 
 @Entity
@@ -23,6 +25,10 @@ public class UserEntity {
 
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt = Instant.now();
+
+	@Column(nullable = false, length = 16)
+	@Enumerated(EnumType.STRING)
+	private UserRole role = UserRole.USER;
 
 	public Long getId() {
 		return id;
@@ -47,5 +53,12 @@ public class UserEntity {
 	public Instant getCreatedAt() {
 		return createdAt;
 	}
-}
 
+	public UserRole getRole() {
+		return role;
+	}
+
+	public void setRole(UserRole role) {
+		this.role = role;
+	}
+}

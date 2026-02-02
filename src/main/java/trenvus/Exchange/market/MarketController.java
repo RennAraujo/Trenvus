@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -19,5 +20,21 @@ public class MarketController {
 	public ResponseEntity<List<MarketDataService.MarketTicker>> getTickers() {
 		return ResponseEntity.ok(marketDataService.getTickers());
 	}
-}
 
+	@GetMapping("/orderbook")
+	public ResponseEntity<MarketDataService.OrderBook> getOrderBook(
+			@RequestParam String instId,
+			@RequestParam(defaultValue = "10") int size
+	) {
+		return ResponseEntity.ok(marketDataService.getOrderBook(instId, size));
+	}
+
+	@GetMapping("/candles")
+	public ResponseEntity<List<MarketDataService.CandlePoint>> getCandles(
+			@RequestParam String instId,
+			@RequestParam(defaultValue = "1H") String bar,
+			@RequestParam(defaultValue = "24") int limit
+	) {
+		return ResponseEntity.ok(marketDataService.getCandles(instId, bar, limit));
+	}
+}

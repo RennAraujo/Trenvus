@@ -20,7 +20,10 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,10 +37,19 @@ public class SecurityConfig {
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.cors(Customizer.withDefaults())
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/auth/**").permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/register")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/login")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/refresh")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/logout")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui.html")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui/**")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/v3/api-docs")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/v3/api-docs/**")).permitAll()
 						.anyRequest().authenticated()
 				)
-				.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+				.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
 				.build();
 	}
 
@@ -63,6 +75,17 @@ public class SecurityConfig {
 	public JwtEncoder jwtEncoder(JwtKeyMaterial keys) {
 		var jwk = new RSAKey.Builder(keys.getPublicKey()).privateKey(keys.getPrivateKey()).build();
 		return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
+	}
+
+	@Bean
+	public JwtAuthenticationConverter jwtAuthenticationConverter() {
+		var authorities = new JwtGrantedAuthoritiesConverter();
+		authorities.setAuthoritiesClaimName("roles");
+		authorities.setAuthorityPrefix("ROLE_");
+
+		var converter = new JwtAuthenticationConverter();
+		converter.setJwtGrantedAuthoritiesConverter(authorities);
+		return converter;
 	}
 
 	@Bean

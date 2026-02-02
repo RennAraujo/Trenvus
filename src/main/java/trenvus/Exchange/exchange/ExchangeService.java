@@ -101,6 +101,66 @@ public class ExchangeService {
 		return new ConvertResult(snapshot.usdCents(), snapshot.vpsCents(), tx.getId(), CONVERSION_FEE_USD_CENTS);
 	}
 
+	@Transactional
+	public ConvertResult convertVpsToUsd(Long userId, long amountVpsCents, String idempotencyKey) {
+		walletService.ensureUserWallets(userId);
+
+		if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+			var existing = transactions.findByUserIdAndIdempotencyKey(userId, idempotencyKey);
+			if (existing.isPresent()) {
+				var snapshot = walletService.getSnapshot(userId);
+				return new ConvertResult(snapshot.usdCents(), snapshot.vpsCents(), existing.get().getId(), CONVERSION_FEE_USD_CENTS);
+			}
+		} else {
+			idempotencyKey = null;
+		}
+
+		if (amountVpsCents <= CONVERSION_FEE_USD_CENTS) {
+			throw new IllegalArgumentException("Valor deve ser maior que a taxa");
+		}
+
+		var lockedWallets = wallets.findForUpdate(userId, List.of(Currency.USD, Currency.VPS));
+		var map = new EnumMap<Currency, trenvus.Exchange.wallet.WalletEntity>(Currency.class);
+		for (var w : lockedWallets) {
+			map.put(w.getCurrency(), w);
+		}
+		var usdWallet = map.get(Currency.USD);
+		var vpsWallet = map.get(Currency.VPS);
+		if (usdWallet == null || vpsWallet == null) {
+			throw new IllegalStateException("Carteira não inicializada");
+		}
+
+		if (vpsWallet.getBalanceCents() < amountVpsCents) {
+			throw new IllegalArgumentException("Saldo insuficiente");
+		}
+
+		long creditUsd = Math.subtractExact(amountVpsCents, CONVERSION_FEE_USD_CENTS);
+		vpsWallet.setBalanceCents(vpsWallet.getBalanceCents() - amountVpsCents);
+		usdWallet.setBalanceCents(Math.addExact(usdWallet.getBalanceCents(), creditUsd));
+
+		var tx = new TransactionEntity();
+		tx.setUserId(userId);
+		tx.setType(TransactionType.CONVERT_VPS_TO_USD);
+		tx.setUsdAmountCents(amountVpsCents);
+		tx.setVpsAmountCents(amountVpsCents);
+		tx.setFeeUsdCents(CONVERSION_FEE_USD_CENTS);
+		tx.setIdempotencyKey(idempotencyKey);
+
+		try {
+			transactions.save(tx);
+		} catch (DataIntegrityViolationException ex) {
+			if (idempotencyKey != null) {
+				var existing = transactions.findByUserIdAndIdempotencyKey(userId, idempotencyKey).orElseThrow();
+				var snapshot = walletService.getSnapshot(userId);
+				return new ConvertResult(snapshot.usdCents(), snapshot.vpsCents(), existing.getId(), CONVERSION_FEE_USD_CENTS);
+			}
+			throw ex;
+		}
+
+		var snapshot = walletService.getSnapshot(userId);
+		return new ConvertResult(snapshot.usdCents(), snapshot.vpsCents(), tx.getId(), CONVERSION_FEE_USD_CENTS);
+	}
+
 	public record WalletOperationResult(long usdCents, long vpsCents, Long transactionId) {}
 
 	public record ConvertResult(long usdCents, long vpsCents, Long transactionId, long feeUsdCents) {}

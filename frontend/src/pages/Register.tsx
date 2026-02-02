@@ -71,7 +71,15 @@ export function Register() {
                 </form>
 
                 <div className="muted" style={{ marginTop: 14 }}>
-                  Já tem conta? <Link to="/login" className="pill pill-accent">Entrar</Link>
+                  Já tem conta?{' '}
+                  <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                    <Link to="/login" className="pill pill-accent">
+                      Entrar
+                    </Link>
+                    <Link to="/login?test=1" className="pill" aria-disabled={busy}>
+                      Conta teste
+                    </Link>
+                  </span>
                 </div>
               </div>
             </div>
@@ -81,4 +89,3 @@ export function Register() {
     </div>
   )
 }
-

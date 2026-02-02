@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { api, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 
+type ConvertDirection = 'USD_TO_VPS' | 'VPS_TO_USD'
+
 export function Dashboard() {
   const auth = useAuth()
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [depositAmount, setDepositAmount] = useState('10.00')
+  const [convertDirection, setConvertDirection] = useState<ConvertDirection>('USD_TO_VPS')
   const [convertAmount, setConvertAmount] = useState('10.00')
 
   const feeCents = 50
@@ -59,7 +62,10 @@ export function Dashboard() {
     try {
       const token = await auth.getValidAccessToken()
       const idempotencyKey = crypto.randomUUID()
-      const data = await api.convertUsdToVps(token, convertAmount, idempotencyKey)
+      const data =
+        convertDirection === 'USD_TO_VPS'
+          ? await api.convertUsdToVps(token, convertAmount, idempotencyKey)
+          : await api.convertVpsToUsd(token, convertAmount, idempotencyKey)
       setWallet({ usdCents: data.usdCents, vpsCents: data.vpsCents })
       setConvertAmount('')
     } catch (err: any) {
@@ -73,7 +79,7 @@ export function Dashboard() {
     <div className="grid">
       <div className="col-12">
         <h1 className="title">Dashboard</h1>
-        <div className="subtitle">Saldo, depósito e conversão USD → VPS (1:1).</div>
+        <div className="subtitle">Saldo, depósito e conversão USD ↔ VPS (1:1).</div>
       </div>
 
       <div className="col-6 card">
@@ -124,13 +130,33 @@ export function Dashboard() {
 
       <div className="col-6 card">
         <div className="card-inner">
-          <h3 style={{ margin: 0 }}>Converter USD → VPS</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <h3 style={{ margin: 0 }}>Converter</h3>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className={convertDirection === 'USD_TO_VPS' ? 'btn btn-primary' : 'btn'}
+                disabled={busy}
+                type="button"
+                onClick={() => setConvertDirection('USD_TO_VPS')}
+              >
+                USD → VPS
+              </button>
+              <button
+                className={convertDirection === 'VPS_TO_USD' ? 'btn btn-primary' : 'btn'}
+                disabled={busy}
+                type="button"
+                onClick={() => setConvertDirection('VPS_TO_USD')}
+              >
+                VPS → USD
+              </button>
+            </div>
+          </div>
           <div className="muted" style={{ marginTop: 6 }}>
             Câmbio 1:1. Taxa fixa: <span className="mono">{formatUsd(feeCents)} USD</span> por transação.
           </div>
           <form className="list" onSubmit={onConvert} style={{ marginTop: 12 }}>
             <div className="field">
-              <div className="label">Valor (USD)</div>
+              <div className="label">Valor ({convertDirection === 'USD_TO_VPS' ? 'USD' : 'VPS'})</div>
               <input className="input mono" value={convertAmount} onChange={(e) => setConvertAmount(e.target.value)} />
             </div>
             <button className="btn btn-primary" disabled={busy} type="submit">
@@ -151,4 +177,3 @@ export function Dashboard() {
     </div>
   )
 }
-

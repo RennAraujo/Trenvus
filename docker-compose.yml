@@ -23,8 +23,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
-      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_PRIVATE_KEY_B64: ${JWT_PRIVATE_KEY_B64}
+      JWT_PUBLIC_KEY_B64: ${JWT_PUBLIC_KEY_B64}
+      APP_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
+      TEST_ACCOUNT_ENABLED: "true"
+      TEST_ACCOUNT_EMAIL: "user@test.com"
+      TEST_ACCOUNT_PASSWORD: "123"
     ports:
       - "8080:8080"
     networks:
@@ -37,7 +41,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "3000:80"
     networks:
       - exchange-network
     restart: always

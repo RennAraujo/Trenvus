@@ -38,7 +38,7 @@ public class AuthService {
 	@Transactional
 	public AuthResult register(String email, String password) {
 		if (users.existsByEmail(email)) {
-			throw new IllegalArgumentException("Email já cadastrado");
+			throw new AuthExceptions.EmailAlreadyRegisteredException();
 		}
 
 		var user = new UserEntity();
@@ -53,7 +53,7 @@ public class AuthService {
 	@Transactional
 	public AuthResult login(String email, String password) {
 		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-		var user = users.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("Credenciais inválidas"));
+		var user = users.findByEmail(email).orElseThrow(AuthExceptions.InvalidCredentialsException::new);
 		return issueTokens(user, Instant.now());
 	}
 
@@ -61,18 +61,18 @@ public class AuthService {
 	public AuthResult refresh(String refreshToken) {
 		var now = Instant.now();
 		var hash = TokenService.sha256Hex(refreshToken);
-		var existing = refreshTokens.findByTokenHash(hash).orElseThrow(() -> new IllegalArgumentException("Refresh token inválido"));
+		var existing = refreshTokens.findByTokenHash(hash).orElseThrow(AuthExceptions.InvalidRefreshTokenException::new);
 
 		if (existing.getRevokedAt() != null) {
-			throw new IllegalArgumentException("Refresh token inválido");
+			throw new AuthExceptions.InvalidRefreshTokenException();
 		}
 		if (existing.getExpiresAt().isBefore(now)) {
-			throw new IllegalArgumentException("Refresh token expirado");
+			throw new AuthExceptions.ExpiredRefreshTokenException();
 		}
 
 		refreshTokens.revoke(hash, now);
 
-		var user = users.findById(existing.getUserId()).orElseThrow(() -> new IllegalArgumentException("Usuário inválido"));
+		var user = users.findById(existing.getUserId()).orElseThrow(AuthExceptions.InvalidUserException::new);
 		return issueTokens(user, now);
 	}
 

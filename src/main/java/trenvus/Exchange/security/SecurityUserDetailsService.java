@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import trenvus.Exchange.user.UserRole;
 import trenvus.Exchange.user.UserRepository;
 
 @Service
@@ -20,7 +21,7 @@ public class SecurityUserDetailsService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		var user = users.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-		return new User(user.getEmail(), user.getPasswordHash(), List.of(new SimpleGrantedAuthority("ROLE_USER")));
+		var role = user.getRole() == null ? UserRole.USER : user.getRole();
+		return new User(user.getEmail(), user.getPasswordHash(), List.of(new SimpleGrantedAuthority("ROLE_" + role.name())));
 	}
 }
-

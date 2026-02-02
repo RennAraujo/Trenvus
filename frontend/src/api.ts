@@ -24,12 +24,70 @@ export type PrivateStatementItem = {
 }
 
 export type MarketTicker = {
-  assetId: string
-  priceUsd: number
+  instId: string
+  lastUsd: number
+  bidUsd: number | null
+  askUsd: number | null
   change24hPercent: number | null
+  high24hUsd: number | null
+  low24hUsd: number | null
+  vol24hBase: number | null
+  vol24hQuote: number | null
+  ts: string | null
 }
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || ''
+export type OrderBook = {
+  instId: string
+  asks: Array<{ priceUsd: number; size: number }>
+  bids: Array<{ priceUsd: number; size: number }>
+  ts: string | null
+}
+
+export type CandlePoint = {
+  ts: string
+  closeUsd: number
+}
+
+export class ApiError extends Error {
+  readonly status: number
+  readonly url: string
+  readonly body: string
+
+  constructor(params: { message: string; status: number; url: string; body: string }) {
+    super(params.message)
+    this.name = 'ApiError'
+    this.status = params.status
+    this.url = params.url
+    this.body = params.body
+  }
+}
+
+export class NetworkError extends Error {
+  readonly url: string
+  readonly cause?: unknown
+
+  constructor(params: { message: string; url: string; cause?: unknown }) {
+    super(params.message)
+    this.name = 'NetworkError'
+    this.url = params.url
+    this.cause = params.cause
+  }
+}
+
+export class ResponseParseError extends Error {
+  readonly url: string
+  readonly body: string
+
+  constructor(params: { message: string; url: string; body: string }) {
+    super(params.message)
+    this.name = 'ResponseParseError'
+    this.url = params.url
+    this.body = params.body
+  }
+}
+
+const ENV = ((import.meta as any).env || {}) as { VITE_API_BASE_URL?: string }
+const API_BASE_URL = ENV.VITE_API_BASE_URL || '/api'
 
 function buildUrl(path: string): string {
   if (!API_BASE_URL) return path
@@ -46,22 +104,62 @@ async function request<T>(
     headers.set('Authorization', `Bearer ${options.accessToken}`)
   }
 
-  const response = await fetch(buildUrl(path), { ...options, headers })
+  const url = buildUrl(path)
+  const method = (options.method || 'GET').toUpperCase()
+  const isAuthCall = path.startsWith('/auth/')
+  const maxAttempts = isAuthCall && method === 'POST' ? 5 : 1
+
+  let response: Response | null = null
+  let lastFetchError: unknown = null
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    lastFetchError = null
+    try {
+      response = await fetch(url, { ...options, headers })
+    } catch (cause) {
+      lastFetchError = cause
+      if (attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, 600))
+        continue
+      }
+      throw new NetworkError({ message: 'Falha de rede ao acessar a API', url, cause })
+    }
+
+    if (response.status === 502 || response.status === 503 || response.status === 504) {
+      if (attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, 600))
+        continue
+      }
+    }
+
+    break
+  }
+
+  if (!response) {
+    throw new NetworkError({ message: 'Falha de rede ao acessar a API', url, cause: lastFetchError })
+  }
   if (!response.ok) {
     let message = 'Erro na requisição'
-    try {
-      const body = await response.json()
-      if (body?.message) message = String(body.message)
-    } catch {
-      message = await response.text().then((t) => t || message)
+    const raw = await response.text().catch(() => '')
+    if (raw) {
+      try {
+        const body = JSON.parse(raw)
+        if (body?.message) message = String(body.message)
+        else message = raw
+      } catch {
+        message = raw
+      }
     }
-    const error = new Error(message) as Error & { status?: number }
-    error.status = response.status
-    throw error
+    throw new ApiError({ message, status: response.status, url, body: raw })
   }
 
   if (response.status === 204) return undefined as T
-  return (await response.json()) as T
+  const raw = await response.text().catch(() => '')
+  if (!raw) return undefined as T
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    throw new ResponseParseError({ message: 'Resposta inválida da API', url, body: raw })
+  }
 }
 
 export const api = {
@@ -84,11 +182,25 @@ export const api = {
       headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
       body: JSON.stringify({ amountUsd }),
     }),
+  convertVpsToUsd: (accessToken: string, amountVps: string, idempotencyKey?: string) =>
+    request<ConvertResponse>('/exchange/convert-vps-to-usd', {
+      method: 'POST',
+      accessToken,
+      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+      body: JSON.stringify({ amountVps }),
+    }),
 
   getPrivateStatement: (accessToken: string, page: number, size: number) =>
     request<PrivateStatementItem[]>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),
 
   getMarketTickers: (accessToken: string) => request<MarketTicker[]>('/market/tickers', { accessToken }),
+  getMarketOrderBook: (accessToken: string, instId: string, size = 10) =>
+    request<OrderBook>(`/market/orderbook?instId=${encodeURIComponent(instId)}&size=${size}`, { accessToken }),
+  getMarketCandles: (accessToken: string, instId: string, bar = '1H', limit = 24) =>
+    request<CandlePoint[]>(
+      `/market/candles?instId=${encodeURIComponent(instId)}&bar=${encodeURIComponent(bar)}&limit=${limit}`,
+      { accessToken },
+    ),
 }
 
 export function formatUsd(cents: number): string {
@@ -98,4 +210,3 @@ export function formatUsd(cents: number): string {
   const remainder = abs % 100
   return `${sign}${dollars}.${String(remainder).padStart(2, '0')}`
 }
-

@@ -54,6 +54,16 @@ public class TransactionController {
 					new ValueLine("USD", -fee)
 			));
 		}
+		if (tx.getType() == TransactionType.CONVERT_VPS_TO_USD) {
+			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
+			var vps = tx.getVpsAmountCents() == null ? 0 : tx.getVpsAmountCents();
+			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
+			return new PrivateStatementItem(List.of(
+					new ValueLine("VPS", -vps),
+					new ValueLine("USD", usd),
+					new ValueLine("USD", -fee)
+			));
+		}
 		return new PrivateStatementItem(List.of());
 	}
 
@@ -61,4 +71,3 @@ public class TransactionController {
 
 	public record ValueLine(String currency, long cents) {}
 }
-

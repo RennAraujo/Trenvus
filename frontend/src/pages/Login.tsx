@@ -1,14 +1,53 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth'
 
 export function Login() {
   const auth = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  const isTestLogin = searchParams.get('test') === '1'
+
+  const loginTestAccount = useCallback(async () => {
+    const testEmail = 'user@test.com'
+    const testPassword = '123'
+    setEmail(testEmail)
+    setPassword(testPassword)
+
+    setError(null)
+    setBusy(true)
+    try {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          await auth.login(testEmail, testPassword)
+          navigate('/app', { replace: true })
+          return
+        } catch (err: any) {
+          const status = typeof err?.status === 'number' ? (err.status as number) : null
+          const retryable = err?.name === 'NetworkError' || status === 502 || status === 503 || status === 504
+          if (attempt < 4 && retryable) {
+            await new Promise((r) => setTimeout(r, 600))
+            continue
+          }
+          throw err
+        }
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Falha ao entrar com conta de teste')
+    } finally {
+      setBusy(false)
+    }
+  }, [auth, navigate])
+
+  useEffect(() => {
+    if (!isTestLogin) return
+    loginTestAccount()
+  }, [isTestLogin, loginTestAccount])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -68,6 +107,11 @@ export function Login() {
                   <button className="btn btn-primary" disabled={busy} type="submit">
                     {busy ? 'Entrando...' : 'Entrar'}
                   </button>
+                  {isTestLogin ? (
+                    <button className="btn" disabled={busy} type="button" onClick={loginTestAccount}>
+                      Entrar com conta teste
+                    </button>
+                  ) : null}
                 </form>
 
                 <div className="muted" style={{ marginTop: 14 }}>
@@ -81,4 +125,3 @@ export function Login() {
     </div>
   )
 }
-
