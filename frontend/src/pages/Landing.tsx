@@ -1,24 +1,31 @@
 import { Link } from 'react-router-dom'
+import { LanguageSwitcher, useI18n } from '../i18n'
 
 export function Landing() {
+  const { t } = useI18n()
+
   return (
     <div className="shell">
       <header className="topbar">
         <div className="container topbar-inner">
-          <Link to="/" className="brand">
-            <span className="brand-mark" aria-hidden="true" />
-            <span>TRENVUS</span>
-          </Link>
-          <nav className="nav">
-            <a href="#features">Recursos</a>
-            <a href="#security">Segurança</a>
-          </nav>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <LanguageSwitcher />
+            <Link to="/" className="brand">
+              <span className="brand-mark" aria-hidden="true" />
+              <span>TRENVUS</span>
+            </Link>
+            <nav className="nav">
+              <a href="#features">{t('landing.nav.features')}</a>
+              <a href="#security">{t('landing.nav.security')}</a>
+            </nav>
+          </div>
+
           <div style={{ display: 'flex', gap: 10 }}>
             <Link className="btn" to="/login">
-              Entrar
+              {t('actions.login')}
             </Link>
             <Link className="btn btn-primary" to="/register">
-              Start your Journey Now
+              {t('landing.cta.startNow')}
             </Link>
           </div>
         </div>
@@ -28,17 +35,14 @@ export function Landing() {
         <div className="container">
           <div className="hero">
             <div>
-              <h1 className="title">Welcome to tomorrow-today!</h1>
-              <p className="subtitle">
-                Deposite USD e converta para VPS com câmbio 1:1, com uma taxa fixa e transparente por transação.
-                Controle total, interface moderna e segurança no backend.
-              </p>
+              <h1 className="title">{t('landing.hero.title')}</h1>
+              <p className="subtitle">{t('landing.hero.subtitle')}</p>
               <div style={{ display: 'flex', gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
                 <Link className="btn btn-primary" to="/register">
-                  Criar conta
+                  {t('landing.cta.createAccount')}
                 </Link>
                 <Link className="btn" to="/login">
-                  Já tenho conta
+                  {t('landing.cta.alreadyHaveAccount')}
                 </Link>
               </div>
 
@@ -46,33 +50,31 @@ export function Landing() {
                 <div className="col-6 card">
                   <div className="card-inner">
                     <div className="pill pill-accent">1:1</div>
-                    <h3 style={{ margin: '10px 0 6px' }}>Conversão simples</h3>
+                    <h3 style={{ margin: '10px 0 6px' }}>{t('landing.feature.simpleConversion.title')}</h3>
                     <div className="muted">
-                      USD → VPS sem variação de câmbio. A taxa é fixa: 0,50 USD por conversão.
+                      {t('landing.feature.simpleConversion.body')}
                     </div>
                   </div>
                 </div>
                 <div className="col-6 card">
                   <div className="card-inner">
-                    <div className="pill">Privacidade</div>
-                    <h3 style={{ margin: '10px 0 6px' }}>Extrato privado</h3>
-                    <div className="muted">O extrato exibe apenas valores, reduzindo exposição de informações.</div>
+                    <div className="pill">{t('landing.pill.privacy')}</div>
+                    <h3 style={{ margin: '10px 0 6px' }}>{t('landing.feature.privacy.title')}</h3>
+                    <div className="muted">{t('landing.feature.privacy.body')}</div>
                   </div>
                 </div>
                 <div className="col-6 card">
                   <div className="card-inner">
-                    <div className="pill">Mercado</div>
-                    <h3 style={{ margin: '10px 0 6px' }}>Acompanhe preços</h3>
-                    <div className="muted">Painel de mercado com preços e variação 24h para ativos configuráveis.</div>
+                    <div className="pill">{t('landing.pill.market')}</div>
+                    <h3 style={{ margin: '10px 0 6px' }}>{t('landing.feature.market.title')}</h3>
+                    <div className="muted">{t('landing.feature.market.body')}</div>
                   </div>
                 </div>
                 <div id="security" className="col-6 card">
                   <div className="card-inner">
-                    <div className="pill">Seguro</div>
-                    <h3 style={{ margin: '10px 0 6px' }}>Transação segura</h3>
-                    <div className="muted">
-                      JWT assinado (RS256), senhas com BCrypt, validações e controle de concorrência no saldo.
-                    </div>
+                    <div className="pill">{t('landing.pill.secure')}</div>
+                    <h3 style={{ margin: '10px 0 6px' }}>{t('landing.feature.security.title')}</h3>
+                    <div className="muted">{t('landing.feature.security.body')}</div>
                   </div>
                 </div>
               </div>

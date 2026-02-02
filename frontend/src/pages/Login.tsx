@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth'
+import { LanguageSwitcher, useI18n } from '../i18n'
 
 export function Login() {
   const auth = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -38,11 +40,11 @@ export function Login() {
         }
       }
     } catch (err: any) {
-      setError(err?.message || 'Falha ao entrar com conta de teste')
+      setError(err?.message || t('errors.loginTestAccount'))
     } finally {
       setBusy(false)
     }
-  }, [auth, navigate])
+  }, [auth, navigate, t])
 
   useEffect(() => {
     if (!isTestLogin) return
@@ -57,7 +59,7 @@ export function Login() {
       await auth.login(email, password)
       navigate('/app', { replace: true })
     } catch (err: any) {
-      setError(err?.message || 'Falha ao entrar')
+      setError(err?.message || t('errors.login'))
     } finally {
       setBusy(false)
     }
@@ -67,13 +69,16 @@ export function Login() {
     <div className="shell">
       <header className="topbar">
         <div className="container topbar-inner">
-          <Link to="/" className="brand">
-            <span className="brand-mark" aria-hidden="true" />
-            <span>TRENVUS</span>
-          </Link>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <LanguageSwitcher />
+            <Link to="/" className="brand">
+              <span className="brand-mark" aria-hidden="true" />
+              <span>TRENVUS</span>
+            </Link>
+          </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <Link className="btn" to="/register">
-              Criar conta
+              {t('actions.register')}
             </Link>
           </div>
         </div>
@@ -84,18 +89,18 @@ export function Login() {
           <div className="grid">
             <div className="col-6 card" style={{ margin: '0 auto', maxWidth: 560, gridColumn: 'span 12' as any }}>
               <div className="card-inner">
-                <h2 style={{ margin: 0 }}>Entrar</h2>
+                <h2 style={{ margin: 0 }}>{t('login.title')}</h2>
                 <p className="muted" style={{ marginTop: 6 }}>
-                  Acesse seu dashboard para depositar USD e converter para VPS.
+                  {t('login.subtitle')}
                 </p>
 
                 <form onSubmit={onSubmit} className="list" style={{ marginTop: 14 }}>
                   <div className="field">
-                    <div className="label">E-mail</div>
+                    <div className="label">{t('labels.email')}</div>
                     <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   <div className="field">
-                    <div className="label">Senha</div>
+                    <div className="label">{t('labels.password')}</div>
                     <input
                       className="input"
                       type="password"
@@ -105,17 +110,20 @@ export function Login() {
                   </div>
                   {error ? <div className="error">{error}</div> : null}
                   <button className="btn btn-primary" disabled={busy} type="submit">
-                    {busy ? 'Entrando...' : 'Entrar'}
+                    {busy ? t('login.loading') : t('actions.login')}
                   </button>
                   {isTestLogin ? (
                     <button className="btn" disabled={busy} type="button" onClick={loginTestAccount}>
-                      Entrar com conta teste
+                      {t('actions.loginTestAccount')}
                     </button>
                   ) : null}
                 </form>
 
                 <div className="muted" style={{ marginTop: 14 }}>
-                  Não tem conta? <Link to="/register" className="pill pill-accent">Criar agora</Link>
+                  {t('login.noAccount')}{' '}
+                  <Link to="/register" className="pill pill-accent">
+                    {t('actions.createNow')}
+                  </Link>
                 </div>
               </div>
             </div>

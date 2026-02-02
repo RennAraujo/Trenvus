@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, type CandlePoint, type MarketTicker, type OrderBook } from '../api'
 import { useAuth } from '../auth'
+import { useI18n } from '../i18n'
 
 export function Market() {
   const auth = useAuth()
+  const { t } = useI18n()
   const [tickers, setTickers] = useState<MarketTicker[]>([])
   const [selectedInstId, setSelectedInstId] = useState<string | null>(null)
   const [orderBook, setOrderBook] = useState<OrderBook | null>(null)
@@ -53,7 +55,7 @@ export function Market() {
         setOrderBook(ob)
       }
     } catch (err: any) {
-      setError(err?.message || 'Falha ao carregar mercado')
+      setError(err?.message || t('errors.loadMarket'))
     } finally {
       setBusy(false)
       refreshInFlightRef.current = false
@@ -70,7 +72,7 @@ export function Market() {
       const data = await api.getMarketOrderBook(token, instId, 10)
       setOrderBook(data)
     } catch (err: any) {
-      setError(err?.message || 'Falha ao carregar livro de ofertas')
+      setError(err?.message || t('errors.loadOrderBook'))
     } finally {
       setBusy(false)
       refreshInFlightRef.current = false
@@ -164,7 +166,7 @@ export function Market() {
 
     return (
       <div style={{ ...placeholderStyle, background: 'rgba(0,0,0,0.18)', overflow: 'hidden' }}>
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-label="sparkline">
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-label={t('labels.sparklineAria')}>
           <defs>
             <linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={fill} />
@@ -181,21 +183,21 @@ export function Market() {
   return (
     <div className="grid">
       <div className="col-12">
-        <h1 className="title">Mercado</h1>
-        <div className="subtitle">Acompanhe preços, variação 24h e livro de ofertas (OKX Market Data).</div>
+        <h1 className="title">{t('market.title')}</h1>
+        <div className="subtitle">{t('market.subtitle')}</div>
       </div>
 
       <div className="col-12">
         {error ? <div className="error">{error}</div> : null}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button className="btn" disabled={busy} onClick={refreshAll}>
-            {busy ? 'Atualizando...' : 'Atualizar'}
+            {busy ? t('actions.updating') : t('actions.update')}
           </button>
         </div>
       </div>
 
-      {tickers.map((t) => {
-        const change = t.change24hPercent
+      {tickers.map((ticker) => {
+        const change = ticker.change24hPercent
         const changeText = change === null ? '—' : `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`
         const changeStyle =
           change === null
@@ -203,46 +205,46 @@ export function Market() {
             : change >= 0
               ? { color: 'rgba(25,193,201,0.95)' }
               : { color: 'rgba(255,77,109,0.95)' }
-        const selected = selectedInstId === t.instId
-        const candles = candlesByInstId[t.instId] || []
+        const selected = selectedInstId === ticker.instId
+        const candles = candlesByInstId[ticker.instId] || []
         return (
           <div
-            key={t.instId}
+            key={ticker.instId}
             className="col-6 card"
             style={selected ? { outline: '2px solid rgba(25,193,201,0.55)', outlineOffset: 2 } : undefined}
           >
             <div className="card-inner">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div className="muted">Instrumento</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, marginTop: 6 }}>{t.instId}</div>
+                  <div className="muted">{t('labels.instrument')}</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, marginTop: 6 }}>{ticker.instId}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {buildSparklineSvg(candles, `spark-${t.instId}`)}
-                  <div className="pill">USD</div>
+                  {buildSparklineSvg(candles, `spark-${ticker.instId}`)}
+                  <div className="pill">{t('labels.usd')}</div>
                   <button
                     className={selected ? 'btn btn-primary' : 'btn'}
                     disabled={busy}
                     onClick={() => {
-                      setSelectedInstId(t.instId)
-                      void refreshOrderBook(t.instId)
+                      setSelectedInstId(ticker.instId)
+                      void refreshOrderBook(ticker.instId)
                     }}
                     type="button"
                   >
-                    Livro
+                    {t('actions.orderBook')}
                   </button>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14 }}>
                 <div>
-                  <div className="muted">Preço</div>
+                  <div className="muted">{t('labels.price')}</div>
                   <div className="mono" style={{ fontSize: 22, fontWeight: 900, marginTop: 6 }}>
-                    {t.lastUsd.toFixed(4)}
+                    {ticker.lastUsd.toFixed(4)}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div className="muted">24h</div>
+                  <div className="muted">{t('labels.change24h')}</div>
                   <div className="mono" style={{ fontSize: 18, fontWeight: 900, marginTop: 6, ...changeStyle }}>
                     {changeText}
                   </div>
@@ -251,15 +253,15 @@ export function Market() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14 }}>
                 <div>
-                  <div className="muted">Bid/Ask</div>
+                  <div className="muted">{t('labels.bidAsk')}</div>
                   <div className="mono" style={{ fontSize: 14, fontWeight: 900, marginTop: 6 }}>
-                    {fmtUsd(t.bidUsd)} / {fmtUsd(t.askUsd)}
+                    {fmtUsd(ticker.bidUsd)} / {fmtUsd(ticker.askUsd)}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div className="muted">High/Low</div>
+                  <div className="muted">{t('labels.highLow')}</div>
                   <div className="mono" style={{ fontSize: 14, fontWeight: 900, marginTop: 6 }}>
-                    {fmtUsd(t.high24hUsd)} / {fmtUsd(t.low24hUsd)}
+                    {fmtUsd(ticker.high24hUsd)} / {fmtUsd(ticker.low24hUsd)}
                   </div>
                 </div>
               </div>
@@ -272,13 +274,14 @@ export function Market() {
         <div className="card-inner">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
             <div>
-              <div className="muted">Livro de ofertas</div>
+              <div className="muted">{t('labels.orderBookTitle')}</div>
               <div style={{ fontSize: 18, fontWeight: 900, marginTop: 6 }}>{selectedInstId || '—'}</div>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {selectedTicker && stats ? (
                 <div className="mono" style={{ fontSize: 14, fontWeight: 900 }}>
-                  bid {fmtUsd(stats.bid)} · ask {fmtUsd(stats.ask)} · spread {fmtUsd(stats.spread)}
+                  {t('labels.bidAsk')}: {fmtUsd(stats.bid)} / {fmtUsd(stats.ask)} · {t('labels.spread')}:{' '}
+                  {fmtUsd(stats.spread)}
                 </div>
               ) : null}
               <button
@@ -287,7 +290,7 @@ export function Market() {
                 onClick={() => (selectedInstId ? refreshOrderBook(selectedInstId) : undefined)}
                 type="button"
               >
-                {busy ? 'Atualizando...' : 'Atualizar livro'}
+                {busy ? t('actions.updating') : t('actions.updateOrderBook')}
               </button>
             </div>
           </div>
@@ -295,7 +298,7 @@ export function Market() {
           <div style={{ display: 'flex', gap: 16, marginTop: 14, alignItems: 'flex-start' }}>
             <div style={{ flex: 1 }}>
               <div className="muted" style={{ marginBottom: 8 }}>
-                Asks (venda)
+                {t('labels.asks')}
               </div>
               <div className="list">
                 {(orderBook?.asks || []).slice(0, 10).map((l, idx) => (
@@ -312,7 +315,7 @@ export function Market() {
 
             <div style={{ flex: 1 }}>
               <div className="muted" style={{ marginBottom: 8 }}>
-                Bids (compra)
+                {t('labels.bids')}
               </div>
               <div className="list">
                 {(orderBook?.bids || []).slice(0, 10).map((l, idx) => (

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
+import { LanguageSwitcher, useI18n } from '../i18n'
 
 export function Register() {
   const auth = useAuth()
   const navigate = useNavigate()
+  const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -18,7 +20,7 @@ export function Register() {
       await auth.register(email, password)
       navigate('/app', { replace: true })
     } catch (err: any) {
-      setError(err?.message || 'Falha ao criar conta')
+      setError(err?.message || t('errors.register'))
     } finally {
       setBusy(false)
     }
@@ -28,13 +30,16 @@ export function Register() {
     <div className="shell">
       <header className="topbar">
         <div className="container topbar-inner">
-          <Link to="/" className="brand">
-            <span className="brand-mark" aria-hidden="true" />
-            <span>TRENVUS</span>
-          </Link>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <LanguageSwitcher />
+            <Link to="/" className="brand">
+              <span className="brand-mark" aria-hidden="true" />
+              <span>TRENVUS</span>
+            </Link>
+          </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <Link className="btn" to="/login">
-              Entrar
+              {t('actions.login')}
             </Link>
           </div>
         </div>
@@ -45,18 +50,18 @@ export function Register() {
           <div className="grid">
             <div className="col-6 card" style={{ margin: '0 auto', maxWidth: 560, gridColumn: 'span 12' as any }}>
               <div className="card-inner">
-                <h2 style={{ margin: 0 }}>Criar conta</h2>
+                <h2 style={{ margin: 0 }}>{t('register.title')}</h2>
                 <p className="muted" style={{ marginTop: 6 }}>
-                  Crie sua conta para ver saldo, extrato privado e acompanhar o mercado.
+                  {t('register.subtitle')}
                 </p>
 
                 <form onSubmit={onSubmit} className="list" style={{ marginTop: 14 }}>
                   <div className="field">
-                    <div className="label">E-mail</div>
+                    <div className="label">{t('labels.email')}</div>
                     <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   <div className="field">
-                    <div className="label">Senha</div>
+                    <div className="label">{t('labels.password')}</div>
                     <input
                       className="input"
                       type="password"
@@ -66,18 +71,18 @@ export function Register() {
                   </div>
                   {error ? <div className="error">{error}</div> : null}
                   <button className="btn btn-primary" disabled={busy} type="submit">
-                    {busy ? 'Criando...' : 'Criar conta'}
+                    {busy ? t('register.loading') : t('actions.register')}
                   </button>
                 </form>
 
                 <div className="muted" style={{ marginTop: 14 }}>
-                  Já tem conta?{' '}
+                  {t('register.haveAccount')}{' '}
                   <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
                     <Link to="/login" className="pill pill-accent">
-                      Entrar
+                      {t('actions.login')}
                     </Link>
                     <Link to="/login?test=1" className="pill" aria-disabled={busy}>
-                      Conta teste
+                      {t('actions.testAccount')}
                     </Link>
                   </span>
                 </div>
