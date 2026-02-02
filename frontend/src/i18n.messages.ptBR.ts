@@ -69,6 +69,7 @@ export const messagesPtBR: Record<string, string> = {
 
   'landing.nav.features': 'Recursos',
   'landing.nav.security': 'Segurança',
+  'landing.nav.manifesto': 'Manifesto',
   'landing.cta.startNow': 'Comece sua jornada agora',
   'landing.hero.title': 'Bem-vindo ao amanhã-hoje!',
   'landing.hero.subtitle':
@@ -86,6 +87,34 @@ export const messagesPtBR: Record<string, string> = {
   'landing.feature.market.body': 'Painel de mercado com preços e variação 24h para ativos configuráveis.',
   'landing.feature.security.title': 'Transação segura',
   'landing.feature.security.body': 'JWT assinado (RS256), senhas com BCrypt, validações e controle de concorrência no saldo.',
+
+  'manifesto.page.title': 'Manifesto',
+  'manifesto.page.subtitle':
+    'Uma comunidade não nasce por acaso — ela nasce por intenção. Escolha o que você quer entender, como participar e o que ampliar.',
+  'manifesto.cta.join': 'Juntar-se à TRENVUS',
+  'manifesto.cta.createAccount': 'Criar conta',
+  'manifesto.cta.security': 'Ver nossa segurança',
+  'manifesto.pill.direction': 'Direção',
+  'manifesto.pill.next': 'Próximo passo',
+  'manifesto.section.interest.title': 'Indique seu principal interesse com a nossa comunidade TRENVUS:',
+  'manifesto.section.interest.body':
+    'Escolha o caminho que mais combina com seu objetivo. A partir disso, guiamos você pelas dinâmicas, pontos de entrada e oportunidades.',
+  'manifesto.option.trv.pill': 'Dinâmica',
+  'manifesto.option.trv.title': 'Entender a dinâmica do TRV',
+  'manifesto.option.trv.body':
+    'Veja como o TRV se comporta, o que representa e como o modelo de pontos de valor se aplica na prática.',
+  'manifesto.option.join.pill': 'Global',
+  'manifesto.option.join.title': 'Saber como posso entrar na TRENVUS globalmente',
+  'manifesto.option.join.body':
+    'Entenda os caminhos de entrada e como participar com clareza, critérios e alinhamento de longo prazo.',
+  'manifesto.option.connections.pill': 'Conexões',
+  'manifesto.option.connections.title':
+    'Promover nossas conexões P2P, B2B e B2C e as oportunidades do sistema de pontos de valor',
+  'manifesto.option.connections.body':
+    'Amplie redes e colaborações no mundo real, conectando pessoas e negócios por meio de um sistema de pontos de valor transparente.',
+  'manifesto.section.next.title': 'Transforme interesse em participação.',
+  'manifesto.section.next.body':
+    'Crie sua conta para acessar a plataforma, acompanhar o mercado e experimentar o produto com uma interface moderna e bases sólidas de segurança.',
 
   'security.page.title': 'Segurança que vira confiança.',
   'security.page.subtitle':

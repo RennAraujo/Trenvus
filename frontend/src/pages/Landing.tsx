@@ -15,7 +15,7 @@ export function Landing() {
               <span>TRENVUS</span>
             </Link>
             <nav className="nav">
-              <a href="#features">{t('landing.nav.features')}</a>
+              <Link to="/manifesto">{t('landing.nav.manifesto')}</Link>
               <Link to="/security">{t('landing.nav.security')}</Link>
             </nav>
           </div>

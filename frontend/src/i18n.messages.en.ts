@@ -69,6 +69,7 @@ export const messagesEn: Record<string, string> = {
 
   'landing.nav.features': 'Features',
   'landing.nav.security': 'Security',
+  'landing.nav.manifesto': 'Manifesto',
   'landing.cta.startNow': 'Start your Journey Now',
   'landing.hero.title': 'Welcome to tomorrow-today!',
   'landing.hero.subtitle':
@@ -86,6 +87,34 @@ export const messagesEn: Record<string, string> = {
   'landing.feature.market.body': 'Market panel with prices and 24h change for configurable assets.',
   'landing.feature.security.title': 'Secure transaction',
   'landing.feature.security.body': 'Signed JWT (RS256), BCrypt passwords, validations, and balance concurrency controls.',
+
+  'manifesto.page.title': 'Manifesto',
+  'manifesto.page.subtitle':
+    'A community is not built by chance — it is built by intention. Choose what you want to understand, join, and amplify.',
+  'manifesto.cta.join': 'Join TRENVUS',
+  'manifesto.cta.createAccount': 'Create account',
+  'manifesto.cta.security': 'See our security',
+  'manifesto.pill.direction': 'Direction',
+  'manifesto.pill.next': 'Next step',
+  'manifesto.section.interest.title': 'Please indicate your main interest with our TRENVUS community:',
+  'manifesto.section.interest.body':
+    'Pick the path that best matches your goal. From there, we will guide you through the dynamics, entry points, and opportunities.',
+  'manifesto.option.trv.pill': 'Dynamics',
+  'manifesto.option.trv.title': 'Understanding the TRV dynamics',
+  'manifesto.option.trv.body':
+    'Learn how TRV behaves, what it represents, and how the value points model is structured in practice.',
+  'manifesto.option.join.pill': 'Global',
+  'manifesto.option.join.title': 'Knowing how can I join TRENVUS globally',
+  'manifesto.option.join.body':
+    'Understand the onboarding paths and how to participate with clarity, criteria, and long-term alignment.',
+  'manifesto.option.connections.pill': 'Connections',
+  'manifesto.option.connections.title':
+    'Promoting our P2P, B2B and B2C connections and value points system opportunities',
+  'manifesto.option.connections.body':
+    'Amplify real-world networks and collaborations, connecting people and businesses through a clear value points system.',
+  'manifesto.section.next.title': 'Turn curiosity into participation.',
+  'manifesto.section.next.body':
+    'Create your account to access the platform, follow the market, and experience the product with a modern interface and strong security foundations.',
 
   'security.page.title': 'Security that turns into trust.',
   'security.page.subtitle':
