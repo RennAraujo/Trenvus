@@ -25,7 +25,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_PRIVATE_KEY_B64: ${JWT_PRIVATE_KEY_B64}
       JWT_PUBLIC_KEY_B64: ${JWT_PUBLIC_KEY_B64}
-      APP_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
+      APP_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://195.200.7.31:3000,https://195.200.7.31:3000,http://localhost:5173,http://127.0.0.1:5173"
       TEST_ACCOUNT_ENABLED: "true"
       TEST_ACCOUNT_EMAIL: "user@test.com"
       TEST_ACCOUNT_PASSWORD: "123"
