@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, formatUsd, type WalletResponse } from '../api'
+import { api, createIdempotencyKey, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
@@ -63,7 +63,7 @@ export function Dashboard() {
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
-      const idempotencyKey = crypto.randomUUID()
+      const idempotencyKey = createIdempotencyKey()
       const data =
         convertDirection === 'USD_TO_VPS'
           ? await api.convertUsdToVps(token, convertAmount, idempotencyKey)

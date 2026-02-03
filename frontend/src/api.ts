@@ -94,6 +94,37 @@ function buildUrl(path: string): string {
   return `${API_BASE_URL.replace(/\/$/, '')}${path}`
 }
 
+function toHex(value: number): string {
+  return value.toString(16).padStart(2, '0')
+}
+
+export function createIdempotencyKey(): string {
+  const cryptoApi = (globalThis as any)?.crypto as Crypto | undefined
+
+  if (cryptoApi && typeof (cryptoApi as any).randomUUID === 'function') {
+    return (cryptoApi as any).randomUUID() as string
+  }
+
+  if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+    const bytes = new Uint8Array(16)
+    cryptoApi.getRandomValues(bytes)
+
+    bytes[6] = (bytes[6] & 0x0f) | 0x40
+    bytes[8] = (bytes[8] & 0x3f) | 0x80
+
+    const b = Array.from(bytes)
+    return [
+      b.slice(0, 4).map(toHex).join(''),
+      b.slice(4, 6).map(toHex).join(''),
+      b.slice(6, 8).map(toHex).join(''),
+      b.slice(8, 10).map(toHex).join(''),
+      b.slice(10, 16).map(toHex).join(''),
+    ].join('-')
+  }
+
+  return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`
+}
+
 async function request<T>(
   path: string,
   options: RequestInit & { accessToken?: string } = {},
