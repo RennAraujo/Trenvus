@@ -9,6 +9,7 @@ type AuthState = {
 
 type AuthContextValue = AuthState & {
   isAuthenticated: boolean
+  userEmail: string | null
   login: (email: string, password: string) => Promise<void>
   loginTestAccount: (id: number) => Promise<void>
   register: (email: string, password: string) => Promise<void>
@@ -47,10 +48,31 @@ function clearTokens() {
   localStorage.removeItem('trenvus.auth')
 }
 
+function decodeBase64Url(input: string): string {
+  const normalized = input.replace(/-/g, '+').replace(/_/g, '/')
+  const pad = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4))
+  return atob(normalized + pad)
+}
+
+function getJwtEmail(accessToken: string | null): string | null {
+  if (!accessToken) return null
+  const parts = accessToken.split('.')
+  if (parts.length < 2) return null
+  try {
+    const raw = decodeBase64Url(parts[1] as string)
+    const payload = JSON.parse(raw) as { email?: unknown }
+    const email = payload?.email
+    return typeof email === 'string' && email.trim() ? email : null
+  } catch {
+    return null
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>(() => loadTokens())
 
   const isAuthenticated = Boolean(state.accessToken && state.refreshToken)
+  const userEmail = useMemo(() => getJwtEmail(state.accessToken), [state.accessToken])
 
   const setFromResponse = useCallback((payload: AuthResponse) => {
     const next = saveTokens(payload)
@@ -101,13 +123,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ...state,
       isAuthenticated,
+      userEmail,
       login,
       loginTestAccount,
       register,
       logout,
       getValidAccessToken,
     }),
-    [state, isAuthenticated, login, loginTestAccount, register, logout, getValidAccessToken],
+    [state, isAuthenticated, userEmail, login, loginTestAccount, register, logout, getValidAccessToken],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
