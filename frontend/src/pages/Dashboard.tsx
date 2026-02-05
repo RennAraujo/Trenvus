@@ -3,7 +3,7 @@ import { api, createIdempotencyKey, formatUsd, type WalletResponse } from '../ap
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
-type ConvertDirection = 'USD_TO_VPS' | 'VPS_TO_USD'
+type ConvertDirection = 'USD_TO_TRV' | 'TRV_TO_USD'
 
 export function Dashboard() {
   const auth = useAuth()
@@ -12,15 +12,15 @@ export function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [depositAmount, setDepositAmount] = useState('10.00')
-  const [convertDirection, setConvertDirection] = useState<ConvertDirection>('USD_TO_VPS')
+  const [convertDirection, setConvertDirection] = useState<ConvertDirection>('USD_TO_TRV')
   const [convertAmount, setConvertAmount] = useState('10.00')
 
   const feeCents = 50
 
   const totals = useMemo(() => {
     const usd = wallet?.usdCents ?? 0
-    const vps = wallet?.vpsCents ?? 0
-    return { usd, vps }
+    const trv = wallet?.trvCents ?? 0
+    return { usd, trv }
   }, [wallet])
 
   async function loadWallet() {
@@ -48,7 +48,7 @@ export function Dashboard() {
     try {
       const token = await auth.getValidAccessToken()
       const data = await api.depositUsd(token, depositAmount)
-      setWallet({ usdCents: data.usdCents, vpsCents: data.vpsCents })
+      setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
       setDepositAmount('')
     } catch (err: any) {
       setError(err?.message || t('errors.deposit'))
@@ -65,10 +65,10 @@ export function Dashboard() {
       const token = await auth.getValidAccessToken()
       const idempotencyKey = createIdempotencyKey()
       const data =
-        convertDirection === 'USD_TO_VPS'
-          ? await api.convertUsdToVps(token, convertAmount, idempotencyKey)
-          : await api.convertVpsToUsd(token, convertAmount, idempotencyKey)
-      setWallet({ usdCents: data.usdCents, vpsCents: data.vpsCents })
+        convertDirection === 'USD_TO_TRV'
+          ? await api.convertUsdToTrv(token, convertAmount, idempotencyKey)
+          : await api.convertTrvToUsd(token, convertAmount, idempotencyKey)
+      setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
       setConvertAmount('')
     } catch (err: any) {
       setError(err?.message || t('errors.convert'))
@@ -102,12 +102,12 @@ export function Dashboard() {
         <div className="card-inner">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
             <div>
-              <div className="muted">{t('dashboard.vpsBalance')}</div>
+              <div className="muted">{t('dashboard.trvBalance')}</div>
               <div className="mono" style={{ fontSize: 28, fontWeight: 900, marginTop: 6 }}>
-                {formatUsd(totals.vps)} VPS
+                {formatUsd(totals.trv)} TRV
               </div>
             </div>
-            <div className="pill">{t('dashboard.vpsRate')}</div>
+            <div className="pill">{t('dashboard.trvRate')}</div>
           </div>
         </div>
       </div>
@@ -136,20 +136,20 @@ export function Dashboard() {
             <h3 style={{ margin: 0 }}>{t('dashboard.convert.title')}</h3>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
-                className={convertDirection === 'USD_TO_VPS' ? 'btn btn-primary' : 'btn'}
+                className={convertDirection === 'USD_TO_TRV' ? 'btn btn-primary' : 'btn'}
                 disabled={busy}
                 type="button"
-                onClick={() => setConvertDirection('USD_TO_VPS')}
+                onClick={() => setConvertDirection('USD_TO_TRV')}
               >
-                {t('dashboard.convert.usdToVps')}
+                {t('dashboard.convert.usdToTrv')}
               </button>
               <button
-                className={convertDirection === 'VPS_TO_USD' ? 'btn btn-primary' : 'btn'}
+                className={convertDirection === 'TRV_TO_USD' ? 'btn btn-primary' : 'btn'}
                 disabled={busy}
                 type="button"
-                onClick={() => setConvertDirection('VPS_TO_USD')}
+                onClick={() => setConvertDirection('TRV_TO_USD')}
               >
-                {t('dashboard.convert.vpsToUsd')}
+                {t('dashboard.convert.trvToUsd')}
               </button>
             </div>
           </div>
@@ -160,7 +160,7 @@ export function Dashboard() {
             <div className="field">
               <div className="label">
                 {t('labels.amountByCurrency', {
-                  currency: convertDirection === 'USD_TO_VPS' ? t('labels.usd') : 'VPS',
+                  currency: convertDirection === 'USD_TO_TRV' ? t('labels.usd') : 'TRV',
                 })}
               </div>
               <input className="input mono" value={convertAmount} onChange={(e) => setConvertAmount(e.target.value)} />

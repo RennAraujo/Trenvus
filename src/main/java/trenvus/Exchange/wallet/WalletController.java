@@ -30,7 +30,7 @@ public class WalletController {
 	public ResponseEntity<WalletResponse> getWallet(@AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
 		var snapshot = walletService.getSnapshot(userId);
-		return ResponseEntity.ok(new WalletResponse(snapshot.usdCents(), snapshot.vpsCents()));
+		return ResponseEntity.ok(new WalletResponse(snapshot.usdCents(), snapshot.trvCents()));
 	}
 
 	@PostMapping("/deposit")
@@ -39,12 +39,12 @@ public class WalletController {
 		Long userId = Long.valueOf(jwt.getSubject());
 		long cents = MoneyCents.parseToCents(request.amountUsd());
 		var result = exchangeService.depositUsd(userId, cents);
-		return ResponseEntity.ok(new WalletOperationResponse(result.usdCents(), result.vpsCents(), result.transactionId()));
+		return ResponseEntity.ok(new WalletOperationResponse(result.usdCents(), result.trvCents(), result.transactionId()));
 	}
 
 	public record DepositRequest(@NotBlank String amountUsd) {}
 
-	public record WalletResponse(long usdCents, long vpsCents) {}
+	public record WalletResponse(long usdCents, long trvCents) {}
 
-	public record WalletOperationResponse(long usdCents, long vpsCents, Long transactionId) {}
+	public record WalletOperationResponse(long usdCents, long trvCents, Long transactionId) {}
 }

@@ -44,22 +44,22 @@ public class TransactionController {
 		if (tx.getType() == TransactionType.DEPOSIT_USD) {
 			return new PrivateStatementItem(List.of(new ValueLine("USD", tx.getUsdAmountCents())));
 		}
-		if (tx.getType() == TransactionType.CONVERT_USD_TO_VPS) {
+		if (tx.getType() == TransactionType.CONVERT_USD_TO_TRV) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
-			var vps = tx.getVpsAmountCents() == null ? 0 : tx.getVpsAmountCents();
+			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
 			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
 			return new PrivateStatementItem(List.of(
 					new ValueLine("USD", -usd),
-					new ValueLine("VPS", vps),
+					new ValueLine("TRV", trv),
 					new ValueLine("USD", -fee)
 			));
 		}
-		if (tx.getType() == TransactionType.CONVERT_VPS_TO_USD) {
+		if (tx.getType() == TransactionType.CONVERT_TRV_TO_USD) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
-			var vps = tx.getVpsAmountCents() == null ? 0 : tx.getVpsAmountCents();
+			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
 			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
 			return new PrivateStatementItem(List.of(
-					new ValueLine("VPS", -vps),
+					new ValueLine("TRV", -trv),
 					new ValueLine("USD", usd),
 					new ValueLine("USD", -fee)
 			));

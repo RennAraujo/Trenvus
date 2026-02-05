@@ -25,92 +25,92 @@ class ExchangeServiceTests {
 	private UserRepository users;
 
 	@Test
-	void convertUsdToVps_appliesFixedFeeAndKeepsOneToOneRate() {
+	void convertUsdToTrv_appliesFixedFeeAndKeepsOneToOneRate() {
 		var userId = createUser("user1@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 2_000);
-		var result = exchangeService.convertUsdToVps(userId, 1_000, "k1");
+		var result = exchangeService.convertUsdToTrv(userId, 1_000, "k1");
 
 		assertEquals(950, result.usdCents());
-		assertEquals(1_000, result.vpsCents());
+		assertEquals(1_000, result.trvCents());
 		assertEquals(ExchangeService.CONVERSION_FEE_USD_CENTS, result.feeUsdCents());
 		assertNotNull(result.transactionId());
 	}
 
 	@Test
-	void convertUsdToVps_isIdempotentWithSameKey() {
+	void convertUsdToTrv_isIdempotentWithSameKey() {
 		var userId = createUser("user2@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 2_000);
-		var first = exchangeService.convertUsdToVps(userId, 1_000, "k1");
-		var second = exchangeService.convertUsdToVps(userId, 1_000, "k1");
+		var first = exchangeService.convertUsdToTrv(userId, 1_000, "k1");
+		var second = exchangeService.convertUsdToTrv(userId, 1_000, "k1");
 
 		assertEquals(first.usdCents(), second.usdCents());
-		assertEquals(first.vpsCents(), second.vpsCents());
+		assertEquals(first.trvCents(), second.trvCents());
 		assertEquals(first.transactionId(), second.transactionId());
 	}
 
 	@Test
-	void convertUsdToVps_rejectsInsufficientBalance() {
+	void convertUsdToTrv_rejectsInsufficientBalance() {
 		var userId = createUser("user3@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 1_000);
-		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertUsdToVps(userId, 1_000, "k1"));
+		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertUsdToTrv(userId, 1_000, "k1"));
 		assertTrue(ex.getMessage().toLowerCase().contains("saldo"));
 	}
 
 	@Test
-	void convertVpsToUsd_appliesFixedFeeAndKeepsOneToOneRate() {
+	void convertTrvToUsd_appliesFixedFeeAndKeepsOneToOneRate() {
 		var userId = createUser("user4@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 2_000);
-		exchangeService.convertUsdToVps(userId, 1_000, "k1");
-		var result = exchangeService.convertVpsToUsd(userId, 1_000, "k2");
+		exchangeService.convertUsdToTrv(userId, 1_000, "k1");
+		var result = exchangeService.convertTrvToUsd(userId, 1_000, "k2");
 
 		assertEquals(1_900, result.usdCents());
-		assertEquals(0, result.vpsCents());
+		assertEquals(0, result.trvCents());
 		assertEquals(ExchangeService.CONVERSION_FEE_USD_CENTS, result.feeUsdCents());
 		assertNotNull(result.transactionId());
 	}
 
 	@Test
-	void convertVpsToUsd_isIdempotentWithSameKey() {
+	void convertTrvToUsd_isIdempotentWithSameKey() {
 		var userId = createUser("user5@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 2_000);
-		exchangeService.convertUsdToVps(userId, 1_000, "k1");
-		var first = exchangeService.convertVpsToUsd(userId, 1_000, "k2");
-		var second = exchangeService.convertVpsToUsd(userId, 1_000, "k2");
+		exchangeService.convertUsdToTrv(userId, 1_000, "k1");
+		var first = exchangeService.convertTrvToUsd(userId, 1_000, "k2");
+		var second = exchangeService.convertTrvToUsd(userId, 1_000, "k2");
 
 		assertEquals(first.usdCents(), second.usdCents());
-		assertEquals(first.vpsCents(), second.vpsCents());
+		assertEquals(first.trvCents(), second.trvCents());
 		assertEquals(first.transactionId(), second.transactionId());
 	}
 
 	@Test
-	void convertVpsToUsd_rejectsAmountNotCoveringFee() {
+	void convertTrvToUsd_rejectsAmountNotCoveringFee() {
 		var userId = createUser("user6@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 2_000);
-		exchangeService.convertUsdToVps(userId, 1_000, "k1");
-		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertVpsToUsd(userId, 50, "k2"));
+		exchangeService.convertUsdToTrv(userId, 1_000, "k1");
+		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertTrvToUsd(userId, 50, "k2"));
 		assertTrue(ex.getMessage().toLowerCase().contains("taxa"));
 	}
 
 	@Test
-	void convertVpsToUsd_rejectsInsufficientBalance() {
+	void convertTrvToUsd_rejectsInsufficientBalance() {
 		var userId = createUser("user7@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 100);
-		exchangeService.convertUsdToVps(userId, 50, "k1");
-		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertVpsToUsd(userId, 100, "k2"));
+		exchangeService.convertUsdToTrv(userId, 50, "k1");
+		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertTrvToUsd(userId, 100, "k2"));
 		assertTrue(ex.getMessage().toLowerCase().contains("saldo"));
 	}
 

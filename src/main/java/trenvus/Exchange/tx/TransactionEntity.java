@@ -27,8 +27,8 @@ public class TransactionEntity {
 	@Column(name = "usd_amount_cents")
 	private Long usdAmountCents;
 
-	@Column(name = "vps_amount_cents")
-	private Long vpsAmountCents;
+	@Column(name = "trv_amount_cents")
+	private Long trvAmountCents;
 
 	@Column(name = "fee_usd_cents")
 	private Long feeUsdCents;
@@ -67,12 +67,12 @@ public class TransactionEntity {
 		this.usdAmountCents = usdAmountCents;
 	}
 
-	public Long getVpsAmountCents() {
-		return vpsAmountCents;
+	public Long getTrvAmountCents() {
+		return trvAmountCents;
 	}
 
-	public void setVpsAmountCents(Long vpsAmountCents) {
-		this.vpsAmountCents = vpsAmountCents;
+	public void setTrvAmountCents(Long trvAmountCents) {
+		this.trvAmountCents = trvAmountCents;
 	}
 
 	public Long getFeeUsdCents() {
@@ -95,4 +95,3 @@ public class TransactionEntity {
 		return createdAt;
 	}
 }
-

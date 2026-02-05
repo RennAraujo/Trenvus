@@ -15,7 +15,7 @@ public class WalletService {
 	@Transactional
 	public void ensureUserWallets(Long userId) {
 		getOrCreate(userId, Currency.USD);
-		getOrCreate(userId, Currency.VPS);
+		getOrCreate(userId, Currency.TRV);
 	}
 
 	@Transactional
@@ -23,8 +23,8 @@ public class WalletService {
 		ensureUserWallets(userId);
 		var list = wallets.findByUserId(userId);
 		long usd = list.stream().filter(w -> w.getCurrency() == Currency.USD).findFirst().map(WalletEntity::getBalanceCents).orElse(0L);
-		long vps = list.stream().filter(w -> w.getCurrency() == Currency.VPS).findFirst().map(WalletEntity::getBalanceCents).orElse(0L);
-		return new WalletSnapshot(usd, vps);
+		long trv = list.stream().filter(w -> w.getCurrency() == Currency.TRV).findFirst().map(WalletEntity::getBalanceCents).orElse(0L);
+		return new WalletSnapshot(usd, trv);
 	}
 
 	private WalletEntity getOrCreate(Long userId, Currency currency) {
@@ -44,6 +44,5 @@ public class WalletService {
 		}
 	}
 
-	public record WalletSnapshot(long usdCents, long vpsCents) {}
+	public record WalletSnapshot(long usdCents, long trvCents) {}
 }
-

@@ -7,7 +7,7 @@ export type AuthResponse = {
 
 export type WalletResponse = {
   usdCents: number
-  vpsCents: number
+  trvCents: number
 }
 
 export type WalletOperationResponse = WalletResponse & {
@@ -206,19 +206,19 @@ export const api = {
   getWallet: (accessToken: string) => request<WalletResponse>('/wallet', { accessToken }),
   depositUsd: (accessToken: string, amountUsd: string) =>
     request<WalletOperationResponse>('/wallet/deposit', { method: 'POST', accessToken, body: JSON.stringify({ amountUsd }) }),
-  convertUsdToVps: (accessToken: string, amountUsd: string, idempotencyKey?: string) =>
+  convertUsdToTrv: (accessToken: string, amountUsd: string, idempotencyKey?: string) =>
     request<ConvertResponse>('/exchange/convert', {
       method: 'POST',
       accessToken,
       headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
       body: JSON.stringify({ amountUsd }),
     }),
-  convertVpsToUsd: (accessToken: string, amountVps: string, idempotencyKey?: string) =>
-    request<ConvertResponse>('/exchange/convert-vps-to-usd', {
+  convertTrvToUsd: (accessToken: string, amountTrv: string, idempotencyKey?: string) =>
+    request<ConvertResponse>('/exchange/convert-trv-to-usd', {
       method: 'POST',
       accessToken,
       headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
-      body: JSON.stringify({ amountVps }),
+      body: JSON.stringify({ amountTrv }),
     }),
 
   getPrivateStatement: (accessToken: string, page: number, size: number) =>

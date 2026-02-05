@@ -1,6 +1,6 @@
-# Exchange Platform
+﻿# Exchange Platform
 
-Plataforma de câmbio digital segura e moderna, permitindo gestão de carteiras e conversão de moedas (USD -> VPS).
+Plataforma de câmbio digital segura e moderna, permitindo gestão de carteiras e conversão de moedas (USD -> TRV).
 
 ## Tech Stack
 
@@ -110,15 +110,16 @@ A documentação interativa está disponível via Swagger UI:
 - Proteção contra falhas de rede com retries automáticos.
 
 ### Conversão de Moedas
-- Suporte a conversão USD <-> VPS.
+- Suporte a conversão USD <-> TRV.
 - Taxas e taxas de serviço configuráveis.
 
 - **Autenticação**: Login e Registro com JWT.
 - **Carteira**: Depósito de USD e visualização de saldo.
-- **Câmbio**: Conversão de USD para VPS (1:1 com taxa fixa de $0.50).
+- **Câmbio**: Conversão de USD para TRV (1:1 com taxa fixa de $0.50).
 - **Extrato**: Histórico privado de transações.
 - **Mercado**: Dados de mercado em tempo real (simulado/integrado).
 
 ## Licença
 
 Este projeto é privado e proprietário.
+
