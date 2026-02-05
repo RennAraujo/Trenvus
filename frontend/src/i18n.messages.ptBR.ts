@@ -12,6 +12,8 @@ export const messagesPtBR: Record<string, string> = {
   'actions.createNow': 'Criar agora',
   'actions.testAccount': 'Conta teste',
   'actions.loginTestAccount': 'Entrar com conta teste',
+  'actions.testAccountN': 'Conta teste {n}',
+  'actions.loginTestAccountN': 'Entrar com conta teste {n}',
   'actions.updating': 'Atualizando...',
   'actions.update': 'Atualizar',
   'actions.updateBalance': 'Atualizar saldo',

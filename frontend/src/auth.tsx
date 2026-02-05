@@ -10,6 +10,7 @@ type AuthState = {
 type AuthContextValue = AuthState & {
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
+  loginTestAccount: (id: number) => Promise<void>
   register: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   getValidAccessToken: () => Promise<string>
@@ -61,6 +62,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setFromResponse(payload)
   }, [setFromResponse])
 
+  const loginTestAccount = useCallback(async (id: number) => {
+    const payload = await api.loginTestAccount(id)
+    setFromResponse(payload)
+  }, [setFromResponse])
+
   const register = useCallback(async (email: string, password: string) => {
     const payload = await api.register(email, password)
     setFromResponse(payload)
@@ -96,11 +102,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...state,
       isAuthenticated,
       login,
+      loginTestAccount,
       register,
       logout,
       getValidAccessToken,
     }),
-    [state, isAuthenticated, login, register, logout, getValidAccessToken],
+    [state, isAuthenticated, login, loginTestAccount, register, logout, getValidAccessToken],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -111,4 +118,3 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('AuthProvider ausente')
   return ctx
 }
-

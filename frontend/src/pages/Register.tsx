@@ -11,6 +11,7 @@ export function Register() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [showTestAccounts, setShowTestAccounts] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -81,9 +82,46 @@ export function Register() {
                     <Link to="/login" className="pill pill-accent">
                       {t('actions.login')}
                     </Link>
-                    <Link to="/login?test=1" className="pill" aria-disabled={busy}>
-                      {t('actions.testAccount')}
-                    </Link>
+                    <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' as any }}>
+                      <button
+                        type="button"
+                        className="pill"
+                        disabled={busy}
+                        aria-expanded={showTestAccounts}
+                        aria-haspopup="menu"
+                        onClick={() => setShowTestAccounts((v) => !v)}
+                      >
+                        {t('actions.testAccount')}
+                      </button>
+                      {showTestAccounts ? (
+                        <span role="menu" style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                          <Link
+                            to="/login?test=1"
+                            className="pill"
+                            aria-disabled={busy}
+                            onClick={() => setShowTestAccounts(false)}
+                          >
+                            {t('actions.testAccountN', { n: 1 })}
+                          </Link>
+                          <Link
+                            to="/login?test=2"
+                            className="pill"
+                            aria-disabled={busy}
+                            onClick={() => setShowTestAccounts(false)}
+                          >
+                            {t('actions.testAccountN', { n: 2 })}
+                          </Link>
+                          <Link
+                            to="/login?test=3"
+                            className="pill"
+                            aria-disabled={busy}
+                            onClick={() => setShowTestAccounts(false)}
+                          >
+                            {t('actions.testAccountN', { n: 3 })}
+                          </Link>
+                        </span>
+                      ) : null}
+                    </span>
                   </span>
                 </div>
               </div>

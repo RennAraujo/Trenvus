@@ -12,6 +12,8 @@ export const messagesEn: Record<string, string> = {
   'actions.createNow': 'Create now',
   'actions.testAccount': 'Test account',
   'actions.loginTestAccount': 'Login with test account',
+  'actions.testAccountN': 'Test account {n}',
+  'actions.loginTestAccountN': 'Login with test account {n}',
   'actions.updating': 'Updating...',
   'actions.update': 'Refresh',
   'actions.updateBalance': 'Refresh balance',

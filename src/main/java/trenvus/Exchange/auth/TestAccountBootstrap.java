@@ -1,6 +1,5 @@
 package trenvus.Exchange.auth;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,7 +7,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import trenvus.Exchange.user.UserEntity;
 import trenvus.Exchange.user.UserRepository;
-import trenvus.Exchange.user.UserRole;
 import trenvus.Exchange.wallet.WalletService;
 
 @Component
@@ -16,44 +14,39 @@ public class TestAccountBootstrap implements ApplicationRunner {
 	private final UserRepository users;
 	private final PasswordEncoder passwordEncoder;
 	private final WalletService walletService;
-	private final boolean enabled;
-	private final String email;
-	private final String password;
+	private final TestAccountsConfig testAccounts;
 
 	public TestAccountBootstrap(
 			UserRepository users,
 			PasswordEncoder passwordEncoder,
 			WalletService walletService,
-			@Value("${TEST_ACCOUNT_ENABLED:false}") boolean enabled,
-			@Value("${TEST_ACCOUNT_EMAIL:user@test.com}") String email,
-			@Value("${TEST_ACCOUNT_PASSWORD:123}") String password
+			TestAccountsConfig testAccounts
 	) {
 		this.users = users;
 		this.passwordEncoder = passwordEncoder;
 		this.walletService = walletService;
-		this.enabled = enabled;
-		this.email = email;
-		this.password = password;
+		this.testAccounts = testAccounts;
 	}
 
 	@Override
 	@Transactional
 	public void run(ApplicationArguments args) {
-		if (!enabled) {
+		if (!testAccounts.isEnabled()) {
 			return;
 		}
 
-		var user = users.findByEmail(email).orElseGet(() -> {
-			var created = new UserEntity();
-			created.setEmail(email);
-			return created;
-		});
+		for (var account : testAccounts.accounts()) {
+			var user = users.findByEmail(account.email()).orElseGet(() -> {
+				var created = new UserEntity();
+				created.setEmail(account.email());
+				return created;
+			});
 
-		user.setRole(UserRole.ADMIN);
-		user.setPasswordHash(passwordEncoder.encode(password));
-		user = users.save(user);
+			user.setRole(account.role());
+			user.setPasswordHash(passwordEncoder.encode(account.password()));
+			user = users.save(user);
 
-		walletService.ensureUserWallets(user.getId());
+			walletService.ensureUserWallets(user.getId());
+		}
 	}
 }
-

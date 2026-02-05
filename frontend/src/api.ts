@@ -202,6 +202,8 @@ export const api = {
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
   login: (email: string, password: string) =>
     request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  loginTestAccount: (id: number) =>
+    request<AuthResponse>('/auth/test-login', { method: 'POST', body: JSON.stringify({ id }) }),
   refresh: (refreshToken: string) =>
     request<AuthResponse>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
   logout: (refreshToken: string) =>

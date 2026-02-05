@@ -13,20 +13,17 @@ export function Login() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const isTestLogin = searchParams.get('test') === '1'
+  const testIdRaw = searchParams.get('test')
+  const testId = testIdRaw ? Number(testIdRaw) : NaN
+  const isTestLogin = Number.isFinite(testId) && testId >= 1 && testId <= 3
 
-  const loginTestAccount = useCallback(async () => {
-    const testEmail = 'user@test.com'
-    const testPassword = '123'
-    setEmail(testEmail)
-    setPassword(testPassword)
-
+  const loginTestAccount = useCallback(async (id: number) => {
     setError(null)
     setBusy(true)
     try {
       for (let attempt = 0; attempt < 5; attempt++) {
         try {
-          await auth.login(testEmail, testPassword)
+          await auth.loginTestAccount(id)
           navigate('/app', { replace: true })
           return
         } catch (err: any) {
@@ -48,8 +45,8 @@ export function Login() {
 
   useEffect(() => {
     if (!isTestLogin) return
-    loginTestAccount()
-  }, [isTestLogin, loginTestAccount])
+    loginTestAccount(testId)
+  }, [isTestLogin, loginTestAccount, testId])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -112,11 +109,17 @@ export function Login() {
                   <button className="btn btn-primary" disabled={busy} type="submit">
                     {busy ? t('login.loading') : t('actions.login')}
                   </button>
-                  {isTestLogin ? (
-                    <button className="btn" disabled={busy} type="button" onClick={loginTestAccount}>
-                      {t('actions.loginTestAccount')}
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as any }}>
+                    <button className="btn" disabled={busy} type="button" onClick={() => loginTestAccount(1)}>
+                      {t('actions.loginTestAccountN', { n: 1 })}
                     </button>
-                  ) : null}
+                    <button className="btn" disabled={busy} type="button" onClick={() => loginTestAccount(2)}>
+                      {t('actions.loginTestAccountN', { n: 2 })}
+                    </button>
+                    <button className="btn" disabled={busy} type="button" onClick={() => loginTestAccount(3)}>
+                      {t('actions.loginTestAccountN', { n: 3 })}
+                    </button>
+                  </div>
                 </form>
 
                 <div className="muted" style={{ marginTop: 14 }}>

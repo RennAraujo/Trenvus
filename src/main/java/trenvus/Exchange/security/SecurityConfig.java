@@ -40,6 +40,7 @@ public class SecurityConfig {
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/register")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/login")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/test-login")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/refresh")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/logout")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui.html")).permitAll()
