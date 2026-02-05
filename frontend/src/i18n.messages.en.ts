@@ -160,6 +160,7 @@ export const messagesEn: Record<string, string> = {
 
   'errors.loadBalance': 'Failed to load balance',
   'errors.deposit': 'Failed to deposit',
+  'errors.depositMin': 'Minimum deposit is {min} USD.',
   'errors.convert': 'Failed to convert',
   'errors.transfer': 'Failed to transfer',
   'errors.loadStatement': 'Failed to load statement',

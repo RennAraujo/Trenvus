@@ -15,6 +15,7 @@ import trenvus.Exchange.wallet.WalletService;
 @Service
 public class ExchangeService {
 	public static final int CONVERSION_FEE_PERCENT = 1;
+	public static final long MIN_DEPOSIT_USD_CENTS = 1_000;
 
 	private final WalletRepository wallets;
 	private final WalletService walletService;
@@ -28,6 +29,9 @@ public class ExchangeService {
 
 	@Transactional
 	public WalletOperationResult depositUsd(Long userId, long amountUsdCents) {
+		if (amountUsdCents < MIN_DEPOSIT_USD_CENTS) {
+			throw new IllegalArgumentException("deposit_minimum_usd_10");
+		}
 		walletService.ensureUserWallets(userId);
 
 		var locked = wallets.findForUpdate(userId, List.of(Currency.USD));

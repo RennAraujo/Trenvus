@@ -25,6 +25,15 @@ class ExchangeServiceTests {
 	private UserRepository users;
 
 	@Test
+	void depositUsd_rejectsAmountBelowMinimum() {
+		var userId = createUser("user0@trenvus.local");
+		walletService.ensureUserWallets(userId);
+
+		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.depositUsd(userId, 999));
+		assertTrue(ex.getMessage().toLowerCase().contains("deposit_minimum"));
+	}
+
+	@Test
 	void convertUsdToTrv_appliesOnePercentFeeAndKeepsOneToOneRate() {
 		var userId = createUser("user1@trenvus.local");
 		walletService.ensureUserWallets(userId);

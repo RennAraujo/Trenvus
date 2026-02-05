@@ -5,6 +5,15 @@ import { useI18n } from '../i18n'
 
 type ConvertDirection = 'USD_TO_TRV' | 'TRV_TO_USD'
 
+function parseStrictCents(value: string): number | null {
+  const v = value.trim()
+  if (!/^\d+(\.\d{2})$/.test(v)) return null
+  const [whole, frac] = v.split('.')
+  const cents = Number(whole) * 100 + Number(frac)
+  if (!Number.isFinite(cents) || cents <= 0) return null
+  return cents
+}
+
 export function Dashboard() {
   const auth = useAuth()
   const { t } = useI18n()
@@ -42,6 +51,11 @@ export function Dashboard() {
   async function onDeposit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    const cents = parseStrictCents(depositAmount)
+    if (cents == null || cents < 1000) {
+      setError(t('errors.depositMin', { min: '10.00' }))
+      return
+    }
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()

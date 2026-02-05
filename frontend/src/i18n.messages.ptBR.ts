@@ -160,6 +160,7 @@ export const messagesPtBR: Record<string, string> = {
 
   'errors.loadBalance': 'Falha ao carregar saldo',
   'errors.deposit': 'Falha ao depositar',
+  'errors.depositMin': 'O depósito mínimo é de {min} USD.',
   'errors.convert': 'Falha ao converter',
   'errors.transfer': 'Falha ao transferir',
   'errors.loadStatement': 'Falha ao carregar extrato',
