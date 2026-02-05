@@ -55,7 +55,7 @@ export const messagesEn: Record<string, string> = {
   'statement.empty': 'No transactions',
 
   'market.title': 'Market',
-  'market.subtitle': 'Track prices, 24h change, and the order book (OKX Market Data).',
+  'market.subtitle': 'Track prices, 24h change, and the order book.',
 
   'login.title': 'Login',
   'login.subtitle': 'Access your dashboard to deposit USD and convert to TRV.',

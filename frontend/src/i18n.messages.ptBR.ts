@@ -55,7 +55,7 @@ export const messagesPtBR: Record<string, string> = {
   'statement.empty': 'Sem transações',
 
   'market.title': 'Mercado',
-  'market.subtitle': 'Acompanhe preços, variação 24h e livro de ofertas (OKX Market Data).',
+  'market.subtitle': 'Acompanhe preços, variação 24h e livro de ofertas.',
 
   'login.title': 'Entrar',
   'login.subtitle': 'Acesse seu dashboard para depositar USD e converter para TRV.',

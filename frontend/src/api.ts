@@ -25,12 +25,14 @@ export type PrivateStatementItem = {
 
 export type MarketTicker = {
   instId: string
-  lastUsd: number
-  bidUsd: number | null
-  askUsd: number | null
+  baseCurrency: string | null
+  quoteCurrency: string | null
+  last: number
+  bid: number | null
+  ask: number | null
   change24hPercent: number | null
-  high24hUsd: number | null
-  low24hUsd: number | null
+  high24h: number | null
+  low24h: number | null
   vol24hBase: number | null
   vol24hQuote: number | null
   ts: string | null
@@ -38,14 +40,16 @@ export type MarketTicker = {
 
 export type OrderBook = {
   instId: string
-  asks: Array<{ priceUsd: number; size: number }>
-  bids: Array<{ priceUsd: number; size: number }>
+  baseCurrency: string | null
+  quoteCurrency: string | null
+  asks: Array<{ price: number; size: number }>
+  bids: Array<{ price: number; size: number }>
   ts: string | null
 }
 
 export type CandlePoint = {
   ts: string
-  closeUsd: number
+  close: number
 }
 
 export class ApiError extends Error {
