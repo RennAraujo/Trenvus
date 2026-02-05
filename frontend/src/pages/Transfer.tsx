@@ -62,7 +62,12 @@ export function Transfer() {
       setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
       setAmountTrv('')
     } catch (err: any) {
-      setError(err?.message || t('errors.transfer'))
+      const message = typeof err?.message === 'string' ? err.message : null
+      if (message === 'Não é possível transferir para si mesmo') {
+        setError(t('errors.transferSelf'))
+      } else {
+        setError(message || t('errors.transfer'))
+      }
     } finally {
       setBusy(false)
     }

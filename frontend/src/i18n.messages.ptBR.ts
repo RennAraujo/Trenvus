@@ -163,6 +163,7 @@ export const messagesPtBR: Record<string, string> = {
   'errors.depositMin': 'O depósito mínimo é de {min} USD.',
   'errors.convert': 'Falha ao converter',
   'errors.transfer': 'Falha ao transferir',
+  'errors.transferSelf': 'Não é possível transferir para si mesmo',
   'errors.loadStatement': 'Falha ao carregar extrato',
   'errors.loadMarket': 'Falha ao carregar mercado',
   'errors.loadOrderBook': 'Falha ao carregar livro de ofertas',
