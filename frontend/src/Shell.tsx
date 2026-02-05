@@ -21,6 +21,7 @@ export function Shell() {
               <NavLink to="/app">{t('nav.dashboard')}</NavLink>
               <NavLink to="/app/statement">{t('nav.statement')}</NavLink>
               <NavLink to="/app/market">{t('nav.market')}</NavLink>
+              <NavLink to="/app/transfer">{t('nav.transfer')}</NavLink>
             </nav>
           </div>
 

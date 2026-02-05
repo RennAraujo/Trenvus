@@ -14,7 +14,7 @@ import trenvus.Exchange.wallet.WalletService;
 
 @Service
 public class ExchangeService {
-	public static final long CONVERSION_FEE_USD_CENTS = 50;
+	public static final int CONVERSION_FEE_PERCENT = 1;
 
 	private final WalletRepository wallets;
 	private final WalletService walletService;
@@ -53,11 +53,14 @@ public class ExchangeService {
 			var existing = transactions.findByUserIdAndIdempotencyKey(userId, idempotencyKey);
 			if (existing.isPresent()) {
 				var snapshot = walletService.getSnapshot(userId);
-				return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), existing.get().getId(), CONVERSION_FEE_USD_CENTS);
+				var fee = existing.get().getFeeUsdCents() == null ? 0 : existing.get().getFeeUsdCents();
+				return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), existing.get().getId(), fee);
 			}
 		} else {
 			idempotencyKey = null;
 		}
+
+		long feeUsdCents = feeUsdCentsForConversion(amountUsdCents);
 
 		var lockedWallets = wallets.findForUpdate(userId, List.of(Currency.USD, Currency.TRV));
 		var map = new EnumMap<Currency, trenvus.Exchange.wallet.WalletEntity>(Currency.class);
@@ -70,7 +73,7 @@ public class ExchangeService {
 			throw new IllegalStateException("Carteira não inicializada");
 		}
 
-		long debitUsd = Math.addExact(amountUsdCents, CONVERSION_FEE_USD_CENTS);
+		long debitUsd = Math.addExact(amountUsdCents, feeUsdCents);
 		if (usdWallet.getBalanceCents() < debitUsd) {
 			throw new IllegalArgumentException("Saldo insuficiente");
 		}
@@ -83,7 +86,7 @@ public class ExchangeService {
 		tx.setType(TransactionType.CONVERT_USD_TO_TRV);
 		tx.setUsdAmountCents(amountUsdCents);
 		tx.setTrvAmountCents(amountUsdCents);
-		tx.setFeeUsdCents(CONVERSION_FEE_USD_CENTS);
+		tx.setFeeUsdCents(feeUsdCents);
 		tx.setIdempotencyKey(idempotencyKey);
 
 		try {
@@ -92,13 +95,14 @@ public class ExchangeService {
 			if (idempotencyKey != null) {
 				var existing = transactions.findByUserIdAndIdempotencyKey(userId, idempotencyKey).orElseThrow();
 				var snapshot = walletService.getSnapshot(userId);
-				return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), existing.getId(), CONVERSION_FEE_USD_CENTS);
+				var fee = existing.getFeeUsdCents() == null ? 0 : existing.getFeeUsdCents();
+				return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), existing.getId(), fee);
 			}
 			throw ex;
 		}
 
 		var snapshot = walletService.getSnapshot(userId);
-		return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), tx.getId(), CONVERSION_FEE_USD_CENTS);
+		return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), tx.getId(), feeUsdCents);
 	}
 
 	@Transactional
@@ -109,13 +113,15 @@ public class ExchangeService {
 			var existing = transactions.findByUserIdAndIdempotencyKey(userId, idempotencyKey);
 			if (existing.isPresent()) {
 				var snapshot = walletService.getSnapshot(userId);
-				return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), existing.get().getId(), CONVERSION_FEE_USD_CENTS);
+				var fee = existing.get().getFeeUsdCents() == null ? 0 : existing.get().getFeeUsdCents();
+				return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), existing.get().getId(), fee);
 			}
 		} else {
 			idempotencyKey = null;
 		}
 
-		if (amountTrvCents <= CONVERSION_FEE_USD_CENTS) {
+		long feeUsdCents = feeUsdCentsForConversion(amountTrvCents);
+		if (amountTrvCents <= feeUsdCents) {
 			throw new IllegalArgumentException("Valor deve ser maior que a taxa");
 		}
 
@@ -134,7 +140,7 @@ public class ExchangeService {
 			throw new IllegalArgumentException("Saldo insuficiente");
 		}
 
-		long creditUsd = Math.subtractExact(amountTrvCents, CONVERSION_FEE_USD_CENTS);
+		long creditUsd = Math.subtractExact(amountTrvCents, feeUsdCents);
 		trvWallet.setBalanceCents(trvWallet.getBalanceCents() - amountTrvCents);
 		usdWallet.setBalanceCents(Math.addExact(usdWallet.getBalanceCents(), creditUsd));
 
@@ -143,7 +149,7 @@ public class ExchangeService {
 		tx.setType(TransactionType.CONVERT_TRV_TO_USD);
 		tx.setUsdAmountCents(amountTrvCents);
 		tx.setTrvAmountCents(amountTrvCents);
-		tx.setFeeUsdCents(CONVERSION_FEE_USD_CENTS);
+		tx.setFeeUsdCents(feeUsdCents);
 		tx.setIdempotencyKey(idempotencyKey);
 
 		try {
@@ -152,13 +158,22 @@ public class ExchangeService {
 			if (idempotencyKey != null) {
 				var existing = transactions.findByUserIdAndIdempotencyKey(userId, idempotencyKey).orElseThrow();
 				var snapshot = walletService.getSnapshot(userId);
-				return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), existing.getId(), CONVERSION_FEE_USD_CENTS);
+				var fee = existing.getFeeUsdCents() == null ? 0 : existing.getFeeUsdCents();
+				return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), existing.getId(), fee);
 			}
 			throw ex;
 		}
 
 		var snapshot = walletService.getSnapshot(userId);
-		return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), tx.getId(), CONVERSION_FEE_USD_CENTS);
+		return new ConvertResult(snapshot.usdCents(), snapshot.trvCents(), tx.getId(), feeUsdCents);
+	}
+
+	private static long feeUsdCentsForConversion(long amountCents) {
+		long fee = Math.floorDiv(amountCents, 100);
+		if (fee <= 0) {
+			throw new IllegalArgumentException("Valor deve ser no mínimo 1.00");
+		}
+		return fee;
 	}
 
 	public record WalletOperationResult(long usdCents, long trvCents, Long transactionId) {}

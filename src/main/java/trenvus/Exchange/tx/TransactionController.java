@@ -64,6 +64,18 @@ public class TransactionController {
 					new ValueLine("USD", -fee)
 			));
 		}
+		if (tx.getType() == TransactionType.TRANSFER_TRV_OUT) {
+			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
+			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
+			return new PrivateStatementItem(List.of(
+					new ValueLine("TRV", -trv),
+					new ValueLine("TRV", -fee)
+			));
+		}
+		if (tx.getType() == TransactionType.TRANSFER_TRV_IN) {
+			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
+			return new PrivateStatementItem(List.of(new ValueLine("TRV", trv)));
+		}
 		return new PrivateStatementItem(List.of());
 	}
 

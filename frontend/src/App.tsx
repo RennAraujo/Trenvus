@@ -8,6 +8,7 @@ import { Register } from './pages/Register'
 import { Dashboard } from './pages/Dashboard'
 import { Statement } from './pages/Statement'
 import { Market } from './pages/Market'
+import { Transfer } from './pages/Transfer'
 import { Security } from './pages/Security'
 import { Manifesto } from './pages/Manifesto'
 
@@ -32,6 +33,7 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="statement" element={<Statement />} />
             <Route path="market" element={<Market />} />
+            <Route path="transfer" element={<Transfer />} />
           </Route>
         </Routes>
       </BrowserRouter>

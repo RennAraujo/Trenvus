@@ -5,6 +5,7 @@ export const messagesPtBR: Record<string, string> = {
   'nav.dashboard': 'Dashboard',
   'nav.statement': 'Extrato',
   'nav.market': 'Mercado',
+  'nav.transfer': 'Transferência',
 
   'actions.logout': 'Sair',
   'actions.login': 'Entrar',
@@ -49,7 +50,7 @@ export const messagesPtBR: Record<string, string> = {
   'dashboard.convert.title': 'Converter',
   'dashboard.convert.usdToTrv': 'USD → TRV',
   'dashboard.convert.trvToUsd': 'TRV → USD',
-  'dashboard.convert.feeLine': 'Câmbio 1:1. Taxa fixa: {fee} USD por transação.',
+  'dashboard.convert.feeLine': 'Câmbio 1:1. Taxa: 1% do valor por transação.',
   'dashboard.convert.submit': 'Converter',
 
   'statement.title': 'Extrato privado',
@@ -58,6 +59,13 @@ export const messagesPtBR: Record<string, string> = {
 
   'market.title': 'Mercado',
   'market.subtitle': 'Acompanhe preços, variação 24h e livro de ofertas.',
+
+  'transfer.title': 'Transferência',
+  'transfer.subtitle': 'Transfira TRV entre usuários. Taxa fixa: 1% do valor.',
+  'transfer.toEmail': 'E-mail do destinatário',
+  'transfer.amountTrv': 'Valor (TRV)',
+  'transfer.feeLine': 'Taxa (1%): {fee} TRV | Total debitado: {total} TRV',
+  'transfer.submit': 'Transferir',
 
   'login.title': 'Entrar',
   'login.subtitle': 'Acesse seu dashboard para depositar USD e converter para TRV.',
@@ -79,7 +87,7 @@ export const messagesPtBR: Record<string, string> = {
   'landing.cta.createAccount': 'Criar conta',
   'landing.cta.alreadyHaveAccount': 'Já tenho conta',
   'landing.feature.simpleConversion.title': 'Conversão simples',
-  'landing.feature.simpleConversion.body': 'USD → TRV sem variação de câmbio. A taxa é fixa: 0,50 USD por conversão.',
+  'landing.feature.simpleConversion.body': 'USD → TRV sem variação de câmbio. Taxa fixa: 1% por conversão.',
   'landing.pill.privacy': 'Privacidade',
   'landing.pill.market': 'Mercado',
   'landing.pill.secure': 'Seguro',
@@ -153,6 +161,7 @@ export const messagesPtBR: Record<string, string> = {
   'errors.loadBalance': 'Falha ao carregar saldo',
   'errors.deposit': 'Falha ao depositar',
   'errors.convert': 'Falha ao converter',
+  'errors.transfer': 'Falha ao transferir',
   'errors.loadStatement': 'Falha ao carregar extrato',
   'errors.loadMarket': 'Falha ao carregar mercado',
   'errors.loadOrderBook': 'Falha ao carregar livro de ofertas',

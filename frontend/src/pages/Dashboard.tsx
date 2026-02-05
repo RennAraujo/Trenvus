@@ -15,8 +15,6 @@ export function Dashboard() {
   const [convertDirection, setConvertDirection] = useState<ConvertDirection>('USD_TO_TRV')
   const [convertAmount, setConvertAmount] = useState('10.00')
 
-  const feeCents = 50
-
   const totals = useMemo(() => {
     const usd = wallet?.usdCents ?? 0
     const trv = wallet?.trvCents ?? 0
@@ -154,7 +152,7 @@ export function Dashboard() {
             </div>
           </div>
           <div className="muted" style={{ marginTop: 6 }}>
-            {t('dashboard.convert.feeLine', { fee: formatUsd(feeCents) })}
+            {t('dashboard.convert.feeLine')}
           </div>
           <form className="list" onSubmit={onConvert} style={{ marginTop: 12 }}>
             <div className="field">

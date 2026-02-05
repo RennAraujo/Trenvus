@@ -5,6 +5,7 @@ export const messagesEn: Record<string, string> = {
   'nav.dashboard': 'Dashboard',
   'nav.statement': 'Statement',
   'nav.market': 'Market',
+  'nav.transfer': 'Transfer',
 
   'actions.logout': 'Logout',
   'actions.login': 'Login',
@@ -49,7 +50,7 @@ export const messagesEn: Record<string, string> = {
   'dashboard.convert.title': 'Convert',
   'dashboard.convert.usdToTrv': 'USD → TRV',
   'dashboard.convert.trvToUsd': 'TRV → USD',
-  'dashboard.convert.feeLine': 'Rate 1:1. Fixed fee: {fee} USD per transaction.',
+  'dashboard.convert.feeLine': 'Rate 1:1. Fee: 1% of the amount per transaction.',
   'dashboard.convert.submit': 'Convert',
 
   'statement.title': 'Private statement',
@@ -58,6 +59,13 @@ export const messagesEn: Record<string, string> = {
 
   'market.title': 'Market',
   'market.subtitle': 'Track prices, 24h change, and the order book.',
+
+  'transfer.title': 'Transfer',
+  'transfer.subtitle': 'Transfer TRV between users. Fixed fee: 1% of the amount.',
+  'transfer.toEmail': "Recipient's email",
+  'transfer.amountTrv': 'Amount (TRV)',
+  'transfer.feeLine': 'Fee (1%): {fee} TRV | Total debited: {total} TRV',
+  'transfer.submit': 'Transfer',
 
   'login.title': 'Login',
   'login.subtitle': 'Access your dashboard to deposit USD and convert to TRV.',
@@ -79,7 +87,7 @@ export const messagesEn: Record<string, string> = {
   'landing.cta.createAccount': 'Create account',
   'landing.cta.alreadyHaveAccount': 'I already have an account',
   'landing.feature.simpleConversion.title': 'Simple conversion',
-  'landing.feature.simpleConversion.body': 'USD → TRV without FX fluctuations. Fixed fee: 0.50 USD per conversion.',
+  'landing.feature.simpleConversion.body': 'USD → TRV without FX fluctuations. Fixed fee: 1% per conversion.',
   'landing.pill.privacy': 'Privacy',
   'landing.pill.market': 'Market',
   'landing.pill.secure': 'Secure',
@@ -153,6 +161,7 @@ export const messagesEn: Record<string, string> = {
   'errors.loadBalance': 'Failed to load balance',
   'errors.deposit': 'Failed to deposit',
   'errors.convert': 'Failed to convert',
+  'errors.transfer': 'Failed to transfer',
   'errors.loadStatement': 'Failed to load statement',
   'errors.loadMarket': 'Failed to load market',
   'errors.loadOrderBook': 'Failed to load order book',

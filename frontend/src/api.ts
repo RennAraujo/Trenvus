@@ -19,6 +19,11 @@ export type ConvertResponse = WalletResponse & {
   feeUsdCents: number
 }
 
+export type TransferResponse = WalletResponse & {
+  transactionId: number
+  feeTrvCents: number
+}
+
 export type PrivateStatementItem = {
   values: Array<{ currency: string; cents: number }>
 }
@@ -226,6 +231,9 @@ export const api = {
       headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
       body: JSON.stringify({ amountTrv }),
     }),
+
+  transferTrv: (accessToken: string, toEmail: string, amountTrv: string) =>
+    request<TransferResponse>('/transfer/trv', { method: 'POST', accessToken, body: JSON.stringify({ toEmail, amountTrv }) }),
 
   getPrivateStatement: (accessToken: string, page: number, size: number) =>
     request<PrivateStatementItem[]>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),

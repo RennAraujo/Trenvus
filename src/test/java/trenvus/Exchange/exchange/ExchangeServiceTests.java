@@ -25,16 +25,16 @@ class ExchangeServiceTests {
 	private UserRepository users;
 
 	@Test
-	void convertUsdToTrv_appliesFixedFeeAndKeepsOneToOneRate() {
+	void convertUsdToTrv_appliesOnePercentFeeAndKeepsOneToOneRate() {
 		var userId = createUser("user1@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 2_000);
 		var result = exchangeService.convertUsdToTrv(userId, 1_000, "k1");
 
-		assertEquals(950, result.usdCents());
+		assertEquals(990, result.usdCents());
 		assertEquals(1_000, result.trvCents());
-		assertEquals(ExchangeService.CONVERSION_FEE_USD_CENTS, result.feeUsdCents());
+		assertEquals(10, result.feeUsdCents());
 		assertNotNull(result.transactionId());
 	}
 
@@ -63,7 +63,7 @@ class ExchangeServiceTests {
 	}
 
 	@Test
-	void convertTrvToUsd_appliesFixedFeeAndKeepsOneToOneRate() {
+	void convertTrvToUsd_appliesOnePercentFeeAndKeepsOneToOneRate() {
 		var userId = createUser("user4@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
@@ -71,9 +71,9 @@ class ExchangeServiceTests {
 		exchangeService.convertUsdToTrv(userId, 1_000, "k1");
 		var result = exchangeService.convertTrvToUsd(userId, 1_000, "k2");
 
-		assertEquals(1_900, result.usdCents());
+		assertEquals(1_980, result.usdCents());
 		assertEquals(0, result.trvCents());
-		assertEquals(ExchangeService.CONVERSION_FEE_USD_CENTS, result.feeUsdCents());
+		assertEquals(10, result.feeUsdCents());
 		assertNotNull(result.transactionId());
 	}
 
@@ -93,14 +93,14 @@ class ExchangeServiceTests {
 	}
 
 	@Test
-	void convertTrvToUsd_rejectsAmountNotCoveringFee() {
+	void convertTrvToUsd_rejectsAmountBelowMinimum() {
 		var userId = createUser("user6@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
 		exchangeService.depositUsd(userId, 2_000);
 		exchangeService.convertUsdToTrv(userId, 1_000, "k1");
 		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertTrvToUsd(userId, 50, "k2"));
-		assertTrue(ex.getMessage().toLowerCase().contains("taxa"));
+		assertTrue(ex.getMessage().toLowerCase().contains("mínimo") || ex.getMessage().toLowerCase().contains("minimo"));
 	}
 
 	@Test
@@ -108,9 +108,9 @@ class ExchangeServiceTests {
 		var userId = createUser("user7@trenvus.local");
 		walletService.ensureUserWallets(userId);
 
-		exchangeService.depositUsd(userId, 100);
-		exchangeService.convertUsdToTrv(userId, 50, "k1");
-		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertTrvToUsd(userId, 100, "k2"));
+		exchangeService.depositUsd(userId, 2_000);
+		exchangeService.convertUsdToTrv(userId, 100, "k1");
+		var ex = assertThrows(IllegalArgumentException.class, () -> exchangeService.convertTrvToUsd(userId, 200, "k2"));
 		assertTrue(ex.getMessage().toLowerCase().contains("saldo"));
 	}
 
