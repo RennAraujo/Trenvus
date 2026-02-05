@@ -45,7 +45,7 @@ export const messagesEn: Record<string, string> = {
   'dashboard.trvBalance': 'TRV Balance',
   'dashboard.trvRate': '1 TRV = 1 USD',
   'dashboard.deposit.title': 'Deposit USD',
-  'dashboard.deposit.help': 'Deposit simulation (MVP). Enter an amount with 2 decimal places.',
+  'dashboard.deposit.help': 'Deposit simulation (MVP). Enter an amount (up to 2 decimal places).',
   'dashboard.deposit.submit': 'Deposit',
   'dashboard.convert.title': 'Convert',
   'dashboard.convert.usdToTrv': 'USD → TRV',

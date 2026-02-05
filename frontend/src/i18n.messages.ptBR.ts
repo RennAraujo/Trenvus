@@ -45,7 +45,7 @@ export const messagesPtBR: Record<string, string> = {
   'dashboard.trvBalance': 'Saldo TRV',
   'dashboard.trvRate': '1 TRV = 1 USD',
   'dashboard.deposit.title': 'Depositar USD',
-  'dashboard.deposit.help': 'Simulação de depósito (MVP). Informe um valor com 2 casas decimais.',
+  'dashboard.deposit.help': 'Simulação de depósito (MVP). Informe um valor (até 2 casas decimais).',
   'dashboard.deposit.submit': 'Depositar',
   'dashboard.convert.title': 'Converter',
   'dashboard.convert.usdToTrv': 'USD → TRV',

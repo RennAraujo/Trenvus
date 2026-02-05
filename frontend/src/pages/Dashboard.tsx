@@ -5,13 +5,20 @@ import { useI18n } from '../i18n'
 
 type ConvertDirection = 'USD_TO_TRV' | 'TRV_TO_USD'
 
-function parseStrictCents(value: string): number | null {
+function parseUsdToCents(value: string): { cents: number; normalized: string } | null {
   const v = value.trim()
-  if (!/^\d+(\.\d{2})$/.test(v)) return null
-  const [whole, frac] = v.split('.')
+  if (!/^\d+(\.\d{0,2})?$/.test(v)) return null
+
+  const [wholeRaw, fracRaw = ''] = v.split('.')
+  const whole = wholeRaw || '0'
+  const frac = fracRaw.padEnd(2, '0')
+  if (frac.length !== 2) return null
+
   const cents = Number(whole) * 100 + Number(frac)
   if (!Number.isFinite(cents) || cents <= 0) return null
-  return cents
+
+  const normalized = `${Number(whole)}.${frac}`
+  return { cents, normalized }
 }
 
 export function Dashboard() {
@@ -51,15 +58,15 @@ export function Dashboard() {
   async function onDeposit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    const cents = parseStrictCents(depositAmount)
-    if (cents == null || cents < 1000) {
+    const parsed = parseUsdToCents(depositAmount)
+    if (!parsed || parsed.cents < 1000) {
       setError(t('errors.depositMin', { min: '10.00' }))
       return
     }
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
-      const data = await api.depositUsd(token, depositAmount)
+      const data = await api.depositUsd(token, parsed.normalized)
       setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
       setDepositAmount('')
     } catch (err: any) {
