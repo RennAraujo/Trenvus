@@ -67,10 +67,10 @@ export function Login() {
       <header className="topbar">
         <div className="container topbar-inner">
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <LanguageSwitcher />
             <Link to="/" className="brand">
               <img className="brand-logo" src="/brand-mark.png" alt="TRENVUS" />
             </Link>
+            <LanguageSwitcher />
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <Link className="btn" to="/register">

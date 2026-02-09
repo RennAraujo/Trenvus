@@ -11,10 +11,10 @@ export function Shell() {
       <header className="topbar">
         <div className="container topbar-inner">
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <LanguageSwitcher />
             <Link to="/" className="brand">
               <img className="brand-logo" src="/brand-mark.png" alt="TRENVUS" />
             </Link>
+            <LanguageSwitcher />
 
             <nav className="nav">
               <NavLink to="/app">{t('nav.dashboard')}</NavLink>
