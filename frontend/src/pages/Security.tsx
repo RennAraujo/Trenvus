@@ -20,8 +20,7 @@ export function Security() {
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <LanguageSwitcher />
             <Link to="/" className="brand">
-              <span className="brand-mark" aria-hidden="true" />
-              <span>TRENVUS</span>
+              <img className="brand-logo" src="/brand-mark.png" alt="TRENVUS" />
             </Link>
           </div>
 

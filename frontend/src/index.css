@@ -85,6 +85,13 @@ input {
   letter-spacing: 0.3px;
 }
 
+.brand-logo {
+  height: 34px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35));
+}
+
 .brand-mark {
   width: 34px;
   height: 34px;
