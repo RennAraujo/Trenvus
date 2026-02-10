@@ -135,6 +135,73 @@ input {
   color: var(--text);
 }
 
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-trigger {
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+.nav-dropdown:hover .nav-dropdown-trigger {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.nav-dropdown.active .nav-dropdown-trigger {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  background: rgba(11, 6, 23, 0.92);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown.open .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown.open .nav-dropdown-trigger {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: 10px 10px;
+  border-radius: 10px;
+}
+
+.nav-dropdown-menu a:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.nav-dropdown-menu a.active {
+  background: linear-gradient(135deg, rgba(25, 193, 201, 0.22), rgba(124, 58, 237, 0.18));
+  border: 1px solid rgba(25, 193, 201, 0.45);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

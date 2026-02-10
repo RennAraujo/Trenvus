@@ -13,6 +13,8 @@ import { Transfer } from './pages/Transfer'
 import { Security } from './pages/Security'
 import { Manifesto } from './pages/Manifesto'
 import { AdminUsers } from './pages/AdminUsers'
+import { InvoicesSend } from './pages/InvoicesSend'
+import { InvoicesReceive } from './pages/InvoicesReceive'
 
 export default function App() {
   return (
@@ -36,6 +38,8 @@ export default function App() {
             <Route path="statement" element={<Statement />} />
             <Route path="market" element={<Market />} />
             <Route path="transfer" element={<Transfer />} />
+            <Route path="invoices/send" element={<InvoicesSend />} />
+            <Route path="invoices/receive" element={<InvoicesReceive />} />
             <Route
               path="admin/users"
               element={
