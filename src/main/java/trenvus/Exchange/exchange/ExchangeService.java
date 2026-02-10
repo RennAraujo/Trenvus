@@ -5,9 +5,11 @@ import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import trenvus.Exchange.auth.AdminAccountConfig;
 import trenvus.Exchange.tx.TransactionEntity;
 import trenvus.Exchange.tx.TransactionRepository;
 import trenvus.Exchange.tx.TransactionType;
+import trenvus.Exchange.user.UserRepository;
 import trenvus.Exchange.wallet.Currency;
 import trenvus.Exchange.wallet.WalletRepository;
 import trenvus.Exchange.wallet.WalletService;
@@ -20,11 +22,21 @@ public class ExchangeService {
 	private final WalletRepository wallets;
 	private final WalletService walletService;
 	private final TransactionRepository transactions;
+	private final UserRepository users;
+	private final AdminAccountConfig adminAccount;
 
-	public ExchangeService(WalletRepository wallets, WalletService walletService, TransactionRepository transactions) {
+	public ExchangeService(
+			WalletRepository wallets,
+			WalletService walletService,
+			TransactionRepository transactions,
+			UserRepository users,
+			AdminAccountConfig adminAccount
+	) {
 		this.wallets = wallets;
 		this.walletService = walletService;
 		this.transactions = transactions;
+		this.users = users;
+		this.adminAccount = adminAccount;
 	}
 
 	@Transactional
@@ -65,8 +77,25 @@ public class ExchangeService {
 		}
 
 		long feeUsdCents = feeUsdCentsForConversion(amountUsdCents);
+		Long adminUserId = resolveAdminUserIdOrNull();
+		boolean creditFeeToAdmin = adminUserId != null && !adminUserId.equals(userId);
+		if (creditFeeToAdmin) {
+			walletService.ensureUserWallets(adminUserId);
+		}
+		trenvus.Exchange.wallet.WalletEntity adminUsdWallet = null;
+		List<trenvus.Exchange.wallet.WalletEntity> lockedWallets;
+		if (creditFeeToAdmin && adminUserId < userId) {
+			var adminLocked = wallets.findForUpdate(adminUserId, List.of(Currency.USD));
+			adminUsdWallet = adminLocked.stream().filter(w -> w.getCurrency() == Currency.USD).findFirst().orElseThrow();
+			lockedWallets = wallets.findForUpdate(userId, List.of(Currency.USD, Currency.TRV));
+		} else {
+			lockedWallets = wallets.findForUpdate(userId, List.of(Currency.USD, Currency.TRV));
+			if (creditFeeToAdmin) {
+				var adminLocked = wallets.findForUpdate(adminUserId, List.of(Currency.USD));
+				adminUsdWallet = adminLocked.stream().filter(w -> w.getCurrency() == Currency.USD).findFirst().orElseThrow();
+			}
+		}
 
-		var lockedWallets = wallets.findForUpdate(userId, List.of(Currency.USD, Currency.TRV));
 		var map = new EnumMap<Currency, trenvus.Exchange.wallet.WalletEntity>(Currency.class);
 		for (var w : lockedWallets) {
 			map.put(w.getCurrency(), w);
@@ -84,6 +113,9 @@ public class ExchangeService {
 
 		usdWallet.setBalanceCents(usdWallet.getBalanceCents() - debitUsd);
 		trvWallet.setBalanceCents(Math.addExact(trvWallet.getBalanceCents(), amountUsdCents));
+		if (adminUsdWallet != null) {
+			adminUsdWallet.setBalanceCents(Math.addExact(adminUsdWallet.getBalanceCents(), feeUsdCents));
+		}
 
 		var tx = new TransactionEntity();
 		tx.setUserId(userId);
@@ -95,6 +127,14 @@ public class ExchangeService {
 
 		try {
 			transactions.save(tx);
+			if (adminUsdWallet != null) {
+				var feeTx = new TransactionEntity();
+				feeTx.setUserId(adminUserId);
+				feeTx.setType(TransactionType.FEE_INCOME_USD);
+				feeTx.setUsdAmountCents(feeUsdCents);
+				feeTx.setSourceUserId(userId);
+				transactions.save(feeTx);
+			}
 		} catch (DataIntegrityViolationException ex) {
 			if (idempotencyKey != null) {
 				var existing = transactions.findByUserIdAndIdempotencyKey(userId, idempotencyKey).orElseThrow();
@@ -129,7 +169,25 @@ public class ExchangeService {
 			throw new IllegalArgumentException("Valor deve ser maior que a taxa");
 		}
 
-		var lockedWallets = wallets.findForUpdate(userId, List.of(Currency.USD, Currency.TRV));
+		Long adminUserId = resolveAdminUserIdOrNull();
+		boolean creditFeeToAdmin = adminUserId != null && !adminUserId.equals(userId);
+		if (creditFeeToAdmin) {
+			walletService.ensureUserWallets(adminUserId);
+		}
+		trenvus.Exchange.wallet.WalletEntity adminUsdWallet = null;
+		List<trenvus.Exchange.wallet.WalletEntity> lockedWallets;
+		if (creditFeeToAdmin && adminUserId < userId) {
+			var adminLocked = wallets.findForUpdate(adminUserId, List.of(Currency.USD));
+			adminUsdWallet = adminLocked.stream().filter(w -> w.getCurrency() == Currency.USD).findFirst().orElseThrow();
+			lockedWallets = wallets.findForUpdate(userId, List.of(Currency.USD, Currency.TRV));
+		} else {
+			lockedWallets = wallets.findForUpdate(userId, List.of(Currency.USD, Currency.TRV));
+			if (creditFeeToAdmin) {
+				var adminLocked = wallets.findForUpdate(adminUserId, List.of(Currency.USD));
+				adminUsdWallet = adminLocked.stream().filter(w -> w.getCurrency() == Currency.USD).findFirst().orElseThrow();
+			}
+		}
+
 		var map = new EnumMap<Currency, trenvus.Exchange.wallet.WalletEntity>(Currency.class);
 		for (var w : lockedWallets) {
 			map.put(w.getCurrency(), w);
@@ -147,6 +205,9 @@ public class ExchangeService {
 		long creditUsd = Math.subtractExact(amountTrvCents, feeUsdCents);
 		trvWallet.setBalanceCents(trvWallet.getBalanceCents() - amountTrvCents);
 		usdWallet.setBalanceCents(Math.addExact(usdWallet.getBalanceCents(), creditUsd));
+		if (adminUsdWallet != null) {
+			adminUsdWallet.setBalanceCents(Math.addExact(adminUsdWallet.getBalanceCents(), feeUsdCents));
+		}
 
 		var tx = new TransactionEntity();
 		tx.setUserId(userId);
@@ -158,6 +219,14 @@ public class ExchangeService {
 
 		try {
 			transactions.save(tx);
+			if (adminUsdWallet != null) {
+				var feeTx = new TransactionEntity();
+				feeTx.setUserId(adminUserId);
+				feeTx.setType(TransactionType.FEE_INCOME_USD);
+				feeTx.setUsdAmountCents(feeUsdCents);
+				feeTx.setSourceUserId(userId);
+				transactions.save(feeTx);
+			}
 		} catch (DataIntegrityViolationException ex) {
 			if (idempotencyKey != null) {
 				var existing = transactions.findByUserIdAndIdempotencyKey(userId, idempotencyKey).orElseThrow();
@@ -178,6 +247,17 @@ public class ExchangeService {
 			throw new IllegalArgumentException("Valor deve ser no mínimo 1.00");
 		}
 		return fee;
+	}
+
+	private Long resolveAdminUserIdOrNull() {
+		if (!adminAccount.isEnabled()) {
+			return null;
+		}
+		var email = adminAccount.email();
+		if (email.isBlank()) {
+			return null;
+		}
+		return users.findByEmail(email).map(u -> u.getId()).orElseThrow(() -> new IllegalStateException("admin_account_not_found"));
 	}
 
 	public record WalletOperationResult(long usdCents, long trvCents, Long transactionId) {}

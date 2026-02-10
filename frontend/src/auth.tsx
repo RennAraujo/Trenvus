@@ -10,8 +10,11 @@ type AuthState = {
 type AuthContextValue = AuthState & {
   isAuthenticated: boolean
   userEmail: string | null
+  userRoles: string[]
+  isAdmin: boolean
   login: (email: string, password: string) => Promise<void>
   loginTestAccount: (id: number) => Promise<void>
+  loginAdmin: () => Promise<void>
   register: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   getValidAccessToken: () => Promise<string>
@@ -68,11 +71,31 @@ function getJwtEmail(accessToken: string | null): string | null {
   }
 }
 
+function getJwtRoles(accessToken: string | null): string[] {
+  if (!accessToken) return []
+  const parts = accessToken.split('.')
+  if (parts.length < 2) return []
+  try {
+    const raw = decodeBase64Url(parts[1] as string)
+    const payload = JSON.parse(raw) as { roles?: unknown }
+    const roles = payload?.roles
+    if (Array.isArray(roles)) {
+      return roles.map((r) => String(r)).filter((r) => r.trim().length > 0)
+    }
+    if (typeof roles === 'string' && roles.trim()) return [roles.trim()]
+    return []
+  } catch {
+    return []
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>(() => loadTokens())
 
   const isAuthenticated = Boolean(state.accessToken && state.refreshToken)
   const userEmail = useMemo(() => getJwtEmail(state.accessToken), [state.accessToken])
+  const userRoles = useMemo(() => getJwtRoles(state.accessToken), [state.accessToken])
+  const isAdmin = useMemo(() => userRoles.includes('ADMIN'), [userRoles])
 
   const setFromResponse = useCallback((payload: AuthResponse) => {
     const next = saveTokens(payload)
@@ -86,6 +109,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginTestAccount = useCallback(async (id: number) => {
     const payload = await api.loginTestAccount(id)
+    setFromResponse(payload)
+  }, [setFromResponse])
+
+  const loginAdmin = useCallback(async () => {
+    const payload = await api.loginAdmin()
     setFromResponse(payload)
   }, [setFromResponse])
 
@@ -124,13 +152,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...state,
       isAuthenticated,
       userEmail,
+      userRoles,
+      isAdmin,
       login,
       loginTestAccount,
+      loginAdmin,
       register,
       logout,
       getValidAccessToken,
     }),
-    [state, isAuthenticated, userEmail, login, loginTestAccount, register, logout, getValidAccessToken],
+    [state, isAuthenticated, userEmail, userRoles, isAdmin, login, loginTestAccount, loginAdmin, register, logout, getValidAccessToken],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

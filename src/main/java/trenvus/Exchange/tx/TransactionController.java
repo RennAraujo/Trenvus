@@ -50,6 +50,18 @@ public class TransactionController {
 		if (tx.getType() == TransactionType.DEPOSIT_USD) {
 			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("USD", tx.getUsdAmountCents(), false)));
 		}
+		if (tx.getType() == TransactionType.FEE_INCOME_USD) {
+			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("USD", usd, true)));
+		}
+		if (tx.getType() == TransactionType.ADMIN_ADJUST_WALLET) {
+			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
+			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(
+					new ValueLine("USD", usd, false),
+					new ValueLine("TRV", trv, false)
+			));
+		}
 		if (tx.getType() == TransactionType.CONVERT_USD_TO_TRV) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();

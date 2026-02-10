@@ -22,6 +22,7 @@ export function Shell() {
               <NavLink to="/app/statement">{t('nav.statement')}</NavLink>
               <NavLink to="/app/market">{t('nav.market')}</NavLink>
               <NavLink to="/app/transfer">{t('nav.transfer')}</NavLink>
+              {auth.isAdmin ? <NavLink to="/app/admin/users">{t('nav.admin')}</NavLink> : null}
             </nav>
           </div>
 

@@ -44,6 +44,28 @@ export function Login() {
     }
   }, [auth, navigate, t])
 
+  const loginAdmin = useCallback(async () => {
+    setError(null)
+    setBusy(true)
+    try {
+      await auth.loginAdmin()
+      navigate('/app/admin/users', { replace: true })
+    } catch (err: any) {
+      const status = typeof err?.status === 'number' ? (err.status as number) : null
+      if (status === 404) {
+        setError(t('errors.loginAdminDisabled'))
+      } else if (err?.message === 'admin_account_disabled') {
+        setError(t('errors.adminAccountDisabled'))
+      } else if (err?.message === 'admin_login_disabled') {
+        setError(t('errors.loginAdminDisabled'))
+      } else {
+        setError(err?.message || t('errors.login'))
+      }
+    } finally {
+      setBusy(false)
+    }
+  }, [auth, navigate, t])
+
   useEffect(() => {
     if (!isTestLogin) return
     loginTestAccount(testId)
@@ -110,6 +132,9 @@ export function Login() {
                     {busy ? t('login.loading') : t('actions.login')}
                   </button>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as any }}>
+                    <button className="btn" disabled={busy} type="button" onClick={loginAdmin}>
+                      {t('actions.loginAdmin')}
+                    </button>
                     <button className="btn" disabled={busy} type="button" onClick={() => loginTestAccount(1)}>
                       {t('actions.loginTestAccountN', { n: 1 })}
                     </button>

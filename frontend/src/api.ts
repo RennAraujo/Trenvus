@@ -32,6 +32,26 @@ export type PrivateStatementItem = {
   values: Array<{ currency: string; cents: number; fee: boolean }>
 }
 
+export type AdminUserSummary = {
+  id: number
+  email: string | null
+  role: string
+}
+
+export type AdminFeeIncomeItem = {
+  id: number
+  tec: string
+  createdAt: string | null
+  usdCents: number
+  sourceUserId: number | null
+  sourceEmail: string | null
+}
+
+export type AdminFeeIncomeResponse = {
+  totalUsdCents: number
+  items: AdminFeeIncomeItem[]
+}
+
 export type MarketTicker = {
   instId: string
   baseCurrency: string | null
@@ -213,6 +233,7 @@ export const api = {
     request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   loginTestAccount: (id: number) =>
     request<AuthResponse>('/auth/test-login', { method: 'POST', body: JSON.stringify({ id }) }),
+  loginAdmin: () => request<AuthResponse>('/auth/admin-login', { method: 'POST', body: '{}' }),
   refresh: (refreshToken: string) =>
     request<AuthResponse>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
   logout: (refreshToken: string) =>
@@ -241,6 +262,31 @@ export const api = {
 
   getPrivateStatement: (accessToken: string, page: number, size: number) =>
     request<PrivateStatementItem[]>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),
+
+  adminListUsers: (accessToken: string, query?: string, limit = 100) =>
+    request<AdminUserSummary[]>(
+      `/admin/users?limit=${encodeURIComponent(String(limit))}${query ? `&q=${encodeURIComponent(query)}` : ''}`,
+      { accessToken },
+    ),
+  adminGetUserWallet: (accessToken: string, userId: number) =>
+    request<WalletResponse>(`/admin/users/${encodeURIComponent(String(userId))}/wallet`, { accessToken }),
+  adminSetUserWallet: (accessToken: string, userId: number, usd: string, trv: string) =>
+    request<WalletResponse>(`/admin/users/${encodeURIComponent(String(userId))}/wallet`, {
+      method: 'PUT',
+      accessToken,
+      body: JSON.stringify({ usd, trv }),
+    }),
+  adminSetUserRole: (accessToken: string, userId: number, role: string) =>
+    request<AdminUserSummary>(`/admin/users/${encodeURIComponent(String(userId))}/role`, {
+      method: 'PUT',
+      accessToken,
+      body: JSON.stringify({ role }),
+    }),
+  adminGetUserFeeIncome: (accessToken: string, userId: number, size = 50) =>
+    request<AdminFeeIncomeResponse>(
+      `/admin/users/${encodeURIComponent(String(userId))}/fees?size=${encodeURIComponent(String(size))}`,
+      { accessToken },
+    ),
 
   getMarketTickers: (accessToken: string) => request<MarketTicker[]>('/market/tickers', { accessToken }),
   getMarketOrderBook: (accessToken: string, instId: string, size = 10) =>

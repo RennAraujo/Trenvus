@@ -20,10 +20,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthController {
 	private final AuthService authService;
 	private final TestAccountsConfig testAccounts;
+	private final AdminAccountConfig adminAccount;
 
-	public AuthController(AuthService authService, TestAccountsConfig testAccounts) {
+	public AuthController(AuthService authService, TestAccountsConfig testAccounts, AdminAccountConfig adminAccount) {
 		this.authService = authService;
 		this.testAccounts = testAccounts;
+		this.adminAccount = adminAccount;
 	}
 
 	@PostMapping("/register")
@@ -50,6 +52,18 @@ public class AuthController {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 		}
 		var result = authService.login(account.email(), account.password());
+		return ResponseEntity.ok(AuthResponse.from(result));
+	}
+
+	@PostMapping("/admin-login")
+	public ResponseEntity<AuthResponse> adminLogin() {
+		if (!adminAccount.isEnabled()) {
+			throw new IllegalArgumentException("admin_account_disabled");
+		}
+		if (!adminAccount.isLoginEnabled()) {
+			throw new IllegalArgumentException("admin_login_disabled");
+		}
+		var result = authService.login(adminAccount.email(), adminAccount.password());
 		return ResponseEntity.ok(AuthResponse.from(result));
 	}
 
