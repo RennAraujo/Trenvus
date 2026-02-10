@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { LanguageSwitcher, useI18n } from '../i18n'
+import brandLogo from '../assets/brand-mark.png'
 
 export function Register() {
   const auth = useAuth()
@@ -33,7 +34,7 @@ export function Register() {
         <div className="container topbar-inner">
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <Link to="/" className="brand">
-              <img className="brand-logo" src="/brand-mark.png" alt="TRENVUS" />
+              <img className="brand-logo" src={brandLogo} alt="TRENVUS" />
             </Link>
             <LanguageSwitcher />
           </div>

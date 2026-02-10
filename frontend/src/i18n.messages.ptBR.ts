@@ -56,15 +56,19 @@ export const messagesPtBR: Record<string, string> = {
   'statement.title': 'Extrato privado',
   'statement.subtitle': 'Apenas valores são exibidos para manter privacidade.',
   'statement.empty': 'Sem transações',
+  'statement.tec': 'TEC',
+  'statement.credit': 'Crédito',
+  'statement.debit': 'Débito',
+  'statement.net': 'Líquido',
 
   'market.title': 'Mercado',
   'market.subtitle': 'Acompanhe preços, variação 24h e livro de ofertas.',
 
   'transfer.title': 'Transferência',
-  'transfer.subtitle': 'Transfira TRV entre usuários. Taxa fixa: 1% do valor.',
+  'transfer.subtitle': 'Transfira TRV entre usuários.',
   'transfer.toEmail': 'E-mail do destinatário',
   'transfer.amountTrv': 'Valor (TRV)',
-  'transfer.feeLine': 'Taxa (1%): {fee} TRV | Total debitado: {total} TRV',
+  'transfer.totalLine': 'Total debitado: {total} TRV',
   'transfer.submit': 'Transferir',
 
   'login.title': 'Entrar',

@@ -1,24 +1,34 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, createIdempotencyKey, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
 type ConvertDirection = 'USD_TO_TRV' | 'TRV_TO_USD'
 
-function parseUsdToCents(value: string): { cents: number; normalized: string } | null {
-  const v = value.trim()
-  if (!/^\d+(\.\d{0,2})?$/.test(v)) return null
+function groupInt(value: string): string {
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
 
-  const [wholeRaw, fracRaw = ''] = v.split('.')
-  const whole = wholeRaw || '0'
-  const frac = fracRaw.padEnd(2, '0')
-  if (frac.length !== 2) return null
+function formatMoneyDigits(digits: string): { formatted: string; cents: bigint | null; plain: string | null } {
+  const cleaned = digits.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+  if (!cleaned) return { formatted: '', cents: null, plain: null }
 
-  const cents = Number(whole) * 100 + Number(frac)
-  if (!Number.isFinite(cents) || cents <= 0) return null
+  let cents: bigint
+  try {
+    cents = BigInt(cleaned)
+  } catch {
+    return { formatted: '', cents: null, plain: null }
+  }
+  if (cents <= 0n) return { formatted: '', cents: null, plain: null }
 
-  const normalized = `${Number(whole)}.${frac}`
-  return { cents, normalized }
+  const whole = cents / 100n
+  const frac = cents % 100n
+  const wholeRaw = whole.toString()
+  const fracTwo = frac.toString().padStart(2, '0')
+
+  const formatted = `${groupInt(wholeRaw)}.${fracTwo}`
+  const plain = `${wholeRaw}.${fracTwo}`
+  return { formatted, cents, plain }
 }
 
 export function Dashboard() {
@@ -27,9 +37,11 @@ export function Dashboard() {
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [depositAmount, setDepositAmount] = useState('10.00')
+  const [depositDigits, setDepositDigits] = useState('1000')
   const [convertDirection, setConvertDirection] = useState<ConvertDirection>('USD_TO_TRV')
-  const [convertAmount, setConvertAmount] = useState('10.00')
+  const [convertDigits, setConvertDigits] = useState('1000')
+  const depositInputRef = useRef<HTMLInputElement | null>(null)
+  const convertInputRef = useRef<HTMLInputElement | null>(null)
 
   const totals = useMemo(() => {
     const usd = wallet?.usdCents ?? 0
@@ -58,17 +70,17 @@ export function Dashboard() {
   async function onDeposit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    const parsed = parseUsdToCents(depositAmount)
-    if (!parsed || parsed.cents < 1000) {
+    const parsed = formatMoneyDigits(depositDigits)
+    if (!parsed.plain || parsed.cents == null || parsed.cents < 1000n) {
       setError(t('errors.depositMin', { min: '10.00' }))
       return
     }
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
-      const data = await api.depositUsd(token, parsed.normalized)
+      const data = await api.depositUsd(token, parsed.plain)
       setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
-      setDepositAmount('')
+      setDepositDigits('')
     } catch (err: any) {
       setError(err?.message || t('errors.deposit'))
     } finally {
@@ -79,16 +91,21 @@ export function Dashboard() {
   async function onConvert(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    const parsed = formatMoneyDigits(convertDigits)
+    if (!parsed.plain) {
+      setError(t('errors.convert'))
+      return
+    }
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
       const idempotencyKey = createIdempotencyKey()
       const data =
         convertDirection === 'USD_TO_TRV'
-          ? await api.convertUsdToTrv(token, convertAmount, idempotencyKey)
-          : await api.convertTrvToUsd(token, convertAmount, idempotencyKey)
+          ? await api.convertUsdToTrv(token, parsed.plain, idempotencyKey)
+          : await api.convertTrvToUsd(token, parsed.plain, idempotencyKey)
       setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
-      setConvertAmount('')
+      setConvertDigits('')
     } catch (err: any) {
       setError(err?.message || t('errors.convert'))
     } finally {
@@ -140,7 +157,34 @@ export function Dashboard() {
           <form className="list" onSubmit={onDeposit} style={{ marginTop: 12 }}>
             <div className="field">
               <div className="label">{t('labels.amountUsd')}</div>
-              <input className="input mono" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
+              <input
+                className="input mono"
+                value={formatMoneyDigits(depositDigits).formatted}
+                ref={depositInputRef}
+                onFocus={() => {
+                  const el = depositInputRef.current
+                  if (!el) return
+                  const len = el.value.length
+                  el.setSelectionRange(len, len)
+                }}
+                onClick={() => {
+                  const el = depositInputRef.current
+                  if (!el) return
+                  const len = el.value.length
+                  el.setSelectionRange(len, len)
+                }}
+                onChange={(e) => {
+                  const nextDigits = e.target.value.replace(/\D/g, '')
+                  setDepositDigits(nextDigits)
+                  requestAnimationFrame(() => {
+                    const el = depositInputRef.current
+                    if (!el) return
+                    const len = el.value.length
+                    el.setSelectionRange(len, len)
+                  })
+                }}
+                inputMode="numeric"
+              />
             </div>
             <button className="btn btn-primary" disabled={busy} type="submit">
               {t('dashboard.deposit.submit')}
@@ -182,7 +226,34 @@ export function Dashboard() {
                   currency: convertDirection === 'USD_TO_TRV' ? t('labels.usd') : 'TRV',
                 })}
               </div>
-              <input className="input mono" value={convertAmount} onChange={(e) => setConvertAmount(e.target.value)} />
+              <input
+                className="input mono"
+                value={formatMoneyDigits(convertDigits).formatted}
+                ref={convertInputRef}
+                onFocus={() => {
+                  const el = convertInputRef.current
+                  if (!el) return
+                  const len = el.value.length
+                  el.setSelectionRange(len, len)
+                }}
+                onClick={() => {
+                  const el = convertInputRef.current
+                  if (!el) return
+                  const len = el.value.length
+                  el.setSelectionRange(len, len)
+                }}
+                onChange={(e) => {
+                  const nextDigits = e.target.value.replace(/\D/g, '')
+                  setConvertDigits(nextDigits)
+                  requestAnimationFrame(() => {
+                    const el = convertInputRef.current
+                    if (!el) return
+                    const len = el.value.length
+                    el.setSelectionRange(len, len)
+                  })
+                }}
+                inputMode="numeric"
+              />
             </div>
             <button className="btn btn-primary" disabled={busy} type="submit">
               {t('dashboard.convert.submit')}

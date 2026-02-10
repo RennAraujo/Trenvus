@@ -25,10 +25,6 @@ public class TransferService {
 		this.transactions = transactions;
 	}
 
-	public static long feeTrvCentsForTransfer(long amountTrvCents) {
-		return Math.floorDiv(amountTrvCents, 100);
-	}
-
 	@Transactional
 	public TransferResult transferTrv(Long fromUserId, String toEmail, long amountTrvCents) {
 		if (toEmail == null || toEmail.isBlank()) {
@@ -42,9 +38,8 @@ public class TransferService {
 			throw new IllegalArgumentException("Não é possível transferir para si mesmo");
 		}
 
-		long fee = feeTrvCentsForTransfer(amountTrvCents);
-		if (fee <= 0) {
-			throw new IllegalArgumentException("Valor deve ser no mínimo 1.00 TRV");
+		if (amountTrvCents <= 0) {
+			throw new IllegalArgumentException("Valor deve ser maior que zero");
 		}
 
 		walletService.ensureUserWallets(fromUserId);
@@ -65,19 +60,17 @@ public class TransferService {
 				.findFirst()
 				.orElseThrow();
 
-		long totalDebit = Math.addExact(amountTrvCents, fee);
-		if (fromWallet.getBalanceCents() < totalDebit) {
+		if (fromWallet.getBalanceCents() < amountTrvCents) {
 			throw new IllegalArgumentException("Saldo insuficiente");
 		}
 
-		fromWallet.setBalanceCents(fromWallet.getBalanceCents() - totalDebit);
+		fromWallet.setBalanceCents(fromWallet.getBalanceCents() - amountTrvCents);
 		toWallet.setBalanceCents(Math.addExact(toWallet.getBalanceCents(), amountTrvCents));
 
 		var outTx = new TransactionEntity();
 		outTx.setUserId(fromUserId);
 		outTx.setType(TransactionType.TRANSFER_TRV_OUT);
 		outTx.setTrvAmountCents(amountTrvCents);
-		outTx.setFeeUsdCents(fee);
 		transactions.save(outTx);
 
 		var inTx = new TransactionEntity();
@@ -87,9 +80,8 @@ public class TransferService {
 		transactions.save(inTx);
 
 		var snapshot = walletService.getSnapshot(fromUserId);
-		return new TransferResult(snapshot.usdCents(), snapshot.trvCents(), outTx.getId(), fee);
+		return new TransferResult(snapshot.usdCents(), snapshot.trvCents(), outTx.getId(), 0);
 	}
 
 	public record TransferResult(long usdCents, long trvCents, Long transactionId, long feeTrvCents) {}
 }
-

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { LanguageSwitcher, useI18n } from '../i18n'
+import brandLogo from '../assets/brand-mark.png'
 
 export function Manifesto() {
   const { t } = useI18n()
@@ -10,7 +11,7 @@ export function Manifesto() {
         <div className="container topbar-inner">
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             <Link to="/" className="brand">
-              <img className="brand-logo" src="/brand-mark.png" alt="TRENVUS" />
+              <img className="brand-logo" src={brandLogo} alt="TRENVUS" />
             </Link>
             <LanguageSwitcher />
           </div>

@@ -25,6 +25,10 @@ export type TransferResponse = WalletResponse & {
 }
 
 export type PrivateStatementItem = {
+  id: number
+  tec: string
+  type: string
+  createdAt: string | null
   values: Array<{ currency: string; cents: number }>
 }
 
@@ -253,5 +257,6 @@ export function formatUsd(cents: number): string {
   const abs = Math.abs(cents)
   const dollars = Math.floor(abs / 100)
   const remainder = abs % 100
-  return `${sign}${dollars}.${String(remainder).padStart(2, '0')}`
+  const grouped = String(dollars).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return `${sign}${grouped}.${String(remainder).padStart(2, '0')}`
 }

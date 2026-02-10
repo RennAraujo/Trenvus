@@ -1,6 +1,7 @@
 package trenvus.Exchange.tx;
 
 import java.util.List;
+import java.time.Instant;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,14 +42,19 @@ public class TransactionController {
 	}
 
 	private static PrivateStatementItem toPrivateItem(TransactionEntity tx) {
+		Long id = tx.getId();
+		String tec = id == null ? "TEC-UNKNOWN" : "TEC-" + String.format("%010d", id);
+		Instant createdAt = tx.getCreatedAt();
+		TransactionType type = tx.getType();
+
 		if (tx.getType() == TransactionType.DEPOSIT_USD) {
-			return new PrivateStatementItem(List.of(new ValueLine("USD", tx.getUsdAmountCents())));
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("USD", tx.getUsdAmountCents())));
 		}
 		if (tx.getType() == TransactionType.CONVERT_USD_TO_TRV) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
 			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
-			return new PrivateStatementItem(List.of(
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(
 					new ValueLine("USD", -usd),
 					new ValueLine("TRV", trv),
 					new ValueLine("USD", -fee)
@@ -58,7 +64,7 @@ public class TransactionController {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
 			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
-			return new PrivateStatementItem(List.of(
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(
 					new ValueLine("TRV", -trv),
 					new ValueLine("USD", usd),
 					new ValueLine("USD", -fee)
@@ -66,20 +72,18 @@ public class TransactionController {
 		}
 		if (tx.getType() == TransactionType.TRANSFER_TRV_OUT) {
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
-			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
-			return new PrivateStatementItem(List.of(
-					new ValueLine("TRV", -trv),
-					new ValueLine("TRV", -fee)
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(
+					new ValueLine("TRV", -trv)
 			));
 		}
 		if (tx.getType() == TransactionType.TRANSFER_TRV_IN) {
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
-			return new PrivateStatementItem(List.of(new ValueLine("TRV", trv)));
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("TRV", trv)));
 		}
-		return new PrivateStatementItem(List.of());
+		return new PrivateStatementItem(id, tec, type, createdAt, List.of());
 	}
 
-	public record PrivateStatementItem(List<ValueLine> values) {}
+	public record PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values) {}
 
 	public record ValueLine(String currency, long cents) {}
 }

@@ -56,15 +56,19 @@ export const messagesEn: Record<string, string> = {
   'statement.title': 'Private statement',
   'statement.subtitle': 'Only values are shown to preserve privacy.',
   'statement.empty': 'No transactions',
+  'statement.tec': 'TEC',
+  'statement.credit': 'Credit',
+  'statement.debit': 'Debit',
+  'statement.net': 'Net',
 
   'market.title': 'Market',
   'market.subtitle': 'Track prices, 24h change, and the order book.',
 
   'transfer.title': 'Transfer',
-  'transfer.subtitle': 'Transfer TRV between users. Fixed fee: 1% of the amount.',
+  'transfer.subtitle': 'Transfer TRV between users.',
   'transfer.toEmail': "Recipient's email",
   'transfer.amountTrv': 'Amount (TRV)',
-  'transfer.feeLine': 'Fee (1%): {fee} TRV | Total debited: {total} TRV',
+  'transfer.totalLine': 'Total debited: {total} TRV',
   'transfer.submit': 'Transfer',
 
   'login.title': 'Login',

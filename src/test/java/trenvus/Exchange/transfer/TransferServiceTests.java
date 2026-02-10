@@ -29,7 +29,7 @@ class TransferServiceTests {
 	private UserRepository users;
 
 	@Test
-	void transferTrv_movesBalanceAndChargesOnePercentFee() {
+	void transferTrv_movesBalanceWithoutFee() {
 		var fromUserId = createUser("from@trenvus.local");
 		var toUserId = createUser("to@trenvus.local");
 
@@ -40,13 +40,13 @@ class TransferServiceTests {
 		exchangeService.convertUsdToTrv(fromUserId, 2_000, "k1");
 
 		var result = transferService.transferTrv(fromUserId, "to@trenvus.local", 1_000);
-		assertEquals(10, result.feeTrvCents());
+		assertEquals(0, result.feeTrvCents());
 
 		var fromSnapshot = walletService.getSnapshot(fromUserId);
 		var toSnapshot = walletService.getSnapshot(toUserId);
 
 		assertEquals(fromSnapshot.trvCents(), result.trvCents());
-		assertEquals(990, fromSnapshot.trvCents());
+		assertEquals(1_000, fromSnapshot.trvCents());
 		assertEquals(1_000, toSnapshot.trvCents());
 	}
 
@@ -68,4 +68,3 @@ class TransferServiceTests {
 		return users.save(user).getId();
 	}
 }
-
