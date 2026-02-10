@@ -68,13 +68,14 @@ export function Statement() {
                       .filter((v) => v.cents !== 0)
                       .sort((a, b) => a.currency.localeCompare(b.currency))
 
-                    const renderPill = (currency: string, cents: number, accent: boolean) => (
+                    const renderPill = (currency: string, cents: number, accent: boolean, fee: boolean) => (
                       <span
-                        key={`${currency}:${cents}:${accent ? 'c' : 'd'}`}
+                        key={`${currency}:${cents}:${accent ? 'c' : 'd'}:${fee ? 'f' : 'n'}`}
                         className={`pill ${accent ? 'pill-accent' : ''}`}
                         style={{ borderColor: accent ? undefined : 'rgba(255,255,255,0.14)' }}
                       >
                         <span className="mono">
+                          {fee ? `${t('statement.fee')}: ` : ''}
                           {formatUsd(cents)} {currency}
                         </span>
                       </span>
@@ -88,7 +89,7 @@ export function Statement() {
                               {t('statement.credit')}
                             </div>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
-                              {credits.length ? credits.map((v) => renderPill(v.currency, v.cents, true)) : (
+                              {credits.length ? credits.map((v) => renderPill(v.currency, v.cents, true, v.fee)) : (
                                 <span className="muted">—</span>
                               )}
                             </div>
@@ -99,7 +100,7 @@ export function Statement() {
                               {t('statement.debit')}
                             </div>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
-                              {debits.length ? debits.map((v) => renderPill(v.currency, Math.abs(v.cents), false)) : (
+                              {debits.length ? debits.map((v) => renderPill(v.currency, Math.abs(v.cents), false, v.fee)) : (
                                 <span className="muted">—</span>
                               )}
                             </div>
@@ -112,7 +113,7 @@ export function Statement() {
                               {t('statement.net')}
                             </div>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
-                              {net.map((v) => renderPill(v.currency, v.cents, v.cents > 0))}
+                              {net.map((v) => renderPill(v.currency, v.cents, v.cents > 0, false))}
                             </div>
                           </div>
                         ) : null}

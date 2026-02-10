@@ -48,16 +48,16 @@ public class TransactionController {
 		TransactionType type = tx.getType();
 
 		if (tx.getType() == TransactionType.DEPOSIT_USD) {
-			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("USD", tx.getUsdAmountCents())));
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("USD", tx.getUsdAmountCents(), false)));
 		}
 		if (tx.getType() == TransactionType.CONVERT_USD_TO_TRV) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
 			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
 			return new PrivateStatementItem(id, tec, type, createdAt, List.of(
-					new ValueLine("USD", -usd),
-					new ValueLine("TRV", trv),
-					new ValueLine("USD", -fee)
+					new ValueLine("USD", -usd, false),
+					new ValueLine("TRV", trv, false),
+					new ValueLine("USD", -fee, true)
 			));
 		}
 		if (tx.getType() == TransactionType.CONVERT_TRV_TO_USD) {
@@ -65,25 +65,25 @@ public class TransactionController {
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
 			var fee = tx.getFeeUsdCents() == null ? 0 : tx.getFeeUsdCents();
 			return new PrivateStatementItem(id, tec, type, createdAt, List.of(
-					new ValueLine("TRV", -trv),
-					new ValueLine("USD", usd),
-					new ValueLine("USD", -fee)
+					new ValueLine("TRV", -trv, false),
+					new ValueLine("USD", usd, false),
+					new ValueLine("USD", -fee, true)
 			));
 		}
 		if (tx.getType() == TransactionType.TRANSFER_TRV_OUT) {
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
 			return new PrivateStatementItem(id, tec, type, createdAt, List.of(
-					new ValueLine("TRV", -trv)
+					new ValueLine("TRV", -trv, false)
 			));
 		}
 		if (tx.getType() == TransactionType.TRANSFER_TRV_IN) {
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
-			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("TRV", trv)));
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("TRV", trv, false)));
 		}
 		return new PrivateStatementItem(id, tec, type, createdAt, List.of());
 	}
 
 	public record PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values) {}
 
-	public record ValueLine(String currency, long cents) {}
+	public record ValueLine(String currency, long cents, boolean fee) {}
 }

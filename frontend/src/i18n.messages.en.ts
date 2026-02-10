@@ -57,6 +57,7 @@ export const messagesEn: Record<string, string> = {
   'statement.subtitle': 'Only values are shown to preserve privacy.',
   'statement.empty': 'No transactions',
   'statement.tec': 'TEC',
+  'statement.fee': 'Fee',
   'statement.credit': 'Credit',
   'statement.debit': 'Debit',
   'statement.net': 'Net',

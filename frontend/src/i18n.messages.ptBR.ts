@@ -57,6 +57,7 @@ export const messagesPtBR: Record<string, string> = {
   'statement.subtitle': 'Apenas valores são exibidos para manter privacidade.',
   'statement.empty': 'Sem transações',
   'statement.tec': 'TEC',
+  'statement.fee': 'Taxa',
   'statement.credit': 'Crédito',
   'statement.debit': 'Débito',
   'statement.net': 'Líquido',

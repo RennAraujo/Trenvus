@@ -29,7 +29,7 @@ export type PrivateStatementItem = {
   tec: string
   type: string
   createdAt: string | null
-  values: Array<{ currency: string; cents: number }>
+  values: Array<{ currency: string; cents: number; fee: boolean }>
 }
 
 export type MarketTicker = {
