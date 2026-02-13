@@ -23,6 +23,12 @@ public class UserEntity {
 	@Column(name = "password_hash", nullable = false, length = 255)
 	private String passwordHash;
 
+	@Column(length = 64)
+	private String nickname;
+
+	@Column(length = 32)
+	private String phone;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt = Instant.now();
 
@@ -48,6 +54,22 @@ public class UserEntity {
 
 	public void setPasswordHash(String passwordHash) {
 		this.passwordHash = passwordHash;
+	}
+
+	public String getNickname() {
+		return nickname;
+	}
+
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
 	}
 
 	public Instant getCreatedAt() {

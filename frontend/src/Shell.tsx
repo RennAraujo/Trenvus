@@ -67,7 +67,9 @@ export function Shell() {
           </div>
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {auth.userEmail ? <div className="pill">{auth.userEmail}</div> : null}
+            {auth.userEmail || auth.userNickname ? (
+              <div className="pill">{auth.userNickname || auth.userEmail}</div>
+            ) : null}
             <button className="btn btn-danger" onClick={auth.logout}>
               {t('actions.logout')}
             </button>
@@ -83,4 +85,3 @@ export function Shell() {
     </div>
   )
 }
-

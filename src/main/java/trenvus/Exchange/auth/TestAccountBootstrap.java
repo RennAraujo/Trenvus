@@ -35,13 +35,19 @@ public class TestAccountBootstrap implements ApplicationRunner {
 			return;
 		}
 
-		for (var account : testAccounts.accounts()) {
+		var accounts = testAccounts.accounts();
+		for (int i = 0; i < accounts.size(); i++) {
+			var account = accounts.get(i);
 			var user = users.findByEmail(account.email()).orElseGet(() -> {
 				var created = new UserEntity();
 				created.setEmail(account.email());
 				return created;
 			});
 
+			user.setNickname("teste" + (i + 1));
+			if (user.getPhone() == null || user.getPhone().isBlank()) {
+				user.setPhone("0000000000");
+			}
 			user.setRole(account.role());
 			user.setPasswordHash(passwordEncoder.encode(account.password()));
 			user = users.save(user);

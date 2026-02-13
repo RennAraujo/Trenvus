@@ -10,12 +10,13 @@ type AuthState = {
 type AuthContextValue = AuthState & {
   isAuthenticated: boolean
   userEmail: string | null
+  userNickname: string | null
   userRoles: string[]
   isAdmin: boolean
   login: (email: string, password: string) => Promise<void>
   loginTestAccount: (id: number) => Promise<void>
   loginAdmin: () => Promise<void>
-  register: (email: string, password: string) => Promise<void>
+  register: (email: string, password: string, nickname: string, phone: string) => Promise<void>
   logout: () => Promise<void>
   getValidAccessToken: () => Promise<string>
 }
@@ -71,6 +72,20 @@ function getJwtEmail(accessToken: string | null): string | null {
   }
 }
 
+function getJwtNickname(accessToken: string | null): string | null {
+  if (!accessToken) return null
+  const parts = accessToken.split('.')
+  if (parts.length < 2) return null
+  try {
+    const raw = decodeBase64Url(parts[1] as string)
+    const payload = JSON.parse(raw) as { nickname?: unknown }
+    const nickname = payload?.nickname
+    return typeof nickname === 'string' && nickname.trim() ? nickname : null
+  } catch {
+    return null
+  }
+}
+
 function getJwtRoles(accessToken: string | null): string[] {
   if (!accessToken) return []
   const parts = accessToken.split('.')
@@ -94,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = Boolean(state.accessToken && state.refreshToken)
   const userEmail = useMemo(() => getJwtEmail(state.accessToken), [state.accessToken])
+  const userNickname = useMemo(() => getJwtNickname(state.accessToken), [state.accessToken])
   const userRoles = useMemo(() => getJwtRoles(state.accessToken), [state.accessToken])
   const isAdmin = useMemo(() => userRoles.includes('ADMIN'), [userRoles])
 
@@ -117,8 +133,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setFromResponse(payload)
   }, [setFromResponse])
 
-  const register = useCallback(async (email: string, password: string) => {
-    const payload = await api.register(email, password)
+  const register = useCallback(async (email: string, password: string, nickname: string, phone: string) => {
+    const payload = await api.register(email, password, nickname, phone)
     setFromResponse(payload)
   }, [setFromResponse])
 
@@ -152,6 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...state,
       isAuthenticated,
       userEmail,
+      userNickname,
       userRoles,
       isAdmin,
       login,
@@ -161,7 +178,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       getValidAccessToken,
     }),
-    [state, isAuthenticated, userEmail, userRoles, isAdmin, login, loginTestAccount, loginAdmin, register, logout, getValidAccessToken],
+    [
+      state,
+      isAuthenticated,
+      userEmail,
+      userNickname,
+      userRoles,
+      isAdmin,
+      login,
+      loginTestAccount,
+      loginAdmin,
+      register,
+      logout,
+      getValidAccessToken,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

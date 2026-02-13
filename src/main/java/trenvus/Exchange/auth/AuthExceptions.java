@@ -9,6 +9,12 @@ public final class AuthExceptions {
 		}
 	}
 
+	public static class NicknameAlreadyRegisteredException extends RuntimeException {
+		public NicknameAlreadyRegisteredException() {
+			super("Apelido já cadastrado");
+		}
+	}
+
 	public static class InvalidCredentialsException extends RuntimeException {
 		public InvalidCredentialsException() {
 			super("Credenciais inválidas");

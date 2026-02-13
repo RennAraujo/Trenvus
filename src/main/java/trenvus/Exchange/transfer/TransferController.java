@@ -1,7 +1,6 @@
 package trenvus.Exchange.transfer;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,8 +33,7 @@ public class TransferController {
 		return ResponseEntity.ok(new TransferResponse(result.usdCents(), result.trvCents(), result.transactionId(), result.feeTrvCents()));
 	}
 
-	public record TransferRequest(@NotBlank @Email String toEmail, @NotBlank String amountTrv) {}
+	public record TransferRequest(@NotBlank String toEmail, @NotBlank String amountTrv) {}
 
 	public record TransferResponse(long usdCents, long trvCents, Long transactionId, long feeTrvCents) {}
 }
-

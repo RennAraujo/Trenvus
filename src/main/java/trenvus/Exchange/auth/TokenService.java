@@ -37,14 +37,21 @@ public class TokenService {
 
 	public AccessTokenResult createAccessToken(UserEntity user, Instant now) {
 		var expiresAt = now.plusSeconds(accessTtlSeconds);
-		var claims = JwtClaimsSet.builder()
+		var builder = JwtClaimsSet.builder()
 				.issuer(issuer)
 				.issuedAt(now)
 				.expiresAt(expiresAt)
 				.subject(String.valueOf(user.getId()))
 				.claim("email", user.getEmail())
 				.claim("roles", List.of((user.getRole() == null ? "USER" : user.getRole().name())))
-				.build();
+				;
+
+		var nickname = user.getNickname();
+		if (nickname != null && !nickname.isBlank()) {
+			builder.claim("nickname", nickname);
+		}
+
+		var claims = builder.build();
 
 		var header = JwsHeader.with(SignatureAlgorithm.RS256).build();
 		var tokenValue = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();

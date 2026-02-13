@@ -30,8 +30,8 @@ class TransferServiceTests {
 
 	@Test
 	void transferTrv_movesBalanceWithoutFee() {
-		var fromUserId = createUser("from@trenvus.local");
-		var toUserId = createUser("to@trenvus.local");
+		var fromUserId = createUser("from@trenvus.local", null);
+		var toUserId = createUser("to@trenvus.local", "teste2");
 
 		walletService.ensureUserWallets(fromUserId);
 		walletService.ensureUserWallets(toUserId);
@@ -52,7 +52,7 @@ class TransferServiceTests {
 
 	@Test
 	void transferTrv_rejectsSelfTransfer() {
-		var userId = createUser("self@trenvus.local");
+		var userId = createUser("self@trenvus.local", "teste1");
 		walletService.ensureUserWallets(userId);
 		exchangeService.depositUsd(userId, 2_000);
 		exchangeService.convertUsdToTrv(userId, 1_000, "k1");
@@ -61,9 +61,27 @@ class TransferServiceTests {
 		assertTrue(ex.getMessage().toLowerCase().contains("si mesmo"));
 	}
 
-	private Long createUser(String email) {
+	@Test
+	void transferTrv_acceptsNicknameAsRecipient() {
+		var fromUserId = createUser("from2@trenvus.local", "teste1");
+		var toUserId = createUser("to2@trenvus.local", "teste3");
+
+		walletService.ensureUserWallets(fromUserId);
+		walletService.ensureUserWallets(toUserId);
+
+		exchangeService.depositUsd(fromUserId, 5_000);
+		exchangeService.convertUsdToTrv(fromUserId, 2_000, "k1");
+
+		transferService.transferTrv(fromUserId, "teste3", 500);
+
+		var toSnapshot = walletService.getSnapshot(toUserId);
+		assertEquals(500, toSnapshot.trvCents());
+	}
+
+	private Long createUser(String email, String nickname) {
 		var user = new UserEntity();
 		user.setEmail(email);
+		user.setNickname(nickname);
 		user.setPasswordHash("test");
 		return users.save(user).getId();
 	}

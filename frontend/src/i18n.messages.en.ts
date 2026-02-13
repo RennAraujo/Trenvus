@@ -35,6 +35,8 @@ export const messagesEn: Record<string, string> = {
   'actions.clear': 'Clear',
 
   'labels.email': 'Email',
+  'labels.nickname': 'Nickname',
+  'labels.phone': 'Phone',
   'labels.password': 'Password',
   'labels.amountUsd': 'Amount (USD)',
   'labels.amountByCurrency': 'Amount ({currency})',
@@ -98,7 +100,7 @@ export const messagesEn: Record<string, string> = {
 
   'transfer.title': 'Transfer',
   'transfer.subtitle': 'Transfer TRV between users.',
-  'transfer.toEmail': "Recipient's email",
+  'transfer.toEmail': "Recipient email or nickname",
   'transfer.amountTrv': 'Amount (TRV)',
   'transfer.totalLine': 'Total debited: {total} TRV',
   'transfer.submit': 'Transfer',
@@ -116,6 +118,14 @@ export const messagesEn: Record<string, string> = {
 
   'invoices.receive.title': 'Invoice • RECEIVE',
   'invoices.receive.subtitle': 'In the future, you will scan a QRCode on mobile or desktop.',
+  'invoices.receive.chargeTitle': 'Charge (demo)',
+  'invoices.receive.chargeSubtitle': 'Set an amount and generate a QRCode for someone else to pay.',
+  'invoices.receive.generateDemo': 'Generate QRCode (demo)',
+  'invoices.receive.qrTitle': 'QRCode (demo)',
+  'invoices.receive.qrSubtitle': 'For now this is only a visual simulation + payload for future implementation.',
+  'invoices.receive.payload': 'Payload',
+  'invoices.receive.qrEmpty': 'Enter an amount and click “Generate QRCode (demo)”.',
+  'invoices.receive.scanTitle': 'Scan (demo)',
   'invoices.receive.simulateScan': 'Simulate QRCode scan',
   'invoices.receive.detected': 'Invoice detected (demo)',
   'invoices.receive.from': 'From',

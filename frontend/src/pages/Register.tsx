@@ -9,6 +9,8 @@ export function Register() {
   const navigate = useNavigate()
   const { t } = useI18n()
   const [email, setEmail] = useState('')
+  const [nickname, setNickname] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -19,7 +21,7 @@ export function Register() {
     setError(null)
     setBusy(true)
     try {
-      await auth.register(email, password)
+      await auth.register(email, password, nickname, phone)
       navigate('/app', { replace: true })
     } catch (err: any) {
       setError(err?.message || t('errors.register'))
@@ -60,6 +62,14 @@ export function Register() {
                   <div className="field">
                     <div className="label">{t('labels.email')}</div>
                     <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <div className="label">{t('labels.nickname')}</div>
+                    <input className="input" value={nickname} onChange={(e) => setNickname(e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <div className="label">{t('labels.phone')}</div>
+                    <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" />
                   </div>
                   <div className="field">
                     <div className="label">{t('labels.password')}</div>

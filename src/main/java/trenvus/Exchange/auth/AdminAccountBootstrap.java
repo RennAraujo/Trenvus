@@ -43,10 +43,13 @@ public class AdminAccountBootstrap implements ApplicationRunner {
 			return created;
 		});
 
+		user.setNickname("Administrador");
+		if (user.getPhone() == null || user.getPhone().isBlank()) {
+			user.setPhone("0000000000");
+		}
 		user.setRole(UserRole.ADMIN);
 		user.setPasswordHash(passwordEncoder.encode(adminAccount.password()));
 		user = users.save(user);
 		walletService.ensureUserWallets(user.getId());
 	}
 }
-

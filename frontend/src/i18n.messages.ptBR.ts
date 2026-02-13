@@ -35,6 +35,8 @@ export const messagesPtBR: Record<string, string> = {
   'actions.clear': 'Limpar',
 
   'labels.email': 'E-mail',
+  'labels.nickname': 'Apelido',
+  'labels.phone': 'Telefone',
   'labels.password': 'Senha',
   'labels.amountUsd': 'Valor (USD)',
   'labels.amountByCurrency': 'Valor ({currency})',
@@ -98,7 +100,7 @@ export const messagesPtBR: Record<string, string> = {
 
   'transfer.title': 'Transferência',
   'transfer.subtitle': 'Transfira TRV entre usuários.',
-  'transfer.toEmail': 'E-mail do destinatário',
+  'transfer.toEmail': 'E-mail ou apelido do destinatário',
   'transfer.amountTrv': 'Valor (TRV)',
   'transfer.totalLine': 'Total debitado: {total} TRV',
   'transfer.submit': 'Transferir',
@@ -116,6 +118,14 @@ export const messagesPtBR: Record<string, string> = {
 
   'invoices.receive.title': 'Invoice • RECEIVE',
   'invoices.receive.subtitle': 'No futuro, você poderá ler um QRCode no celular ou no desktop.',
+  'invoices.receive.chargeTitle': 'Cobrança (demo)',
+  'invoices.receive.chargeSubtitle': 'Defina o valor e gere um QRCode para outra pessoa pagar.',
+  'invoices.receive.generateDemo': 'Gerar QRCode (demo)',
+  'invoices.receive.qrTitle': 'QRCode (demo)',
+  'invoices.receive.qrSubtitle': 'Por enquanto é apenas uma simulação visual + payload para futura implementação.',
+  'invoices.receive.payload': 'Conteúdo (payload)',
+  'invoices.receive.qrEmpty': 'Preencha o valor e clique em “Gerar QRCode (demo)”.',
+  'invoices.receive.scanTitle': 'Leitura (demo)',
   'invoices.receive.simulateScan': 'Simular leitura de QRCode',
   'invoices.receive.detected': 'Invoice detectada (demo)',
   'invoices.receive.from': 'De',
