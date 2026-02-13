@@ -299,10 +299,16 @@ export const api = {
 }
 
 export function formatUsd(cents: number): string {
-  const sign = cents < 0 ? '-' : ''
-  const abs = Math.abs(cents)
-  const dollars = Math.floor(abs / 100)
-  const remainder = abs % 100
-  const grouped = String(dollars).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  return `${sign}${grouped}.${String(remainder).padStart(2, '0')}`
+  const locale =
+    (typeof window !== 'undefined' ? window.localStorage.getItem('exchange.locale') : null) ||
+    (typeof navigator !== 'undefined' ? navigator.language : 'en')
+  const value = cents / 100
+  try {
+    return new Intl.NumberFormat(locale === 'pt-BR' || locale === 'en' ? locale : 'en', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value)
+  } catch {
+    return value.toFixed(2)
+  }
 }

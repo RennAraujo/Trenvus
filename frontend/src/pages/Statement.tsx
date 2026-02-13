@@ -11,6 +11,17 @@ export function Statement() {
   const [busy, setBusy] = useState(false)
   const [page, setPage] = useState(0)
 
+  function typeLabel(type: string): string {
+    if (type === 'DEPOSIT_USD') return t('statement.type.deposit')
+    if (type === 'CONVERT_USD_TO_TRV') return t('statement.type.convertUsdToTrv')
+    if (type === 'CONVERT_TRV_TO_USD') return t('statement.type.convertTrvToUsd')
+    if (type === 'TRANSFER_TRV_OUT') return t('statement.type.transferOut')
+    if (type === 'TRANSFER_TRV_IN') return t('statement.type.transferIn')
+    if (type === 'FEE_INCOME_USD') return t('statement.type.feeIncome')
+    if (type === 'ADMIN_ADJUST_WALLET') return t('statement.type.adminAdjust')
+    return type
+  }
+
   async function load(nextPage: number) {
     setError(null)
     setBusy(true)
@@ -57,8 +68,6 @@ export function Statement() {
                   </div>
 
                   {(() => {
-                    const credits = item.values.filter((v) => v.cents > 0)
-                    const debits = item.values.filter((v) => v.cents < 0)
                     const netByCurrency = new Map<string, number>()
                     for (const v of item.values) {
                       netByCurrency.set(v.currency, (netByCurrency.get(v.currency) || 0) + v.cents)
@@ -68,43 +77,30 @@ export function Statement() {
                       .filter((v) => v.cents !== 0)
                       .sort((a, b) => a.currency.localeCompare(b.currency))
 
-                    const renderPill = (currency: string, cents: number, accent: boolean, fee: boolean) => (
+                    const renderPill = (label: string, currency: string, cents: number, accent: boolean) => (
                       <span
-                        key={`${currency}:${cents}:${accent ? 'c' : 'd'}:${fee ? 'f' : 'n'}`}
+                        key={`${label}:${currency}:${cents}:${accent ? 'p' : 'n'}`}
                         className={`pill ${accent ? 'pill-accent' : ''}`}
                         style={{ borderColor: accent ? undefined : 'rgba(255,255,255,0.14)' }}
                       >
                         <span className="mono">
-                          {fee ? `${t('statement.fee')}: ` : ''}
-                          {formatUsd(cents)} {currency}
+                          {label} {formatUsd(Math.abs(cents))} {currency}
                         </span>
                       </span>
                     )
 
+                    const movements = item.values
+                      .filter((v) => v.cents !== 0)
+                      .map((v) => ({
+                        currency: v.currency,
+                        cents: v.cents,
+                        fee: v.fee,
+                      }))
+
                     return (
                       <>
-                        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 10 }}>
-                          <div style={{ minWidth: 220, flex: '1 1 260px' as any }}>
-                            <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-                              {t('statement.credit')}
-                            </div>
-                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
-                              {credits.length ? credits.map((v) => renderPill(v.currency, v.cents, true, v.fee)) : (
-                                <span className="muted">—</span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div style={{ minWidth: 220, flex: '1 1 260px' as any }}>
-                            <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-                              {t('statement.debit')}
-                            </div>
-                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
-                              {debits.length ? debits.map((v) => renderPill(v.currency, Math.abs(v.cents), false, v.fee)) : (
-                                <span className="muted">—</span>
-                              )}
-                            </div>
-                          </div>
+                        <div className="muted" style={{ fontSize: 12, fontWeight: 700, marginTop: 10 }}>
+                          {typeLabel(item.type)}
                         </div>
 
                         {net.length ? (
@@ -113,10 +109,30 @@ export function Statement() {
                               {t('statement.net')}
                             </div>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
-                              {net.map((v) => renderPill(v.currency, v.cents, v.cents > 0, false))}
+                              {net.map((v) =>
+                                renderPill(v.cents >= 0 ? '+' : '-', v.currency, v.cents, v.cents > 0),
+                              )}
                             </div>
                           </div>
                         ) : null}
+
+                        <div style={{ marginTop: 10 }}>
+                          <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
+                            {t('statement.movements')}
+                          </div>
+                          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+                            {movements.length ? (
+                              movements.map((m) => {
+                                const sign = m.cents >= 0 ? '+' : '-'
+                                const accent = m.cents > 0
+                                const label = m.fee ? `${t('statement.fee')}:` : sign
+                                return renderPill(label, m.currency, m.cents, accent)
+                              })
+                            ) : (
+                              <span className="muted">—</span>
+                            )}
+                          </div>
+                        </div>
                       </>
                     )
                   })()}
