@@ -24,6 +24,12 @@ export type TransferResponse = WalletResponse & {
   feeTrvCents: number
 }
 
+export type MeResponse = {
+  email: string
+  nickname: string | null
+  phone: string | null
+}
+
 export type PrivateStatementItem = {
   id: number
   tec: string
@@ -259,6 +265,12 @@ export const api = {
 
   transferTrv: (accessToken: string, toEmail: string, amountTrv: string) =>
     request<TransferResponse>('/transfer/trv', { method: 'POST', accessToken, body: JSON.stringify({ toEmail, amountTrv }) }),
+
+  getMe: (accessToken: string) => request<MeResponse>('/me', { accessToken }),
+  updateMyPhone: (accessToken: string, phone: string) =>
+    request<MeResponse>('/me/phone', { method: 'PUT', accessToken, body: JSON.stringify({ phone }) }),
+  changeMyPassword: (accessToken: string, currentPassword: string, newPassword: string) =>
+    request<void>('/me/password', { method: 'PUT', accessToken, body: JSON.stringify({ currentPassword, newPassword }) }),
 
   getPrivateStatement: (accessToken: string, page: number, size: number) =>
     request<PrivateStatementItem[]>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),

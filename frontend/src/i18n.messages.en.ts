@@ -10,6 +10,7 @@ export const messagesEn: Record<string, string> = {
   'nav.invoicesSend': 'SEND',
   'nav.invoicesReceive': 'RECEIVE',
   'nav.admin': 'Admin',
+  'nav.account': 'My account',
 
   'actions.logout': 'Logout',
   'actions.login': 'Login',
@@ -104,6 +105,19 @@ export const messagesEn: Record<string, string> = {
   'transfer.amountTrv': 'Amount (TRV)',
   'transfer.totalLine': 'Total debited: {total} TRV',
   'transfer.submit': 'Transfer',
+
+  'account.title': 'My account',
+  'account.subtitle': 'Manage your details and credentials.',
+  'account.phone.title': 'Phone',
+  'account.phone.subtitle': 'Update the phone number linked to your account.',
+  'account.phone.saved': 'Phone updated.',
+  'account.password.title': 'Password',
+  'account.password.subtitle': 'Change your password by confirming the current one.',
+  'account.password.current': 'Current password',
+  'account.password.new': 'New password',
+  'account.password.confirm': 'Confirm new password',
+  'account.password.mismatch': 'Passwords do not match.',
+  'account.password.changed': 'Password changed.',
 
   'invoices.send.title': 'Invoice • SEND',
   'invoices.send.subtitle': 'Generate a QRCode (demo) for faster payments (future).',
@@ -226,6 +240,8 @@ export const messagesEn: Record<string, string> = {
     '• Spring Security + OAuth2 Resource Server (JWT)\n• Nimbus JOSE + JWT (RSA)\n• BCrypt Password Encoder\n• SecureRandom + SHA-256 refresh tokens\n• Environment-based CORS allowlist\n• Jakarta Bean Validation + global error handler\n• Idempotency-Key with unique constraint + transactions',
 
   'errors.loadBalance': 'Failed to load balance',
+  'errors.loadAccount': 'Failed to load your account',
+  'errors.save': 'Failed to save',
   'errors.deposit': 'Failed to deposit',
   'errors.depositMin': 'Minimum deposit is {min} USD.',
   'errors.convert': 'Failed to convert',

@@ -186,6 +186,16 @@ input {
   color: var(--text);
 }
 
+.user-dropdown {
+  position: relative;
+}
+
+.user-dropdown-menu {
+  left: auto;
+  right: 0;
+  min-width: 200px;
+}
+
 .nav-dropdown-menu a {
   display: block;
   padding: 10px 10px;

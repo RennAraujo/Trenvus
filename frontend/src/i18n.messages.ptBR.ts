@@ -10,6 +10,7 @@ export const messagesPtBR: Record<string, string> = {
   'nav.invoicesSend': 'SEND',
   'nav.invoicesReceive': 'RECEIVE',
   'nav.admin': 'Admin',
+  'nav.account': 'Minha conta',
 
   'actions.logout': 'Sair',
   'actions.login': 'Entrar',
@@ -104,6 +105,19 @@ export const messagesPtBR: Record<string, string> = {
   'transfer.amountTrv': 'Valor (TRV)',
   'transfer.totalLine': 'Total debitado: {total} TRV',
   'transfer.submit': 'Transferir',
+
+  'account.title': 'Minha conta',
+  'account.subtitle': 'Gerencie seus dados e credenciais.',
+  'account.phone.title': 'Telefone',
+  'account.phone.subtitle': 'Atualize o número de telefone vinculado à sua conta.',
+  'account.phone.saved': 'Telefone atualizado.',
+  'account.password.title': 'Senha',
+  'account.password.subtitle': 'Altere sua senha informando a senha atual.',
+  'account.password.current': 'Senha atual',
+  'account.password.new': 'Nova senha',
+  'account.password.confirm': 'Confirmar nova senha',
+  'account.password.mismatch': 'As senhas não conferem.',
+  'account.password.changed': 'Senha alterada.',
 
   'invoices.send.title': 'Invoice • SEND',
   'invoices.send.subtitle': 'Gere um QRCode (demo) para pagamento mais rápido (futuro).',
@@ -226,6 +240,8 @@ export const messagesPtBR: Record<string, string> = {
     '• Spring Security + OAuth2 Resource Server (JWT)\n• Nimbus JOSE + JWT (RSA)\n• BCrypt Password Encoder\n• Refresh token com SecureRandom + SHA-256\n• CORS allowlist por ambiente\n• Jakarta Bean Validation + handler global de erros\n• Idempotency-Key com constraint única + transações',
 
   'errors.loadBalance': 'Falha ao carregar saldo',
+  'errors.loadAccount': 'Falha ao carregar sua conta',
+  'errors.save': 'Falha ao salvar',
   'errors.deposit': 'Falha ao depositar',
   'errors.depositMin': 'O depósito mínimo é de {min} USD.',
   'errors.convert': 'Falha ao converter',

@@ -15,6 +15,7 @@ import { Manifesto } from './pages/Manifesto'
 import { AdminUsers } from './pages/AdminUsers'
 import { InvoicesSend } from './pages/InvoicesSend'
 import { InvoicesReceive } from './pages/InvoicesReceive'
+import { Account } from './pages/Account'
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="statement" element={<Statement />} />
             <Route path="market" element={<Market />} />
             <Route path="transfer" element={<Transfer />} />
+            <Route path="account" element={<Account />} />
             <Route path="invoices/send" element={<InvoicesSend />} />
             <Route path="invoices/receive" element={<InvoicesReceive />} />
             <Route

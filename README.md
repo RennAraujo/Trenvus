@@ -29,9 +29,15 @@ Plataforma de câmbio digital segura e moderna, permitindo gestão de carteiras 
 
 ## Conta de Teste (Desenvolvimento)
 
-Para facilitar o desenvolvimento e testes, uma conta administrativa é criada automaticamente na inicialização:
-- **Email**: `user@test.com`
-- **Senha**: `123`
+Para facilitar o desenvolvimento e testes, contas de teste e uma conta admin podem ser criadas automaticamente na inicialização (via variáveis de ambiente no `docker-compose.yml` / `.env`):
+
+**Contas teste (quando `TEST_ACCOUNT_ENABLED=true`)**
+- `user@test.com` / `123` (apelido: `teste1`)
+- `user2@test.com` / `123` (apelido: `teste2`)
+- `user3@test.com` / `123` (apelido: `teste3`)
+
+**Conta admin (quando `ADMIN_ACCOUNT_ENABLED=true`)**
+- `admin@trenvus.local` / `admin123` (apelido: `Administrador`)
 
 > **Nota**: O frontend possui um botão "Entrar com conta de teste" na tela de login que preenche e submete essas credenciais automaticamente.
 
@@ -89,6 +95,15 @@ O frontend estará disponível em `http://localhost:5173`.
 A documentação interativa está disponível via Swagger UI:
 [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
+### Endpoints úteis (resumo)
+- `POST /auth/register`: cria conta (email, senha, apelido, telefone)
+- `POST /auth/login`: login com email e senha
+- `POST /auth/test-login`: login com contas de teste (id 1..3)
+- `POST /transfer/trv`: transferência TRV (destinatário por email ou apelido)
+- `GET /me`: dados da conta autenticada
+- `PUT /me/phone`: atualiza telefone da conta autenticada
+- `PUT /me/password`: altera senha (senha atual + nova senha)
+
 ## Estrutura do Projeto
 
 - `/src`: Código fonte do Backend (Java/Spring)
@@ -111,13 +126,16 @@ A documentação interativa está disponível via Swagger UI:
 
 ### Conversão de Moedas
 - Suporte a conversão USD <-> TRV.
-- Taxas e taxas de serviço configuráveis.
+- Taxa de serviço: **1%** por conversão (cobrada em USD).
 
-- **Autenticação**: Login e Registro com JWT.
+- **Autenticação**: Login e Registro com JWT (registro exige apelido e telefone).
 - **Carteira**: Depósito de USD e visualização de saldo.
-- **Câmbio**: Conversão de USD para TRV (1:1 com taxa fixa de $0.50).
+- **Câmbio**: Conversão USD ↔ TRV (1:1 com taxa de 1%).
 - **Extrato**: Histórico privado de transações.
+- **Transferência**: Envio de TRV para outro usuário por **e-mail ou apelido**.
+- **Minha conta**: Alterar telefone e senha (menu no topo ao passar o mouse no usuário).
 - **Mercado**: Dados de mercado em tempo real (simulado/integrado).
+- **Invoices (demo)**: Geração/leitura de QRCode (simulação).
 
 ## Licença
 

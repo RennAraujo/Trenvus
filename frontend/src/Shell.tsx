@@ -10,9 +10,11 @@ export function Shell() {
   const location = useLocation()
   const invoicesActive = location.pathname.startsWith('/app/invoices')
   const [invoicesOpen, setInvoicesOpen] = useState(false)
+  const [userOpen, setUserOpen] = useState(false)
   const invoicesRef = useRef<HTMLDivElement | null>(null)
 
   const closeInvoices = useMemo(() => () => setInvoicesOpen(false), [])
+  const closeUserMenu = useMemo(() => () => setUserOpen(false), [])
 
   useEffect(() => {
     closeInvoices()
@@ -29,6 +31,10 @@ export function Shell() {
     document.addEventListener('mousedown', onDocMouseDown)
     return () => document.removeEventListener('mousedown', onDocMouseDown)
   }, [closeInvoices])
+
+  useEffect(() => {
+    closeUserMenu()
+  }, [location.pathname, closeUserMenu])
 
   return (
     <div className="shell">
@@ -68,7 +74,16 @@ export function Shell() {
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             {auth.userEmail || auth.userNickname ? (
-              <div className="pill">{auth.userNickname || auth.userEmail}</div>
+              <div
+                className={`nav-dropdown user-dropdown ${userOpen ? 'open' : ''}`}
+                onMouseEnter={() => setUserOpen(true)}
+                onMouseLeave={() => setUserOpen(false)}
+              >
+                <div className="pill">{auth.userNickname || auth.userEmail}</div>
+                <div className="nav-dropdown-menu user-dropdown-menu" role="menu">
+                  <NavLink to="/app/account">{t('nav.account')}</NavLink>
+                </div>
+              </div>
             ) : null}
             <button className="btn btn-danger" onClick={auth.logout}>
               {t('actions.logout')}
