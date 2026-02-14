@@ -112,7 +112,7 @@ export const messagesEn: Record<string, string> = {
   'account.phone.subtitle': 'Update the phone number linked to your account.',
   'account.phone.saved': 'Phone updated.',
   'account.password.title': 'Password',
-  'account.password.subtitle': 'Change your password by confirming the current one.',
+  'account.password.subtitle': 'Change your password by confirming the current one (min. 4 characters).',
   'account.password.current': 'Current password',
   'account.password.new': 'New password',
   'account.password.confirm': 'Confirm new password',

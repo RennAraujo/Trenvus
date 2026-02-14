@@ -112,7 +112,7 @@ export const messagesPtBR: Record<string, string> = {
   'account.phone.subtitle': 'Atualize o número de telefone vinculado à sua conta.',
   'account.phone.saved': 'Telefone atualizado.',
   'account.password.title': 'Senha',
-  'account.password.subtitle': 'Altere sua senha informando a senha atual.',
+  'account.password.subtitle': 'Altere sua senha informando a senha atual (mín. 4 caracteres).',
   'account.password.current': 'Senha atual',
   'account.password.new': 'Nova senha',
   'account.password.confirm': 'Confirmar nova senha',

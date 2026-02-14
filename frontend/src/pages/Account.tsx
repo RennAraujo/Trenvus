@@ -19,7 +19,7 @@ export function Account() {
   const canSavePhone = useMemo(() => phone.trim().length > 0, [phone])
   const canChangePassword = useMemo(() => {
     if (!currentPassword) return false
-    if (!newPassword || newPassword.length < 6) return false
+    if (!newPassword || newPassword.length < 4) return false
     if (!confirmPassword) return false
     return true
   }, [confirmPassword, currentPassword, newPassword])

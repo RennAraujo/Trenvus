@@ -57,8 +57,7 @@ public class MeController {
 
 	public record UpdatePhoneRequest(@NotBlank String phone) {}
 
-	public record ChangePasswordRequest(@NotBlank String currentPassword, @NotBlank @Size(min = 6) String newPassword) {}
+	public record ChangePasswordRequest(@NotBlank String currentPassword, @NotBlank @Size(min = 4) String newPassword) {}
 
 	public record MeResponse(String email, String nickname, String phone) {}
 }
-
