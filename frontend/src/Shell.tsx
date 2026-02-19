@@ -79,7 +79,12 @@ export function Shell() {
                 onMouseEnter={() => setUserOpen(true)}
                 onMouseLeave={() => setUserOpen(false)}
               >
-                <div className="pill">{auth.userNickname || auth.userEmail}</div>
+                <div className="pill user-pill">
+                  <span className="user-avatar" aria-hidden="true">
+                    {auth.userAvatarDataUrl ? <img src={auth.userAvatarDataUrl} alt="" /> : null}
+                  </span>
+                  <span>{auth.userNickname || auth.userEmail}</span>
+                </div>
                 <div className="nav-dropdown-menu user-dropdown-menu" role="menu">
                   <NavLink to="/app/account">{t('nav.account')}</NavLink>
                 </div>

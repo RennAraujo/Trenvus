@@ -9,6 +9,7 @@ export function Account() {
 
   const [me, setMe] = useState<MeResponse | null>(null)
   const [phone, setPhone] = useState('')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -85,6 +86,30 @@ export function Account() {
     }
   }
 
+  async function onUploadAvatar(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setSuccess(null)
+    const file = avatarFile
+    if (!file) return
+    if (file.size > 1_000_000) {
+      setError(t('account.avatar.tooLarge'))
+      return
+    }
+    setBusy(true)
+    try {
+      const token = await auth.getValidAccessToken()
+      const data = await api.uploadMyAvatar(token, file)
+      setMe(data)
+      setAvatarFile(null)
+      setSuccess(t('account.avatar.saved'))
+    } catch (err: any) {
+      setError(err?.message || t('errors.save'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="grid">
       <div className="col-12">
@@ -105,6 +130,28 @@ export function Account() {
               <div className="muted">{t('labels.nickname')}</div>
               <div className="mono" style={{ marginTop: 6 }}>
                 {me?.nickname || auth.userNickname || '—'}
+              </div>
+            </div>
+            <div>
+              <div className="muted">{t('account.avatar.title')}</div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 6 }}>
+                <span className="user-avatar" aria-hidden="true" style={{ width: 44, height: 44 }}>
+                  {me?.avatarDataUrl ? <img src={me.avatarDataUrl} alt="" /> : null}
+                </span>
+                <form onSubmit={onUploadAvatar} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    onChange={(ev) => setAvatarFile(ev.target.files?.[0] || null)}
+                    disabled={busy}
+                  />
+                  <button className="btn btn-primary" type="submit" disabled={busy || !avatarFile}>
+                    {t('actions.save')}
+                  </button>
+                </form>
+              </div>
+              <div className="muted" style={{ marginTop: 6, fontSize: 12 }}>
+                {t('account.avatar.hint')}
               </div>
             </div>
           </div>

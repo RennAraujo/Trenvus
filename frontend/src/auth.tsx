@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { api, type AuthResponse } from './api'
 
 type AuthState = {
@@ -11,6 +11,7 @@ type AuthContextValue = AuthState & {
   isAuthenticated: boolean
   userEmail: string | null
   userNickname: string | null
+  userAvatarDataUrl: string | null
   userRoles: string[]
   isAdmin: boolean
   login: (email: string, password: string) => Promise<void>
@@ -106,6 +107,7 @@ function getJwtRoles(accessToken: string | null): string[] {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>(() => loadTokens())
+  const [profile, setProfile] = useState<{ avatarDataUrl: string | null }>({ avatarDataUrl: null })
 
   const isAuthenticated = Boolean(state.accessToken && state.refreshToken)
   const userEmail = useMemo(() => getJwtEmail(state.accessToken), [state.accessToken])
@@ -145,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       clearTokens()
       setState({ accessToken: null, accessExpiresAt: null, refreshToken: null })
+      setProfile({ avatarDataUrl: null })
     }
   }, [state.refreshToken])
 
@@ -163,12 +166,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return next.accessToken as string
   }, [state.accessExpiresAt, state.accessToken, state.refreshToken])
 
+  const refreshProfile = useCallback(async () => {
+    if (!state.accessToken || !state.refreshToken) {
+      setProfile({ avatarDataUrl: null })
+      return
+    }
+    try {
+      const token = await getValidAccessToken()
+      const me = await api.getMe(token)
+      setProfile({ avatarDataUrl: me.avatarDataUrl ?? null })
+    } catch {
+      setProfile({ avatarDataUrl: null })
+    }
+  }, [getValidAccessToken, state.accessToken, state.refreshToken])
+
+  useEffect(() => {
+    void refreshProfile()
+  }, [refreshProfile])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       ...state,
       isAuthenticated,
       userEmail,
       userNickname,
+      userAvatarDataUrl: profile.avatarDataUrl,
       userRoles,
       isAdmin,
       login,
@@ -178,20 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       getValidAccessToken,
     }),
-    [
-      state,
-      isAuthenticated,
-      userEmail,
-      userNickname,
-      userRoles,
-      isAdmin,
-      login,
-      loginTestAccount,
-      loginAdmin,
-      register,
-      logout,
-      getValidAccessToken,
-    ],
+    [state, isAuthenticated, userEmail, userNickname, profile.avatarDataUrl, userRoles, isAdmin, login, loginTestAccount, loginAdmin, register, logout, getValidAccessToken],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

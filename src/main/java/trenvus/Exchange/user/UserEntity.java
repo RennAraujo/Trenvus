@@ -29,6 +29,9 @@ public class UserEntity {
 	@Column(length = 32)
 	private String phone;
 
+	@Column(name = "avatar_data_url", columnDefinition = "TEXT")
+	private String avatarDataUrl;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt = Instant.now();
 
@@ -70,6 +73,14 @@ public class UserEntity {
 
 	public void setPhone(String phone) {
 		this.phone = phone;
+	}
+
+	public String getAvatarDataUrl() {
+		return avatarDataUrl;
+	}
+
+	public void setAvatarDataUrl(String avatarDataUrl) {
+		this.avatarDataUrl = avatarDataUrl;
 	}
 
 	public Instant getCreatedAt() {

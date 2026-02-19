@@ -28,6 +28,7 @@ export type MeResponse = {
   email: string
   nickname: string | null
   phone: string | null
+  avatarDataUrl: string | null
 }
 
 export type PrivateStatementItem = {
@@ -169,7 +170,10 @@ async function request<T>(
   options: RequestInit & { accessToken?: string } = {},
 ): Promise<T> {
   const headers = new Headers(options.headers || {})
-  headers.set('Content-Type', 'application/json')
+  const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData
+  if (!isFormDataBody) {
+    headers.set('Content-Type', 'application/json')
+  }
   if (options.accessToken) {
     headers.set('Authorization', `Bearer ${options.accessToken}`)
   }
@@ -271,6 +275,11 @@ export const api = {
     request<MeResponse>('/me/phone', { method: 'PUT', accessToken, body: JSON.stringify({ phone }) }),
   changeMyPassword: (accessToken: string, currentPassword: string, newPassword: string) =>
     request<void>('/me/password', { method: 'PUT', accessToken, body: JSON.stringify({ currentPassword, newPassword }) }),
+  uploadMyAvatar: (accessToken: string, file: File) => {
+    const body = new FormData()
+    body.append('file', file)
+    return request<MeResponse>('/me/avatar', { method: 'POST', accessToken, body })
+  },
 
   getPrivateStatement: (accessToken: string, page: number, size: number) =>
     request<PrivateStatementItem[]>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),

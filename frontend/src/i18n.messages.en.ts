@@ -116,6 +116,10 @@ export const messagesEn: Record<string, string> = {
 
   'account.title': 'My account',
   'account.subtitle': 'Manage your details and credentials.',
+  'account.avatar.title': 'Photo',
+  'account.avatar.hint': 'PNG/JPG/WEBP/GIF up to 1MB.',
+  'account.avatar.tooLarge': 'Image must be at most 1MB.',
+  'account.avatar.saved': 'Photo updated.',
   'account.phone.title': 'Phone',
   'account.phone.subtitle': 'Update the phone number linked to your account.',
   'account.phone.saved': 'Phone updated.',

@@ -116,6 +116,10 @@ export const messagesPtBR: Record<string, string> = {
 
   'account.title': 'Minha conta',
   'account.subtitle': 'Gerencie seus dados e credenciais.',
+  'account.avatar.title': 'Foto',
+  'account.avatar.hint': 'PNG/JPG/WEBP/GIF até 1MB.',
+  'account.avatar.tooLarge': 'A imagem deve ter no máximo 1MB.',
+  'account.avatar.saved': 'Foto atualizada.',
   'account.phone.title': 'Telefone',
   'account.phone.subtitle': 'Atualize o número de telefone vinculado à sua conta.',
   'account.phone.saved': 'Telefone atualizado.',
