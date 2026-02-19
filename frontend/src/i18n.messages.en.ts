@@ -31,6 +31,7 @@ export const messagesEn: Record<string, string> = {
   'actions.search': 'Search',
   'actions.save': 'Save',
   'actions.refresh': 'Refresh',
+  'actions.exportPdf': 'Export PDF',
   'actions.apply': 'Apply',
   'actions.hide': 'Hide',
   'actions.clear': 'Clear',
