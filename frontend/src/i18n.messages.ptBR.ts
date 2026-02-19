@@ -31,7 +31,7 @@ export const messagesPtBR: Record<string, string> = {
   'actions.search': 'Buscar',
   'actions.save': 'Salvar',
   'actions.refresh': 'Recarregar',
-  'actions.exportPdf': 'Extrair PDF',
+  'actions.exportPdf': 'Exportar PDF',
   'actions.apply': 'Aplicar',
   'actions.hide': 'Ocultar',
   'actions.clear': 'Limpar',

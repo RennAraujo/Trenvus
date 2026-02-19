@@ -60,9 +60,17 @@ export function Statement() {
     const pageHeight = doc.internal.pageSize.getHeight()
     const margin = 40
     let y = margin
+    const lineH = 14
+    const smallLineH = 12
 
     const nowLabel = formatWhen(new Date().toISOString()) || new Date().toISOString()
     const header = `${t('statement.title')} • ${t('statement.page')} ${page + 1}`
+
+    function ensureSpace(height: number) {
+      if (y + height <= pageHeight - margin) return
+      doc.addPage()
+      y = margin
+    }
 
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(16)
@@ -74,15 +82,14 @@ export function Statement() {
     doc.text(nowLabel, margin, y)
     y += 18
 
-    doc.setDrawColor(255, 255, 255)
+    doc.setDrawColor(210, 210, 210)
     doc.setLineWidth(0.6)
     doc.line(margin, y, pageWidth - margin, y)
     y += 16
 
-    const maxTextWidth = pageWidth - margin * 2
-
     for (const item of items) {
       const when = formatWhen(item.createdAt)
+
       const netByCurrency = new Map<string, number>()
       for (const v of item.values) {
         netByCurrency.set(v.currency, (netByCurrency.get(v.currency) || 0) + v.cents)
@@ -93,6 +100,7 @@ export function Statement() {
 
       const netPrimary =
         netEntries.find((n) => n.currency === 'TRV') || netEntries.find((n) => n.currency === 'USD') || netEntries[0] || null
+      const netText = netPrimary ? formatSigned(netPrimary.currency, netPrimary.cents) : ''
 
       const movements = item.values
         .filter((v) => v.cents !== 0)
@@ -107,45 +115,63 @@ export function Statement() {
         .sort((a, b) => a.cents - b.cents)
         .map((m) => formatSigned(m.currency, m.cents))
 
-      const lines = [
-        typeLabel(item.type),
-        item.tec,
-        ...(when ? [when] : []),
-        ...(netPrimary ? [formatSigned(netPrimary.currency, netPrimary.cents)] : []),
-        ...feeLines,
-        ...movementLines,
-      ]
+      const detailLines = [...feeLines, ...movementLines]
+      ensureSpace(lineH * 2 + (detailLines.length ? detailLines.length * smallLineH : smallLineH) + 18)
 
-      const rendered = doc.splitTextToSize(lines.join('\n'), maxTextWidth)
-      const blockHeight = rendered.length * 12 + 14
-      if (y + blockHeight > pageHeight - margin) {
-        doc.addPage()
-        y = margin
-      }
-
+      doc.setTextColor(0, 0, 0)
       doc.setFont('helvetica', 'bold')
-      doc.setFontSize(11)
+      doc.setFontSize(12)
       doc.text(typeLabel(item.type), margin, y)
-      y += 14
+      if (netText) {
+        doc.text(netText, pageWidth - margin, y, { align: 'right' })
+      }
+      y += lineH
 
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(10)
-      const rest = doc.splitTextToSize(
-        [item.tec, ...(when ? [when] : []), ...(netPrimary ? [formatSigned(netPrimary.currency, netPrimary.cents)] : []), ...feeLines, ...movementLines].join(
-          '\n',
-        ),
-        maxTextWidth,
-      )
-      doc.text(rest, margin, y)
-      y += rest.length * 12 + 10
+      doc.setTextColor(40, 40, 40)
+      doc.text(item.tec, margin, y)
+      if (when) {
+        doc.text(when, pageWidth - margin, y, { align: 'right' })
+      }
+      y += lineH
 
-      doc.setDrawColor(255, 255, 255)
-      doc.setLineWidth(0.4)
+      doc.setTextColor(0, 0, 0)
+      if (detailLines.length) {
+        for (const l of detailLines) {
+          ensureSpace(smallLineH + 6)
+          doc.text(l, margin + 14, y)
+          y += smallLineH
+        }
+      } else {
+        doc.setTextColor(120, 120, 120)
+        doc.text('—', margin + 14, y)
+        y += smallLineH
+      }
+
+      y += 8
+      doc.setDrawColor(230, 230, 230)
+      doc.setLineWidth(0.6)
       doc.line(margin, y, pageWidth - margin, y)
       y += 14
     }
 
-    doc.save(`extrato-pagina-${page + 1}.pdf`)
+    const footerLines = [t('statement.secureNote'), `${t('statement.rateNote')} • ${t('statement.feeNote')}`]
+    ensureSpace(footerLines.length * smallLineH + 10)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.setTextColor(80, 80, 80)
+    for (const l of footerLines) {
+      doc.text(l, margin, y)
+      y += smallLineH
+    }
+
+    const ts = new Date()
+    const pad2 = (n: number) => String(n).padStart(2, '0')
+    const name = `extrato-p${page + 1}-${ts.getFullYear()}${pad2(ts.getMonth() + 1)}${pad2(ts.getDate())}-${pad2(ts.getHours())}${pad2(
+      ts.getMinutes(),
+    )}.pdf`
+    doc.save(name)
   }
 
   async function load(nextPage: number) {
