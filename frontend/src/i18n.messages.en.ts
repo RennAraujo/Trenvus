@@ -83,6 +83,13 @@ export const messagesEn: Record<string, string> = {
   'statement.type.transferIn': 'Transfer received (TRV)',
   'statement.type.feeIncome': 'Fee received (USD)',
   'statement.type.adminAdjust': 'Admin adjustment',
+  'statement.showing': 'Showing {n}',
+  'statement.transactions': 'transactions',
+  'statement.page': 'Page',
+  'statement.feeLabel': 'Fee',
+  'statement.secureNote': 'All transactions are processed securely.',
+  'statement.rateNote': '1 TRV = 1 USD',
+  'statement.feeNote': 'Conversion fee: 1% per transaction',
 
   'admin.users.title': 'User administration',
   'admin.users.subtitle': 'Adjust wallets and roles of other accounts (ADMIN only).',

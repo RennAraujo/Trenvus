@@ -83,6 +83,13 @@ export const messagesPtBR: Record<string, string> = {
   'statement.type.transferIn': 'Transferência recebida (TRV)',
   'statement.type.feeIncome': 'Taxa recebida (USD)',
   'statement.type.adminAdjust': 'Ajuste administrativo',
+  'statement.showing': 'Mostrando {n}',
+  'statement.transactions': 'transações',
+  'statement.page': 'Página',
+  'statement.feeLabel': 'Taxa',
+  'statement.secureNote': 'Todas as transações são processadas com segurança.',
+  'statement.rateNote': '1 TRV = 1 USD',
+  'statement.feeNote': 'Taxa de conversão: 1% por transação',
 
   'admin.users.title': 'Administração de usuários',
   'admin.users.subtitle': 'Ajuste carteiras e role de outras contas (ADMIN apenas).',
