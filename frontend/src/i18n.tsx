@@ -68,10 +68,10 @@ export function LanguageSwitcher() {
   const { locale, setLocale, t } = useI18n()
 
   return (
-    <div className="lang-switch" role="group" aria-label="Language">
+    <div className="lang-switcher" role="group" aria-label="Language">
       <button
         type="button"
-        className={locale === 'pt-BR' ? 'btn btn-small btn-primary' : 'btn btn-small'}
+        className={`lang-option ${locale === 'pt-BR' ? 'active' : ''}`}
         onClick={() => setLocale('pt-BR')}
         aria-pressed={locale === 'pt-BR'}
       >
@@ -79,7 +79,7 @@ export function LanguageSwitcher() {
       </button>
       <button
         type="button"
-        className={locale === 'en' ? 'btn btn-small btn-primary' : 'btn btn-small'}
+        className={`lang-option ${locale === 'en' ? 'active' : ''}`}
         onClick={() => setLocale('en')}
         aria-pressed={locale === 'en'}
       >

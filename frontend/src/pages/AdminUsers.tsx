@@ -3,6 +3,50 @@ import { api, formatUsd, type AdminFeeIncomeResponse, type AdminUserSummary } fr
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
+// Icons
+const UsersIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+)
+
+const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+  </svg>
+)
+
+const WalletIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+  </svg>
+)
+
+const ShieldIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+)
+
+const RefreshIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
+  </svg>
+)
+
+const SaveIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+  </svg>
+)
+
+const DollarIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+  </svg>
+)
+
 export function AdminUsers() {
   const auth = useAuth()
   const { t } = useI18n()
@@ -108,171 +152,242 @@ export function AdminUsers() {
   }, [selectedUser?.id])
 
   return (
-    <div className="grid">
-      <div className="col-12">
-        <h1 className="title">{t('admin.users.title')}</h1>
-        <div className="subtitle">{t('admin.users.subtitle')}</div>
+    <div className="animate-fade-in">
+      {/* Header */}
+      <div className="page-header">
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+          <div>
+            <h1 className="page-title">{t('admin.users.title')}</h1>
+            <p className="page-subtitle">{t('admin.users.subtitle')}</p>
+          </div>
+        </div>
       </div>
 
-      <div className="col-12 card">
-        <div className="card-inner">
-          {error ? <div className="error">{error}</div> : null}
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: 24 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+          </svg>
+          {error}
+        </div>
+      )}
 
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-            <input
-              className="input"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('admin.users.searchPlaceholder')}
-              style={{ minWidth: 260, flex: '1 1 260px' as any }}
-            />
-            <button className="btn" disabled={busy} onClick={() => loadUsers(query)}>
+      <div className="card">
+        <div className="card-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: 10, 
+              background: 'var(--color-secondary-alpha-10)',
+              color: 'var(--color-secondary-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <UsersIcon />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>User Management</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>{items.length} users found</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card-body">
+          {/* Search */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                <SearchIcon />
+              </span>
+              <input
+                className="input"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('admin.users.searchPlaceholder')}
+                style={{ paddingLeft: 44 }}
+              />
+            </div>
+            <button className="btn btn-secondary" disabled={busy} onClick={() => loadUsers(query)}>
+              <SearchIcon />
               {t('actions.search')}
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 14 }}>
-            <div style={{ minWidth: 280, flex: '1 1 320px' as any }}>
-              <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24 }} className="md:grid-cols-1">
+            {/* User List */}
+            <div>
+              <div className="text-xs font-semibold text-tertiary" style={{ textTransform: 'uppercase', letterSpacing: 0.05, marginBottom: 12 }}>
                 {t('admin.users.list')}
               </div>
-              <div className="list" style={{ marginTop: 10, maxHeight: 420, overflow: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 500, overflow: 'auto' }}>
                 {items.map((u) => (
                   <button
                     key={u.id}
                     type="button"
-                    className={`btn ${u.id === selectedId ? 'btn-primary' : ''}`}
-                    style={{ width: '100%', justifyContent: 'space-between' }}
+                    className={`btn ${u.id === selectedId ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ 
+                      width: '100%', 
+                      justifyContent: 'space-between',
+                      textAlign: 'left'
+                    }}
                     onClick={() => setSelectedId(u.id)}
                   >
-                    <span className="mono" style={{ textAlign: 'left' as any }}>
+                    <span className="font-mono text-sm" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {u.email || `#${u.id}`}
                     </span>
-                    <span className="pill">{u.role}</span>
+                    <span className="badge badge-secondary">{u.role}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div style={{ minWidth: 280, flex: '2 1 420px' as any }}>
-              <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
+            {/* User Details */}
+            <div>
+              <div className="text-xs font-semibold text-tertiary" style={{ textTransform: 'uppercase', letterSpacing: 0.05, marginBottom: 12 }}>
                 {t('admin.users.details')}
               </div>
 
               {selectedUser ? (
-                <div className="card" style={{ boxShadow: 'none', marginTop: 10 }}>
-                  <div className="card-inner" style={{ padding: 14 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div className="card" style={{ background: 'var(--bg-elevated)' }}>
+                  <div className="card-body">
+                    {/* User Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
                       <div>
-                        <div className="mono" style={{ fontSize: 12, opacity: 0.85 }}>
-                          ID: {selectedUser.id}
-                        </div>
-                        <div className="mono" style={{ fontSize: 14, marginTop: 6 }}>
+                        <div className="font-mono text-xs text-tertiary">ID: {selectedUser.id}</div>
+                        <div className="font-mono" style={{ fontSize: 16, marginTop: 4 }}>
                           {selectedUser.email || '—'}
                         </div>
                       </div>
-                      <div className="pill">{selectedUser.role}</div>
+                      <span className="badge badge-primary">{selectedUser.role}</span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
-                      <div style={{ minWidth: 220, flex: '1 1 240px' as any }}>
-                        <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-                          USD
+                    {/* Wallet Section */}
+                    <div style={{ padding: 16, background: 'var(--bg-subtle)', borderRadius: 12, marginBottom: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                        <WalletIcon />
+                        <span className="font-semibold">Wallet Balance</span>
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                        <div>
+                          <div className="text-xs text-tertiary mb-2">USD Balance</div>
+                          <input 
+                            className="input font-mono" 
+                            value={walletUsd} 
+                            onChange={(e) => setWalletUsd(e.target.value)}
+                            style={{ background: 'var(--bg-elevated)' }}
+                          />
+                          <div className="text-xs text-muted mt-2">
+                            Current: {selectedWallet ? `${formatUsd(selectedWallet.usdCents)} USD` : '—'}
+                          </div>
                         </div>
-                        <input className="input" value={walletUsd} onChange={(e) => setWalletUsd(e.target.value)} />
-                        <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
-                          {selectedWallet ? `${formatUsd(selectedWallet.usdCents)} USD` : '—'}
+                        <div>
+                          <div className="text-xs text-tertiary mb-2">TRV Balance</div>
+                          <input 
+                            className="input font-mono" 
+                            value={walletTrv} 
+                            onChange={(e) => setWalletTrv(e.target.value)}
+                            style={{ background: 'var(--bg-elevated)' }}
+                          />
+                          <div className="text-xs text-muted mt-2">
+                            Current: {selectedWallet ? `${formatUsd(selectedWallet.trvCents)} TRV` : '—'}
+                          </div>
                         </div>
                       </div>
-                      <div style={{ minWidth: 220, flex: '1 1 240px' as any }}>
-                        <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-                          TRV
-                        </div>
-                        <input className="input" value={walletTrv} onChange={(e) => setWalletTrv(e.target.value)} />
-                        <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
-                          {selectedWallet ? `${formatUsd(selectedWallet.trvCents)} TRV` : '—'}
-                        </div>
+
+                      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                        <button className="btn btn-primary btn-sm" disabled={busy} onClick={saveWallet}>
+                          <SaveIcon />
+                          {t('actions.save')}
+                        </button>
+                        <button className="btn btn-secondary btn-sm" disabled={busy} onClick={() => loadWallet(selectedUser.id)}>
+                          <RefreshIcon />
+                          {t('actions.refresh')}
+                        </button>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
-                      <button className="btn" disabled={busy} onClick={saveWallet}>
-                        {t('actions.save')}
-                      </button>
-                      <button className="btn" disabled={busy} onClick={() => loadWallet(selectedUser.id)}>
-                        {t('actions.refresh')}
-                      </button>
-                    </div>
-
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 14, paddingTop: 14 }}>
-                      <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-                        {t('admin.users.role')}
+                    {/* Role Section */}
+                    <div style={{ padding: 16, background: 'var(--bg-subtle)', borderRadius: 12, marginBottom: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                        <ShieldIcon />
+                        <span className="font-semibold">Role</span>
                       </div>
-                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' }}>
-                        <select className="input" value={role} onChange={(e) => setRole(e.target.value)} style={{ minWidth: 220 }}>
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <select 
+                          className="input" 
+                          value={role} 
+                          onChange={(e) => setRole(e.target.value)}
+                          style={{ width: 200, background: 'var(--bg-elevated)' }}
+                        >
                           <option value="USER">USER</option>
                           <option value="ADMIN">ADMIN</option>
                         </select>
-                        <button className="btn" disabled={busy} onClick={saveRole}>
+                        <button className="btn btn-primary btn-sm" disabled={busy} onClick={saveRole}>
                           {t('actions.apply')}
                         </button>
                       </div>
                     </div>
 
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 14, paddingTop: 14 }}>
-                      <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-                        {t('admin.users.fees.title')}
-                      </div>
-
-                      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 8 }}>
-                        <div className="pill pill-accent">
-                          <span className="mono">
-                            {t('admin.users.fees.total')}: {feeIncome ? `${formatUsd(feeIncome.totalUsdCents)} USD` : '—'}
-                          </span>
-                        </div>
-                        <button className="btn" disabled={busy} onClick={() => loadFeeIncome(selectedUser.id)}>
-                          {t('actions.refresh')}
+                    {/* Fee Income Section */}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                        <DollarIcon />
+                        <span className="font-semibold">{t('admin.users.fees.title')}</span>
+                        <span className="badge badge-success">
+                          Total: {feeIncome ? `${formatUsd(feeIncome.totalUsdCents)} USD` : '—'}
+                        </span>
+                        <button className="btn btn-ghost btn-sm ml-auto" disabled={busy} onClick={() => loadFeeIncome(selectedUser.id)}>
+                          <RefreshIcon />
                         </button>
                       </div>
 
-                      <div className="list" style={{ marginTop: 10 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflow: 'auto' }}>
                         {feeIncome && feeIncome.items.length ? (
                           feeIncome.items.map((it) => (
-                            <div key={it.id} className="card" style={{ boxShadow: 'none' }}>
-                              <div className="card-inner" style={{ padding: 12 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                                  <div className="mono" style={{ fontSize: 12, opacity: 0.82 }}>
-                                    {it.tec}
-                                  </div>
-                                  <div className="mono" style={{ fontSize: 12, opacity: 0.62 }}>
-                                    {it.createdAt ? new Date(it.createdAt).toLocaleString() : '—'}
-                                  </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' }}>
-                                  <span className="pill pill-accent">
-                                    <span className="mono">
-                                      +{formatUsd(it.usdCents)} USD
-                                    </span>
-                                  </span>
-                                  <span className="pill">
-                                    <span className="mono">
-                                      {t('admin.users.fees.source')}: {it.sourceEmail || (it.sourceUserId ? `#${it.sourceUserId}` : '—')}
-                                    </span>
-                                  </span>
-                                </div>
+                            <div 
+                              key={it.id} 
+                              style={{ 
+                                padding: 12, 
+                                background: 'var(--bg-elevated)', 
+                                borderRadius: 8,
+                                border: '1px solid var(--border-subtle)'
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span className="font-mono text-xs text-tertiary">{it.tec}</span>
+                                <span className="text-xs text-muted">
+                                  {it.createdAt ? new Date(it.createdAt).toLocaleString() : '—'}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <span className="badge badge-success">
+                                  +{formatUsd(it.usdCents)} USD
+                                </span>
+                                <span className="text-xs text-secondary">
+                                  From: {it.sourceEmail || (it.sourceUserId ? `#${it.sourceUserId}` : '—')}
+                                </span>
                               </div>
                             </div>
                           ))
                         ) : (
-                          <div className="muted">{t('admin.users.fees.empty')}</div>
+                          <div className="text-center text-muted" style={{ padding: 40 }}>
+                            {t('admin.users.fees.empty')}
+                          </div>
                         )}
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="muted" style={{ marginTop: 10 }}>
-                  {t('admin.users.selectUser')}
+                <div className="empty-state">
+                  <div className="empty-state-icon">
+                    <UsersIcon />
+                  </div>
+                  <h3 className="empty-state-title">{t('admin.users.selectUser')}</h3>
+                  <p className="empty-state-desc">Select a user from the list to view their details.</p>
                 </div>
               )}
             </div>

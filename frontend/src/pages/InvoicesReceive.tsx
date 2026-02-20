@@ -2,6 +2,51 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
+// Icons
+const QrScanIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="5" height="5" x="7" y="7" rx="1"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 12h.01"/><path d="M21 12h.01"/><path d="M12 21h.01"/>
+  </svg>
+)
+
+const DollarIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+  </svg>
+)
+
+const CalendarIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+  </svg>
+)
+
+const QrIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21h.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>
+  </svg>
+)
+
+const EyeOffIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" x2="22" y1="2" y2="22"/>
+  </svg>
+)
+
+const ScanLineIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="4" x2="20" y1="12" y2="12"/>
+  </svg>
+)
+
+const TrashIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+  </svg>
+)
+
 type DemoInvoice = {
   fromEmail: string
   currency: string
@@ -45,102 +90,190 @@ export function InvoicesReceive() {
   const bg = useMemo(() => demoQrBackground(JSON.stringify(payload)), [payload])
 
   return (
-    <div className="grid">
-      <div className="col-12">
-        <h1 className="title">{t('invoices.receive.title')}</h1>
-        <div className="subtitle">{t('invoices.receive.subtitle')}</div>
-      </div>
-
-      <div className="col-6 card">
-        <div className="card-inner">
-          <h3 style={{ margin: 0 }}>{t('invoices.receive.chargeTitle')}</h3>
-          <div className="muted" style={{ marginTop: 6 }}>
-            {t('invoices.receive.chargeSubtitle')}
-          </div>
-          <form className="list" style={{ marginTop: 12 }} onSubmit={(e) => e.preventDefault()}>
-            <div className="field">
-              <div className="label">{t('invoices.receive.amount')}</div>
-              <input className="input mono" value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" />
-            </div>
-            <div className="field">
-              <div className="label">{t('invoices.receive.dueDate')}</div>
-              <input className="input" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-            </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as any }}>
-              <button
-                className="btn btn-primary"
-                type="button"
-                onClick={() => setShowQr(true)}
-                disabled={!amount.trim() || !dueDate.trim()}
-              >
-                {t('invoices.receive.generateDemo')}
-              </button>
-              {showQr ? (
-                <button className="btn" type="button" onClick={() => setShowQr(false)}>
-                  {t('actions.hide')}
-                </button>
-              ) : null}
-            </div>
-          </form>
+    <div className="animate-fade-in">
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">{t('invoices.receive.title')}</h1>
+          <p className="page-subtitle">{t('invoices.receive.subtitle')}</p>
         </div>
       </div>
 
-      <div className="col-6 card">
-        <div className="card-inner">
-          <h3 style={{ margin: 0 }}>{t('invoices.receive.qrTitle')}</h3>
-          <div className="muted" style={{ marginTop: 6 }}>
-            {t('invoices.receive.qrSubtitle')}
-          </div>
-
-          {showQr ? (
-            <div style={{ marginTop: 12, display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-              <div
-                className="card"
-                style={{
-                  width: 260,
-                  height: 260,
-                  borderRadius: 18,
-                  boxShadow: 'none',
-                  overflow: 'hidden',
-                  background: bg,
-                }}
-              />
-              <div style={{ flex: '1 1 220px' as any, minWidth: 220 }}>
-                <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-                  {t('invoices.receive.payload')}
-                </div>
-                <pre
-                  className="mono"
-                  style={{
-                    marginTop: 10,
-                    marginBottom: 0,
-                    background: 'rgba(0,0,0,0.25)',
-                    border: '1px solid rgba(255,255,255,0.10)',
-                    padding: 12,
-                    borderRadius: 14,
-                    overflow: 'auto',
-                    maxHeight: 260,
-                  }}
-                >
-                  {JSON.stringify(payload, null, 2)}
-                </pre>
+      <div className="grid grid-cols-2 md:grid-cols-1" style={{ gap: 24, marginBottom: 24 }}>
+        {/* Charge Form */}
+        <div className="card">
+          <div className="card-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ 
+                width: 40, 
+                height: 40, 
+                borderRadius: 10, 
+                background: 'var(--color-primary-alpha-10)',
+                color: 'var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <QrIcon />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{t('invoices.receive.chargeTitle')}</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>{t('invoices.receive.chargeSubtitle')}</p>
               </div>
             </div>
-          ) : (
-            <div className="muted" style={{ marginTop: 12 }}>
-              {t('invoices.receive.qrEmpty')}
+          </div>
+
+          <div className="card-body">
+            <form onSubmit={(e) => e.preventDefault()}>
+              <div className="field">
+                <label className="field-label">{t('invoices.receive.amount')}</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                    <DollarIcon />
+                  </span>
+                  <input 
+                    className="input font-mono" 
+                    value={amount} 
+                    onChange={(e) => setAmount(e.target.value)} 
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    style={{ paddingLeft: 44 }}
+                  />
+                </div>
+              </div>
+
+              <div className="field" style={{ marginTop: 20 }}>
+                <label className="field-label">{t('invoices.receive.dueDate')}</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                    <CalendarIcon />
+                  </span>
+                  <input 
+                    className="input" 
+                    type="date" 
+                    value={dueDate} 
+                    onChange={(e) => setDueDate(e.target.value)}
+                    style={{ paddingLeft: 44 }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => setShowQr(true)}
+                  disabled={!amount.trim() || !dueDate.trim()}
+                >
+                  <QrIcon />
+                  {t('invoices.receive.generateDemo')}
+                </button>
+                {showQr && (
+                  <button className="btn btn-ghost" type="button" onClick={() => setShowQr(false)}>
+                    <EyeOffIcon />
+                    {t('actions.hide')}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* QR Display */}
+        <div className="card">
+          <div className="card-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ 
+                width: 40, 
+                height: 40, 
+                borderRadius: 10, 
+                background: 'var(--bg-subtle)',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <QrScanIcon />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{t('invoices.receive.qrTitle')}</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>{t('invoices.receive.qrSubtitle')}</p>
+              </div>
             </div>
-          )}
+          </div>
+
+          <div className="card-body">
+            {showQr ? (
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    width: 200,
+                    height: 200,
+                    borderRadius: 16,
+                    overflow: 'hidden',
+                    background: bg,
+                    flexShrink: 0,
+                    border: '1px solid var(--border-default)'
+                  }}
+                />
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div className="text-xs font-semibold text-tertiary" style={{ textTransform: 'uppercase', letterSpacing: 0.05, marginBottom: 8 }}>
+                    {t('invoices.receive.payload')}
+                  </div>
+                  <pre
+                    className="font-mono text-xs"
+                    style={{
+                      margin: 0,
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-default)',
+                      padding: 12,
+                      borderRadius: 8,
+                      overflow: 'auto',
+                      maxHeight: 200,
+                      color: 'var(--text-secondary)'
+                    }}
+                  >
+                    {JSON.stringify(payload, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            ) : (
+              <div className="empty-state" style={{ padding: 40 }}>
+                <div className="empty-state-icon" style={{ width: 48, height: 48 }}>
+                  <QrScanIcon />
+                </div>
+                <p className="empty-state-desc">{t('invoices.receive.qrEmpty')}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="col-12 card">
-        <div className="card-inner">
-          <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-            {t('invoices.receive.scanTitle')}
+      {/* Scan Section */}
+      <div className="card">
+        <div className="card-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: 10, 
+              background: 'var(--color-success-alpha-10)',
+              color: 'var(--color-success)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <ScanLineIcon />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{t('invoices.receive.scanTitle')}</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>Scan or simulate incoming invoices</p>
+            </div>
           </div>
+        </div>
 
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
+        <div className="card-body">
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
             <button
               className="btn btn-primary"
               type="button"
@@ -153,53 +286,55 @@ export function InvoicesReceive() {
                 })
               }
             >
+              <ScanLineIcon />
               {t('invoices.receive.simulateScan')}
             </button>
-            {demo ? (
-              <button className="btn" type="button" onClick={() => setDemo(null)}>
+            {demo && (
+              <button className="btn btn-danger" type="button" onClick={() => setDemo(null)}>
+                <TrashIcon />
                 {t('actions.clear')}
               </button>
-            ) : null}
+            )}
           </div>
 
-          <div style={{ marginTop: 14 }}>
-            {demo ? (
-              <div className="card" style={{ boxShadow: 'none' }}>
-                <div className="card-inner" style={{ padding: 14 }}>
-                  <div className="muted" style={{ fontSize: 12, fontWeight: 700 }}>
-                    {t('invoices.receive.detected')}
+          {demo ? (
+            <div className="card" style={{ background: 'var(--bg-elevated)' }}>
+              <div className="card-body">
+                <div className="text-xs font-semibold text-tertiary" style={{ textTransform: 'uppercase', letterSpacing: 0.05, marginBottom: 12 }}>
+                  {t('invoices.receive.detected')}
+                </div>
+                
+                <div style={{ display: 'grid', gap: 16 }}>
+                  <div>
+                    <div className="text-xs text-tertiary mb-2">{t('invoices.receive.from')}</div>
+                    <div className="font-mono" style={{ fontSize: 15, color: 'var(--text-primary)' }}>{demo.fromEmail}</div>
                   </div>
-                  <div className="list" style={{ marginTop: 10 }}>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="sm:grid-cols-1">
                     <div>
-                      <div className="muted">{t('invoices.receive.from')}</div>
-                      <div className="mono" style={{ marginTop: 4 }}>
-                        {demo.fromEmail}
+                      <div className="text-xs text-tertiary mb-2">{t('invoices.receive.amount')}</div>
+                      <div className="font-mono" style={{ fontSize: 32, fontWeight: 700, color: 'var(--color-primary)' }}>
+                        {demo.amount} {demo.currency}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 10 }}>
-                      <div style={{ minWidth: 220, flex: '1 1 240px' as any }}>
-                        <div className="muted">{t('invoices.receive.amount')}</div>
-                        <div className="mono" style={{ fontSize: 24, fontWeight: 900, marginTop: 6 }}>
-                          {demo.amount} {demo.currency}
-                        </div>
-                      </div>
-                      <div style={{ minWidth: 220, flex: '1 1 240px' as any }}>
-                        <div className="muted">{t('invoices.receive.dueDate')}</div>
-                        <div className="mono" style={{ fontSize: 16, marginTop: 10 }}>
-                          {demo.dueDate}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="muted" style={{ marginTop: 10 }}>
-                      {t('invoices.receive.futureNote')}
+                    <div>
+                      <div className="text-xs text-tertiary mb-2">{t('invoices.receive.dueDate')}</div>
+                      <div className="font-mono" style={{ fontSize: 16, color: 'var(--text-primary)' }}>{demo.dueDate}</div>
                     </div>
                   </div>
                 </div>
+
+                <p className="text-sm text-secondary mt-4">{t('invoices.receive.futureNote')}</p>
               </div>
-            ) : (
-              <div className="muted">{t('invoices.receive.empty')}</div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="empty-state" style={{ padding: 40 }}>
+              <div className="empty-state-icon" style={{ width: 48, height: 48 }}>
+                <ScanLineIcon />
+              </div>
+              <p className="empty-state-desc">{t('invoices.receive.empty')}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

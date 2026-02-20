@@ -6,6 +6,43 @@ import brandLogo from '../assets/brand-mark.png'
 import { buildE164Phone, digitsOnly, getPhoneCountryOptions } from '../phone'
 import type { CountryCode } from 'libphonenumber-js'
 
+// Icons
+const UserIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+  </svg>
+)
+
+const MailIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+  </svg>
+)
+
+const LockIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+)
+
+const PhoneIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+  </svg>
+)
+
+const ArrowRightIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+  </svg>
+)
+
+const UserPlusIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" x2="20" y1="8" y2="14"/><line x1="23" x2="17" y1="11" y2="11"/>
+  </svg>
+)
+
 export function Register() {
   const auth = useAuth()
   const navigate = useNavigate()
@@ -20,7 +57,6 @@ export function Register() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [showTestAccounts, setShowTestAccounts] = useState(false)
 
   const phoneOptions = useMemo(() => getPhoneCountryOptions(locale), [locale])
 
@@ -40,130 +76,179 @@ export function Register() {
   }
 
   return (
-    <div className="shell">
+    <div className="auth-container">
+      {/* Topbar */}
       <header className="topbar">
         <div className="container topbar-inner">
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <div className="topbar-left">
             <Link to="/" className="brand">
               <img className="brand-logo" src={brandLogo} alt="TRENVUS" />
             </Link>
             <LanguageSwitcher />
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <Link className="btn" to="/login">
-              {t('actions.login')}
-            </Link>
-          </div>
+          <Link className="btn btn-secondary btn-sm" to="/login">
+            {t('actions.login')}
+          </Link>
         </div>
       </header>
 
-      <main className="main">
-        <div className="container">
-          <div className="grid">
-            <div className="col-6 card" style={{ margin: '0 auto', maxWidth: 560, gridColumn: 'span 12' as any }}>
-              <div className="card-inner">
-                <h2 style={{ margin: 0 }}>{t('register.title')}</h2>
-                <p className="muted" style={{ marginTop: 6 }}>
-                  {t('register.subtitle')}
-                </p>
+      {/* Main */}
+      <main className="auth-main">
+        <div className="card auth-card animate-fade-in">
+          <div className="auth-header">
+            <div style={{ 
+              width: 56, 
+              height: 56, 
+              borderRadius: 16, 
+              background: 'linear-gradient(135deg, var(--color-secondary), var(--color-primary))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              boxShadow: '0 8px 30px rgba(124, 58, 237, 0.3)'
+            }}>
+              <span style={{ color: 'white' }}><UserPlusIcon /></span>
+            </div>
+            <h1 className="auth-title">{t('register.title')}</h1>
+            <p className="auth-subtitle">{t('register.subtitle')}</p>
+          </div>
 
-                <form onSubmit={onSubmit} className="list" style={{ marginTop: 14 }}>
-                  <div className="field">
-                    <div className="label">{t('labels.email')}</div>
-                    <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
-                  </div>
-                  <div className="field">
-                    <div className="label">{t('labels.nickname')}</div>
-                    <input className="input" value={nickname} onChange={(e) => setNickname(e.target.value)} />
-                  </div>
-                  <div className="field">
-                    <div className="label">{t('labels.phone')}</div>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <select
-                        className="input"
-                        value={phoneCountry}
-                        onChange={(e) => setPhoneCountry(e.target.value as CountryCode)}
-                        disabled={busy}
-                      >
-                        {phoneOptions.map((c) => (
-                          <option key={c.iso2} value={c.iso2}>
-                            {c.label}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        className="input"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(digitsOnly(e.target.value))}
-                        inputMode="tel"
-                        placeholder={t('labels.phoneNumber')}
-                      />
-                    </div>
-                  </div>
-                  <div className="field">
-                    <div className="label">{t('labels.password')}</div>
-                    <input
-                      className="input"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  {error ? <div className="error">{error}</div> : null}
-                  <button className="btn btn-primary" disabled={busy} type="submit">
-                    {busy ? t('register.loading') : t('actions.register')}
-                  </button>
-                </form>
+          {error && (
+            <div className="alert alert-error" style={{ marginBottom: 24 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+              </svg>
+              {error}
+            </div>
+          )}
 
-                <div className="muted" style={{ marginTop: 14 }}>
-                  {t('register.haveAccount')}{' '}
-                  <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-                    <Link to="/login" className="pill pill-accent">
-                      {t('actions.login')}
-                    </Link>
-                    <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' as any }}>
-                      <button
-                        type="button"
-                        className="pill"
-                        disabled={busy}
-                        aria-expanded={showTestAccounts}
-                        aria-haspopup="menu"
-                        onClick={() => setShowTestAccounts((v) => !v)}
-                      >
-                        {t('actions.testAccount')}
-                      </button>
-                      {showTestAccounts ? (
-                        <span role="menu" style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-                          <Link
-                            to="/login?test=1"
-                            className="pill"
-                            aria-disabled={busy}
-                            onClick={() => setShowTestAccounts(false)}
-                          >
-                            {t('actions.testAccountN', { n: 1 })}
-                          </Link>
-                          <Link
-                            to="/login?test=2"
-                            className="pill"
-                            aria-disabled={busy}
-                            onClick={() => setShowTestAccounts(false)}
-                          >
-                            {t('actions.testAccountN', { n: 2 })}
-                          </Link>
-                          <Link
-                            to="/login?test=3"
-                            className="pill"
-                            aria-disabled={busy}
-                            onClick={() => setShowTestAccounts(false)}
-                          >
-                            {t('actions.testAccountN', { n: 3 })}
-                          </Link>
-                        </span>
-                      ) : null}
-                    </span>
+          <form onSubmit={onSubmit} className="auth-form">
+            <div className="field">
+              <label className="field-label">{t('labels.nickname')}</label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                  <UserIcon />
+                </span>
+                <input 
+                  className="input" 
+                  value={nickname} 
+                  onChange={(e) => setNickname(e.target.value)}
+                  placeholder="johndoe"
+                  style={{ paddingLeft: 44 }}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label className="field-label">{t('labels.email')}</label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                  <MailIcon />
+                </span>
+                <input 
+                  className="input" 
+                  type="email"
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  style={{ paddingLeft: 44 }}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label className="field-label">{t('labels.phone')}</label>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <select
+                  className="input"
+                  value={phoneCountry}
+                  onChange={(e) => setPhoneCountry(e.target.value as CountryCode)}
+                  disabled={busy}
+                  style={{ width: 100, flexShrink: 0 }}
+                >
+                  {phoneOptions.map((c) => (
+                    <option key={c.iso2} value={c.iso2}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                    <PhoneIcon />
                   </span>
+                  <input
+                    className="input"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(digitsOnly(e.target.value))}
+                    inputMode="tel"
+                    placeholder={t('labels.phoneNumber')}
+                    style={{ paddingLeft: 44 }}
+                  />
                 </div>
               </div>
+            </div>
+
+            <div className="field">
+              <label className="field-label">{t('labels.password')}</label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                  <LockIcon />
+                </span>
+                <input
+                  className="input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  style={{ paddingLeft: 44 }}
+                  required
+                  minLength={8}
+                />
+              </div>
+              <p className="text-xs text-muted" style={{ marginTop: 4 }}>Must be at least 8 characters</p>
+            </div>
+
+            <button 
+              className="btn btn-primary btn-lg" 
+              disabled={busy} 
+              type="submit"
+              style={{ marginTop: 8 }}
+            >
+              {busy ? (
+                <span className="animate-pulse">{t('register.loading')}</span>
+              ) : (
+                <>
+                  {t('actions.register')}
+                  <ArrowRightIcon />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            <span className="text-secondary">{t('register.haveAccount')}</span>{' '}
+            <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
+              {t('actions.login')}
+            </Link>
+          </div>
+
+          {/* Test Accounts */}
+          <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid var(--border-subtle)' }}>
+            <p className="text-xs text-muted text-center" style={{ marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.08 }}>
+              Quick Access
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {[1, 2, 3].map((id) => (
+                <Link 
+                  key={id}
+                  to={`/login?test=${id}`}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Test Account {id}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
