@@ -39,6 +39,7 @@ export const messagesEn: Record<string, string> = {
   'labels.email': 'Email',
   'labels.nickname': 'Nickname',
   'labels.phone': 'Phone',
+  'labels.phoneNumber': 'Number',
   'labels.password': 'Password',
   'labels.amountUsd': 'Amount (USD)',
   'labels.amountByCurrency': 'Amount ({currency})',

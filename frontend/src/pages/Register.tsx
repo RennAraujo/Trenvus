@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { LanguageSwitcher, useI18n } from '../i18n'
 import brandLogo from '../assets/brand-mark.png'
+import { buildE164Phone, digitsOnly, getPhoneCountryOptions } from '../phone'
+import type { CountryCode } from 'libphonenumber-js'
 
 export function Register() {
   const auth = useAuth()
@@ -10,17 +12,24 @@ export function Register() {
   const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [nickname, setNickname] = useState('')
-  const [phone, setPhone] = useState('')
+  const locale =
+    (typeof window !== 'undefined' ? window.localStorage.getItem('exchange.locale') : null) ||
+    (typeof navigator !== 'undefined' ? navigator.language : 'en')
+  const [phoneCountry, setPhoneCountry] = useState<CountryCode>(locale === 'pt-BR' ? 'BR' : 'US')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [showTestAccounts, setShowTestAccounts] = useState(false)
+
+  const phoneOptions = useMemo(() => getPhoneCountryOptions(locale), [locale])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setBusy(true)
     try {
+      const phone = buildE164Phone(phoneCountry, phoneNumber)
       await auth.register(email, password, nickname, phone)
       navigate('/app', { replace: true })
     } catch (err: any) {
@@ -69,7 +78,27 @@ export function Register() {
                   </div>
                   <div className="field">
                     <div className="label">{t('labels.phone')}</div>
-                    <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" />
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <select
+                        className="input"
+                        value={phoneCountry}
+                        onChange={(e) => setPhoneCountry(e.target.value as CountryCode)}
+                        disabled={busy}
+                      >
+                        {phoneOptions.map((c) => (
+                          <option key={c.iso2} value={c.iso2}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className="input"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(digitsOnly(e.target.value))}
+                        inputMode="tel"
+                        placeholder={t('labels.phoneNumber')}
+                      />
+                    </div>
                   </div>
                   <div className="field">
                     <div className="label">{t('labels.password')}</div>

@@ -2,13 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { api, type MeResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
+import { buildE164Phone, digitsOnly, getPhoneCountryOptions, splitE164Phone } from '../phone'
+import type { CountryCode } from 'libphonenumber-js'
 
 export function Account() {
   const auth = useAuth()
   const { t } = useI18n()
 
   const [me, setMe] = useState<MeResponse | null>(null)
-  const [phone, setPhone] = useState('')
+  const [phoneCountry, setPhoneCountry] = useState<CountryCode>('BR')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -17,13 +20,23 @@ export function Account() {
   const [success, setSuccess] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const canSavePhone = useMemo(() => phone.trim().length > 0, [phone])
+  const canSavePhone = useMemo(() => digitsOnly(phoneNumber).length > 0, [phoneNumber])
   const canChangePassword = useMemo(() => {
     if (!currentPassword) return false
     if (!newPassword || newPassword.length < 4) return false
     if (!confirmPassword) return false
     return true
   }, [confirmPassword, currentPassword, newPassword])
+
+  const locale = useMemo(() => {
+    return (
+      (typeof window !== 'undefined' ? window.localStorage.getItem('exchange.locale') : null) ||
+      (typeof navigator !== 'undefined' ? navigator.language : 'en')
+    )
+  }, [])
+
+  const defaultPhoneCountry = useMemo<CountryCode>(() => (locale === 'pt-BR' ? 'BR' : 'US'), [locale])
+  const phoneOptions = useMemo(() => getPhoneCountryOptions(locale), [locale])
 
   async function load() {
     setError(null)
@@ -33,7 +46,9 @@ export function Account() {
       const token = await auth.getValidAccessToken()
       const data = await api.getMe(token)
       setMe(data)
-      setPhone(data.phone || '')
+      const parts = splitE164Phone(data.phone, defaultPhoneCountry)
+      setPhoneCountry(parts.iso2)
+      setPhoneNumber(parts.national)
     } catch (err: any) {
       setError(err?.message || t('errors.loadAccount'))
     } finally {
@@ -52,9 +67,12 @@ export function Account() {
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
-      const data = await api.updateMyPhone(token, phone.trim())
+      const phone = buildE164Phone(phoneCountry, phoneNumber)
+      const data = await api.updateMyPhone(token, phone)
       setMe(data)
-      setPhone(data.phone || '')
+      const parts = splitE164Phone(data.phone, defaultPhoneCountry)
+      setPhoneCountry(parts.iso2)
+      setPhoneNumber(parts.national)
       setSuccess(t('account.phone.saved'))
     } catch (err: any) {
       setError(err?.message || t('errors.save'))
@@ -167,7 +185,27 @@ export function Account() {
           <form className="list" style={{ marginTop: 12 }} onSubmit={onSavePhone}>
             <div className="field">
               <div className="label">{t('labels.phone')}</div>
-              <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" />
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <select
+                  className="input"
+                  value={phoneCountry}
+                  onChange={(e) => setPhoneCountry(e.target.value as CountryCode)}
+                  disabled={busy}
+                >
+                  {phoneOptions.map((c) => (
+                    <option key={c.iso2} value={c.iso2}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="input"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(digitsOnly(e.target.value))}
+                  inputMode="tel"
+                  placeholder={t('labels.phoneNumber')}
+                />
+              </div>
             </div>
             <button className="btn btn-primary" disabled={busy || !canSavePhone} type="submit">
               {t('actions.save')}

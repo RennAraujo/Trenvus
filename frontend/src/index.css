@@ -392,6 +392,11 @@ input {
   outline: none;
 }
 
+.input option {
+  background: rgb(11, 6, 23);
+  color: var(--text);
+}
+
 .input:focus {
   border-color: rgba(25, 193, 201, 0.55);
   box-shadow: 0 0 0 3px rgba(25, 193, 201, 0.14);

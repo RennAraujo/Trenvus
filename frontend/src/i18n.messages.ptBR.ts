@@ -39,6 +39,7 @@ export const messagesPtBR: Record<string, string> = {
   'labels.email': 'E-mail',
   'labels.nickname': 'Apelido',
   'labels.phone': 'Telefone',
+  'labels.phoneNumber': 'Número',
   'labels.password': 'Senha',
   'labels.amountUsd': 'Valor (USD)',
   'labels.amountByCurrency': 'Valor ({currency})',
