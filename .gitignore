@@ -40,6 +40,17 @@ build/
 .trae/
 .metals/
 
+### IntelliJ / WebStorm ###
+.idea/
+*.iml
+*.iws
+
+### Logs e Temp ###
+stdout
+*.pid
+*.seed
+*.pid.lock
+
 
 ### Secrets & Environment Variables (User Rule: Safety First) ###
 .env

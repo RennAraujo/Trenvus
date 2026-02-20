@@ -20,17 +20,15 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthController {
 	private final AuthService authService;
 	private final TestAccountsConfig testAccounts;
-	private final AdminAccountConfig adminAccount;
 
-	public AuthController(AuthService authService, TestAccountsConfig testAccounts, AdminAccountConfig adminAccount) {
+	public AuthController(AuthService authService, TestAccountsConfig testAccounts) {
 		this.authService = authService;
 		this.testAccounts = testAccounts;
-		this.adminAccount = adminAccount;
 	}
 
 	@PostMapping("/register")
 	public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-		var result = authService.register(request.email(), request.password(), request.nickname(), request.phone());
+		var result = authService.register(request.email(), request.password());
 		return ResponseEntity.ok(AuthResponse.from(result));
 	}
 
@@ -55,18 +53,6 @@ public class AuthController {
 		return ResponseEntity.ok(AuthResponse.from(result));
 	}
 
-	@PostMapping("/admin-login")
-	public ResponseEntity<AuthResponse> adminLogin() {
-		if (!adminAccount.isEnabled()) {
-			throw new IllegalArgumentException("admin_account_disabled");
-		}
-		if (!adminAccount.isLoginEnabled()) {
-			throw new IllegalArgumentException("admin_login_disabled");
-		}
-		var result = authService.login(adminAccount.email(), adminAccount.password());
-		return ResponseEntity.ok(AuthResponse.from(result));
-	}
-
 	@PostMapping("/refresh")
 	public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
 		var result = authService.refresh(request.refreshToken());
@@ -79,12 +65,7 @@ public class AuthController {
 		return ResponseEntity.noContent().build();
 	}
 
-	public record RegisterRequest(
-			@NotBlank @Email String email,
-			@NotBlank String password,
-			@NotBlank String nickname,
-			@NotBlank String phone
-	) {}
+	public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password) {}
 
 	public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {}
 

@@ -52,7 +52,7 @@ public class TestAccountsConfig {
 		var password = legacyPassword == null || legacyPassword.isBlank() ? "123" : legacyPassword;
 		var email1 = legacyEmail == null || legacyEmail.isBlank() ? "user1@test.com" : legacyEmail;
 		return List.of(
-				new TestAccount(email1, password, UserRole.USER),
+				new TestAccount(email1, password, UserRole.ADMIN),
 				new TestAccount("user2@test.com", password, UserRole.USER),
 				new TestAccount("user3@test.com", password, UserRole.USER)
 		);
@@ -71,7 +71,19 @@ public class TestAccountsConfig {
 			var password = parts[1] == null ? "" : parts[1];
 			if (email.isBlank() || password.isBlank()) continue;
 
-			out.add(new TestAccount(email, password, UserRole.USER));
+			var role = UserRole.USER;
+			if (parts.length >= 3) {
+				var rawRole = parts[2] == null ? "" : parts[2].trim();
+				if (!rawRole.isBlank()) {
+					try {
+						role = UserRole.valueOf(rawRole);
+					} catch (IllegalArgumentException ignored) {
+						role = UserRole.USER;
+					}
+				}
+			}
+
+			out.add(new TestAccount(email, password, role));
 		}
 		return out;
 	}

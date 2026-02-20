@@ -29,10 +29,6 @@ services:
       TEST_ACCOUNT_ENABLED: "true"
       TEST_ACCOUNT_EMAIL: "user@test.com"
       TEST_ACCOUNT_PASSWORD: "123"
-      ADMIN_ACCOUNT_ENABLED: ${ADMIN_ACCOUNT_ENABLED:-true}
-      ADMIN_LOGIN_ENABLED: ${ADMIN_LOGIN_ENABLED:-true}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@trenvus.local}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
     ports:
       - "8080:8080"
     networks:

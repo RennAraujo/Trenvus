@@ -2,8 +2,6 @@ package trenvus.Exchange.tx;
 
 public enum TransactionType {
 	DEPOSIT_USD,
-	FEE_INCOME_USD,
-	ADMIN_ADJUST_WALLET,
 	CONVERT_USD_TO_TRV,
 	CONVERT_TRV_TO_USD,
 	TRANSFER_TRV_OUT,

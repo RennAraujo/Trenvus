@@ -44,28 +44,6 @@ export function Login() {
   const isTestLogin = Number.isFinite(testId) && testId >= 1 && testId <= 3
 
   const loginTestAccount = useCallback(async (id: number) => {
-    setError(null)
-    setBusy(true)
-    try {
-      for (let attempt = 0; attempt < 5; attempt++) {
-        try {
-          await auth.loginTestAccount(id)
-          navigate('/app', { replace: true })
-          return
-        } catch (err: any) {
-          const status = typeof err?.status === 'number' ? (err.status as number) : null
-          const retryable = err?.name === 'NetworkError' || status === 502 || status === 503 || status === 504
-          if (attempt < 4 && retryable) {
-            await new Promise((r) => setTimeout(r, 600))
-            continue
-          }
-          throw err
-        }
-      }
-    } catch (err: any) {
-      setError(err?.message || t('errors.loginTestAccount'))
-    } finally {
-      setBusy(false)
     }
   }, [auth, navigate, t])
 
@@ -132,9 +110,6 @@ export function Login() {
         <div className="card auth-card animate-fade-in">
           <div className="auth-header">
             <div style={{ 
-              width: 56, 
-              height: 56, 
-              borderRadius: 16, 
               background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
               display: 'flex',
               alignItems: 'center',

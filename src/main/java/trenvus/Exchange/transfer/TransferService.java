@@ -31,8 +31,7 @@ public class TransferService {
 			throw new IllegalArgumentException("Destinatário inválido");
 		}
 
-		var toRef = toEmail.trim();
-		var toUser = resolveRecipient(toRef);
+		var toUser = users.findByEmail(toEmail.trim()).orElseThrow(() -> new IllegalArgumentException("Destinatário não encontrado"));
 		var toUserId = toUser.getId();
 
 		if (fromUserId.equals(toUserId)) {
@@ -82,21 +81,6 @@ public class TransferService {
 
 		var snapshot = walletService.getSnapshot(fromUserId);
 		return new TransferResult(snapshot.usdCents(), snapshot.trvCents(), outTx.getId(), 0);
-	}
-
-	private trenvus.Exchange.user.UserEntity resolveRecipient(String toRef) {
-		if (toRef.contains("@")) {
-			return users.findByEmail(toRef).orElseThrow(() -> new IllegalArgumentException("Destinatário não encontrado"));
-		}
-
-		var matches = users.findAllByNicknameIgnoreCase(toRef);
-		if (matches.isEmpty()) {
-			throw new IllegalArgumentException("Destinatário não encontrado");
-		}
-		if (matches.size() > 1) {
-			throw new IllegalArgumentException("Apelido ambíguo");
-		}
-		return matches.get(0);
 	}
 
 	public record TransferResult(long usdCents, long trvCents, Long transactionId, long feeTrvCents) {}

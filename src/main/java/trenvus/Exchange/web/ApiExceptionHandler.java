@@ -17,11 +17,6 @@ public class ApiExceptionHandler {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError("email_already_registered", ex.getMessage(), Instant.now()));
 	}
 
-	@ExceptionHandler(AuthExceptions.NicknameAlreadyRegisteredException.class)
-	public ResponseEntity<ApiError> handleNicknameAlreadyRegistered(AuthExceptions.NicknameAlreadyRegisteredException ex) {
-		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError("nickname_already_registered", ex.getMessage(), Instant.now()));
-	}
-
 	@ExceptionHandler(AuthExceptions.InvalidCredentialsException.class)
 	public ResponseEntity<ApiError> handleInvalidCredentials(AuthExceptions.InvalidCredentialsException ex) {
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiError("invalid_credentials", ex.getMessage(), Instant.now()));

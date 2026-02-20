@@ -1,143 +1,168 @@
 ﻿# Exchange Platform
 
-Plataforma de câmbio digital segura e moderna, permitindo gestão de carteiras e conversão de moedas (USD -> TRV).
+Plataforma de câmbio digital segura e moderna, permitindo gestão de carteiras digitais (USD/TRV), conversão de moedas com taxa de 1%, transferências entre usuários e dados de mercado em tempo real.
+
+![Tech Stack](https://img.shields.io/badge/Java-17-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-green)
+![React](https://img.shields.io/badge/React-18-61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.4-3178C6)
+
+## 🎨 Design System
+
+O frontend foi completamente modernizado com um **Design System** próprio:
+
+- **Paleta de Cores**: Tema dark sofisticado com roxo vibrante (`#a855f7`) como cor primária
+- **Tipografia**: Inter para textos, JetBrains Mono para números/monospace
+- **Componentes**: Cards, buttons, inputs, badges com estados consistentes
+- **Animações**: Transições suaves, fade-ins, micro-interações
+- **Responsividade**: Mobile-first com menu hamburguer
+
+### Features de UI
+- **Modo Privado**: Oculta valores sensíveis no dashboard
+- **Balance Cards**: Cards de saldo elegantes com badges
+- **Transaction List**: Lista de transações estilo fintech
+- **Stat Cards**: Estatísticas com indicadores de variação
+- **Empty States**: Estados vazios bem desenhados
 
 ## Tech Stack
 
 ### Backend
 - **Java 17** & **Spring Boot 3.4.2**
 - **Spring Security** (JWT RS256)
-- **Spring Data JPA** & **PostgreSQL**
-- **Flyway** para migrações de banco de dados
-- **Swagger/OpenAPI** para documentação da API
-
-### Frontend
-- **React 19**
-- **TypeScript**
-- **Vite**
-- **TailwindCSS** (ou similar, conforme implementado)
+Para facilitar o desenvolvimento e testes, uma conta administrativa é criada automaticamente na inicialização:
+- **Email**: `user@test.com`
+- **Senha**: `123`
+- **libphonenumber-js** para validação de telefones
 
 ### Infraestrutura
 - **Docker** & **Docker Compose**
-- **Nginx** (Reverse Proxy para o frontend)
+- **Nginx** (serving do frontend + proxy reverso)
+- **Maven** (build do backend)
 
-## Pré-requisitos
+## 🚀 Como Executar
 
+### Pré-requisitos
 - Docker & Docker Compose
-- Java 17+ (para execução local sem Docker)
-- Node.js 20+ (para execução local sem Docker)
+- Java 17+ (execução local)
+- Node.js 20+ (execução local)
 
-## Conta de Teste (Desenvolvimento)
+### Docker (Recomendado)
 
-Para facilitar o desenvolvimento e testes, contas de teste e uma conta admin podem ser criadas automaticamente na inicialização (via variáveis de ambiente no `docker-compose.yml` / `.env`):
-
-**Contas teste (quando `TEST_ACCOUNT_ENABLED=true`)**
-- `user@test.com` / `123` (apelido: `teste1`)
-- `user2@test.com` / `123` (apelido: `teste2`)
-- `user3@test.com` / `123` (apelido: `teste3`)
-
-**Conta admin (quando `ADMIN_ACCOUNT_ENABLED=true`)**
-- `admin@trenvus.local` / `admin123` (apelido: `Administrador`)
-
-> **Nota**: O frontend possui um botão "Entrar com conta de teste" na tela de login que preenche e submete essas credenciais automaticamente.
-
-## Troubleshooting
-
-### Erro "Falha de rede ao acessar a API"
-Se você encontrar este erro ao tentar logar:
-1. Aguarde alguns segundos. O backend pode estar inicializando (especialmente a conexão com o banco de dados).
-2. O frontend possui lógica de retry automático para erros 502/503/504.
-3. Se o problema persistir, verifique os logs do backend:
-   ```bash
-   docker-compose logs -f backend
-   ```
-
-### Erro de CORS
-Certifique-se de que a variável `APP_CORS_ORIGINS` no `docker-compose.yml` inclua a URL do seu frontend (ex: `http://localhost:3000` ou `http://localhost:5173`).
-
-## Como Executar (Docker)
-
-1. **Configuração de Ambiente**
-   Copie o arquivo de exemplo e ajuste as variáveis se necessário (chaves JWT, credenciais de banco):
+1. **Configurar Ambiente**
    ```bash
    cp .env.example .env
+   # Edite .env com suas configurações (JWT keys, etc.)
    ```
 
-2. **Subir a Aplicação**
-   Execute o comando na raiz do projeto:
+2. **Subir a Stack**
    ```bash
    docker-compose up --build -d
    ```
 
 3. **Acessar**
-   - **Frontend**: [http://localhost:3000](http://localhost:3000)
-   - **Backend API**: [http://localhost:8080](http://localhost:8080)
-   - **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+   | Serviço | URL |
+   |---------|-----|
+   | Frontend | http://localhost:3000 |
+   | Backend API | http://localhost:8080 |
+   | Swagger UI | http://localhost:8080/swagger-ui.html |
 
-## Como Executar (Localmente)
+### Execução Local
 
-### Backend
+**Backend:**
 ```bash
 ./mvnw clean spring-boot:run
 ```
-A API estará disponível em `http://localhost:8080`.
 
-### Frontend
+**Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
+# Acesse http://localhost:5173
 ```
-O frontend estará disponível em `http://localhost:5173`.
 
-## Documentação da API
+## 👤 Contas de Teste
 
-A documentação interativa está disponível via Swagger UI:
-[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+Configure no `.env` ou `docker-compose.yml`:
 
-### Endpoints úteis (resumo)
-- `POST /auth/register`: cria conta (email, senha, apelido, telefone)
-- `POST /auth/login`: login com email e senha
-- `POST /auth/test-login`: login com contas de teste (id 1..3)
-- `POST /transfer/trv`: transferência TRV (destinatário por email ou apelido)
-- `GET /me`: dados da conta autenticada
-- `PUT /me/phone`: atualiza telefone da conta autenticada
-- `PUT /me/password`: altera senha (senha atual + nova senha)
+```bash
+TEST_ACCOUNT_ENABLED=true
+ADMIN_ACCOUNT_ENABLED=true
+ADMIN_LOGIN_ENABLED=true
+## 📱 Funcionalidades
 
-## Estrutura do Projeto
+### 💰 Gestão de Carteira
+- **Depósito**: Adicionar fundos em USD (mínimo $10)
+- **Saldos**: Visualização de USD e TRV em tempo real
+- **Modo Privado**: Ocultar valores sensíveis
 
-- `/src`: Código fonte do Backend (Java/Spring)
-- `/frontend`: Código fonte do Frontend (React/Vite)
-- `/docker-compose.yml`: Orquestração dos containers
-- `/.env`: Variáveis de ambiente sensíveis (não commitado)
+### 💱 Câmbio
+- **Conversão**: USD ↔ TRV (taxa 1:1)
+- **Taxa**: 1% por transação (cobrado em USD)
+- **Preview**: Visualização do valor líquido antes de confirmar
 
-## Funcionalidades Principais
+### 💸 Transferências
+- **Envio**: Transferir TRV para outros usuários
+- **Destinatário**: Busca por e-mail ou apelido
+- **Gratuito**: Zero taxas para transferências
 
-### Market Data & Visualization
-- **Integração OKX**: Dados de mercado em tempo real (Tickers, Order Books, Candles) via API pública da OKX.
-- **Sparklines**: Gráficos minimalistas e elegantes ao lado de cada moeda, permitindo visualização rápida da tendência de preços.
-- **Auto-Refresh**: Atualização automática dos dados de mercado a cada 10 segundos para garantir informações sempre recentes.
-- **Cache Inteligente**: O backend implementa cache com TTL alinhado ao frontend para otimizar chamadas à API externa.
+### 📊 Dados de Mercado
+- **Integração OKX**: Preços em tempo real
+- **Pares**: BTC-USDT, ETH-USDT, XRP-USDT, USDT-BRL
+- **Sparklines**: Gráficos de tendência minimalistas
+- **Order Book**: Visualização de bids/asks
+- Taxas e taxas de serviço configuráveis.
 
-### Autenticação & Segurança
-- Login seguro com JWT.
-- Conta de teste pré-configurada para desenvolvimento ágil.
-- Proteção contra falhas de rede com retries automáticos.
+- **Autenticação**: Login e Registro com JWT.
+- **Histórico**: Transações com filtros
+- **Câmbio**: Conversão de USD para TRV (1:1 com taxa fixa de $0.50).
+- **Categorias**: Depósitos, conversões, transferências
+- **Perfil**: Avatar, nickname, telefone
+- **Admin**: Gestão de usuários (role ADMIN)
 
-### Conversão de Moedas
-- Suporte a conversão USD <-> TRV.
-- Taxa de serviço: **1%** por conversão (cobrada em USD).
+## 📁 Estrutura do Projeto
 
-- **Autenticação**: Login e Registro com JWT (registro exige apelido e telefone).
-- **Carteira**: Depósito de USD e visualização de saldo.
-- **Câmbio**: Conversão USD ↔ TRV (1:1 com taxa de 1%).
-- **Extrato**: Histórico privado de transações.
-- **Transferência**: Envio de TRV para outro usuário por **e-mail ou apelido**.
-- **Minha conta**: Alterar telefone e senha (menu no topo ao passar o mouse no usuário).
-- **Mercado**: Dados de mercado em tempo real (simulado/integrado).
-- **Invoices (demo)**: Geração/leitura de QRCode (simulação).
+```
+.
+├── src/                          # Backend Java
+│   └── main/java/trenvus/Exchange/
+│       ├── auth/                 # Autenticação JWT
+│       ├── exchange/             # Lógica de câmbio
+│       ├── market/               # Integração OKX
+│       ├── transfer/             # Transferências
+│       ├── user/                 # Entidades de usuário
+│       └── wallet/               # Carteiras
+├── frontend/                     # Frontend React
+│   └── src/
+│       ├── pages/                # Páginas (Dashboard, Login, etc.)
+│       ├── index.css             # Design System
+│       └── api.ts                # Cliente HTTP
+├── docker-compose.yml            # Orquestração
+└── .env                          # Variáveis de ambiente
+```
 
-## Licença
+## 🔒 Segurança
+
+- **JWT RS256**: Par de chaves RSA para tokens
+- **BCrypt**: Hash de senhas
+- **Idempotency Keys**: Prevenção de duplicação
+- **Optimistic Locking**: Prevenção de race conditions
+- **CORS**: Configurável via `APP_CORS_ORIGINS`
+
+## 🛠️ Troubleshooting
+
+### "Falha de rede ao acessar a API"
+- Aguarde o backend inicializar (30s na primeira vez)
+- Verifique logs: `docker-compose logs -f backend`
+- Confirme CORS configurado corretamente
+
+### Erros de JWT
+- Verifique `JWT_PRIVATE_KEY_B64` e `JWT_PUBLIC_KEY_B64`
+- Chaves devem ser Base64 de arquivos PEM
+
+### Problemas de Migração Flyway
+- Limpe volumes: `docker-compose down -v` (⚠️ perde dados)
+
+## 📄 Licença
 
 Este projeto é privado e proprietário.
-

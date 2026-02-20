@@ -2,7 +2,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth'
 import { Shell } from './Shell'
 import { ProtectedRoute } from './ProtectedRoute'
-import { AdminRoute } from './AdminRoute'
 import { Landing } from './pages/Landing'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
@@ -12,10 +11,6 @@ import { Market } from './pages/Market'
 import { Transfer } from './pages/Transfer'
 import { Security } from './pages/Security'
 import { Manifesto } from './pages/Manifesto'
-import { AdminUsers } from './pages/AdminUsers'
-import { InvoicesSend } from './pages/InvoicesSend'
-import { InvoicesReceive } from './pages/InvoicesReceive'
-import { Account } from './pages/Account'
 
 export default function App() {
   return (
@@ -39,17 +34,6 @@ export default function App() {
             <Route path="statement" element={<Statement />} />
             <Route path="market" element={<Market />} />
             <Route path="transfer" element={<Transfer />} />
-            <Route path="account" element={<Account />} />
-            <Route path="invoices/send" element={<InvoicesSend />} />
-            <Route path="invoices/receive" element={<InvoicesReceive />} />
-            <Route
-              path="admin/users"
-              element={
-                <AdminRoute>
-                  <AdminUsers />
-                </AdminRoute>
-              }
-            />
           </Route>
         </Routes>
       </BrowserRouter>

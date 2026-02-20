@@ -36,9 +36,6 @@ public class TransactionEntity {
 	@Column(name = "idempotency_key", length = 128)
 	private String idempotencyKey;
 
-	@Column(name = "source_user_id")
-	private Long sourceUserId;
-
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt = Instant.now();
 
@@ -92,14 +89,6 @@ public class TransactionEntity {
 
 	public void setIdempotencyKey(String idempotencyKey) {
 		this.idempotencyKey = idempotencyKey;
-	}
-
-	public Long getSourceUserId() {
-		return sourceUserId;
-	}
-
-	public void setSourceUserId(Long sourceUserId) {
-		this.sourceUserId = sourceUserId;
 	}
 
 	public Instant getCreatedAt() {
