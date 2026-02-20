@@ -91,7 +91,7 @@ export function InvoicesReceive() {
   async function generateQr() {
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, currency, amount, description || 'Payment')
+      const response = await api.generateInvoice(token, amount, currency, description || 'Payment')
       setQrPayload(response.qrPayload)
       setResult(null)
     } catch (err: any) {
