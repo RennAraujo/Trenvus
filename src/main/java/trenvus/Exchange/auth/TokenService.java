@@ -43,6 +43,7 @@ public class TokenService {
 				.expiresAt(expiresAt)
 				.subject(String.valueOf(user.getId()))
 				.claim("email", user.getEmail())
+				.claim("nickname", user.getNickname())
 				.claim("roles", List.of((user.getRole() == null ? "USER" : user.getRole().name())))
 				.build();
 

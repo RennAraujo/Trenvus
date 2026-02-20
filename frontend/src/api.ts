@@ -24,12 +24,48 @@ export type TransferResponse = WalletResponse & {
   feeTrvCents: number
 }
 
+export type InvoiceQrResponse = {
+  qrPayload: string
+  qrCodeId: string
+  amount: string
+  currency: string
+  recipientEmail: string
+  recipientNickname: string
+}
+
+export type MeResponse = {
+  email: string
+  nickname: string | null
+  phone: string | null
+  avatarDataUrl: string | null
+}
+
 export type PrivateStatementItem = {
   id: number
   tec: string
   type: string
   createdAt: string | null
   values: Array<{ currency: string; cents: number; fee: boolean }>
+}
+
+export type AdminUserSummary = {
+  id: number
+  email: string | null
+  role: string
+}
+
+export type AdminFeeIncomeItem = {
+  id: number
+  tec: string
+  createdAt: string | null
+  usdCents: number
+  sourceUserId: number | null
+  sourceEmail: string | null
+}
+
+export type AdminFeeIncomeResponse = {
+  totalUsdCents: number
+  items: AdminFeeIncomeItem[]
 }
 
 export type MarketTicker = {
@@ -143,7 +179,10 @@ async function request<T>(
   options: RequestInit & { accessToken?: string } = {},
 ): Promise<T> {
   const headers = new Headers(options.headers || {})
-  headers.set('Content-Type', 'application/json')
+  const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData
+  if (!isFormDataBody) {
+    headers.set('Content-Type', 'application/json')
+  }
   if (options.accessToken) {
     headers.set('Authorization', `Bearer ${options.accessToken}`)
   }
@@ -207,12 +246,13 @@ async function request<T>(
 }
 
 export const api = {
-  register: (email: string, password: string) =>
-    request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  register: (email: string, password: string, nickname: string, phone: string) =>
+    request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, nickname, phone }) }),
   login: (email: string, password: string) =>
     request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   loginTestAccount: (id: number) =>
     request<AuthResponse>('/auth/test-login', { method: 'POST', body: JSON.stringify({ id }) }),
+  loginAdmin: () => request<AuthResponse>('/auth/admin-login', { method: 'POST', body: '{}' }),
   refresh: (refreshToken: string) =>
     request<AuthResponse>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
   logout: (refreshToken: string) =>
@@ -236,11 +276,47 @@ export const api = {
       body: JSON.stringify({ amountTrv }),
     }),
 
-  transferTrv: (accessToken: string, toEmail: string, amountTrv: string) =>
-    request<TransferResponse>('/transfer/trv', { method: 'POST', accessToken, body: JSON.stringify({ toEmail, amountTrv }) }),
+  transferTrv: (accessToken: string, toIdentifier: string, amountTrv: string) =>
+    request<TransferResponse>('/transfer/trv', { method: 'POST', accessToken, body: JSON.stringify({ toIdentifier, amountTrv }) }),
+
+  getMe: (accessToken: string) => request<MeResponse>('/me', { accessToken }),
+  updateMyPhone: (accessToken: string, phone: string) =>
+    request<MeResponse>('/me/phone', { method: 'PUT', accessToken, body: JSON.stringify({ phone }) }),
+  changeMyPassword: (accessToken: string, currentPassword: string, newPassword: string) =>
+    request<void>('/me/password', { method: 'PUT', accessToken, body: JSON.stringify({ currentPassword, newPassword }) }),
+  uploadMyAvatar: (accessToken: string, file: File) => {
+    const body = new FormData()
+    body.append('file', file)
+    return request<MeResponse>('/me/avatar', { method: 'POST', accessToken, body })
+  },
 
   getPrivateStatement: (accessToken: string, page: number, size: number) =>
     request<PrivateStatementItem[]>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),
+
+  adminListUsers: (accessToken: string, query?: string, limit = 100) =>
+    request<AdminUserSummary[]>(
+      `/admin/users?limit=${encodeURIComponent(String(limit))}${query ? `&q=${encodeURIComponent(query)}` : ''}`,
+      { accessToken },
+    ),
+  adminGetUserWallet: (accessToken: string, userId: number) =>
+    request<WalletResponse>(`/admin/users/${encodeURIComponent(String(userId))}/wallet`, { accessToken }),
+  adminSetUserWallet: (accessToken: string, userId: number, usd: string, trv: string) =>
+    request<WalletResponse>(`/admin/users/${encodeURIComponent(String(userId))}/wallet`, {
+      method: 'PUT',
+      accessToken,
+      body: JSON.stringify({ usd, trv }),
+    }),
+  adminSetUserRole: (accessToken: string, userId: number, role: string) =>
+    request<AdminUserSummary>(`/admin/users/${encodeURIComponent(String(userId))}/role`, {
+      method: 'PUT',
+      accessToken,
+      body: JSON.stringify({ role }),
+    }),
+  adminGetUserFeeIncome: (accessToken: string, userId: number, size = 50) =>
+    request<AdminFeeIncomeResponse>(
+      `/admin/users/${encodeURIComponent(String(userId))}/fees?size=${encodeURIComponent(String(size))}`,
+      { accessToken },
+    ),
 
   getMarketTickers: (accessToken: string) => request<MarketTicker[]>('/market/tickers', { accessToken }),
   getMarketOrderBook: (accessToken: string, instId: string, size = 10) =>
@@ -250,13 +326,33 @@ export const api = {
       `/market/candles?instId=${encodeURIComponent(instId)}&bar=${encodeURIComponent(bar)}&limit=${limit}`,
       { accessToken },
     ),
+
+  // Invoice / QR Code payments
+  generateInvoice: (accessToken: string, amount: string, currency: string, description?: string) =>
+    request<InvoiceQrResponse>('/invoices/generate', {
+      method: 'POST',
+      accessToken,
+      body: JSON.stringify({ amount, currency, description }),
+    }),
+  payInvoice: (accessToken: string, qrPayload: string, amount: string, currency: string) =>
+    request<WalletResponse>('/invoices/pay', {
+      method: 'POST',
+      accessToken,
+      body: JSON.stringify({ qrPayload, amount, currency }),
+    }),
 }
 
 export function formatUsd(cents: number): string {
-  const sign = cents < 0 ? '-' : ''
-  const abs = Math.abs(cents)
-  const dollars = Math.floor(abs / 100)
-  const remainder = abs % 100
-  const grouped = String(dollars).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  return `${sign}${grouped}.${String(remainder).padStart(2, '0')}`
+  const locale =
+    (typeof window !== 'undefined' ? window.localStorage.getItem('exchange.locale') : null) ||
+    (typeof navigator !== 'undefined' ? navigator.language : 'en')
+  const value = cents / 100
+  try {
+    return new Intl.NumberFormat(locale === 'pt-BR' || locale === 'en' ? locale : 'en', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value)
+  } catch {
+    return value.toFixed(2)
+  }
 }

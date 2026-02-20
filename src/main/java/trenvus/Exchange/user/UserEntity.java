@@ -30,6 +30,15 @@ public class UserEntity {
 	@Enumerated(EnumType.STRING)
 	private UserRole role = UserRole.USER;
 
+	@Column(length = 64, unique = true)
+	private String nickname;
+
+	@Column(length = 32)
+	private String phone;
+
+	@Column(name = "avatar_data_url", length = 1024)
+	private String avatarDataUrl;
+
 	public Long getId() {
 		return id;
 	}
@@ -60,5 +69,29 @@ public class UserEntity {
 
 	public void setRole(UserRole role) {
 		this.role = role;
+	}
+
+	public String getNickname() {
+		return nickname;
+	}
+
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getAvatarDataUrl() {
+		return avatarDataUrl;
+	}
+
+	public void setAvatarDataUrl(String avatarDataUrl) {
+		this.avatarDataUrl = avatarDataUrl;
 	}
 }

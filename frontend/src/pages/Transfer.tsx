@@ -12,9 +12,9 @@ const SendIcon = () => (
   </svg>
 )
 
-const MailIcon = () => (
+const UserIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
   </svg>
 )
 
@@ -54,7 +54,7 @@ export function Transfer() {
   const auth = useAuth()
   const { t } = useI18n()
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
-  const [toEmail, setToEmail] = useState('')
+  const [toIdentifier, setToIdentifier] = useState('')
   const [amountDigits, setAmountDigits] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -98,10 +98,10 @@ export function Transfer() {
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
-      const data = await api.transferTrv(token, toEmail, amount.plain)
+      const data = await api.transferTrv(token, toIdentifier, amount.plain)
       setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
       setAmountDigits('')
-      setToEmail('')
+      setToIdentifier('')
       setSuccess('Transfer completed successfully!')
     } catch (err: any) {
       const message = typeof err?.message === 'string' ? err.message : null
@@ -176,7 +176,7 @@ export function Transfer() {
             <div>
               <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Send TRV</h3>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                Transfer to any user by email
+                Transfer to any user by email or nickname
               </p>
             </div>
           </div>
@@ -203,17 +203,16 @@ export function Transfer() {
 
           <form onSubmit={onSubmit} style={{ maxWidth: 480 }}>
             <div className="field">
-              <label className="field-label">{t('transfer.toEmail')}</label>
+              <label className="field-label">Recipient (Email or Nickname)</label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
-                  <MailIcon />
+                  <UserIcon />
                 </span>
                 <input 
                   className="input" 
-                  type="email"
-                  value={toEmail} 
-                  onChange={(e) => setToEmail(e.target.value)}
-                  placeholder="recipient@example.com"
+                  value={toIdentifier} 
+                  onChange={(e) => setToIdentifier(e.target.value)}
+                  placeholder="email@example.com or nickname"
                   style={{ paddingLeft: 44 }}
                   required
                 />
@@ -310,7 +309,7 @@ export function Transfer() {
       <div style={{ marginTop: 24, padding: 20, background: 'var(--bg-subtle)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
         <p className="text-sm text-secondary">
           <strong style={{ color: 'var(--text-primary)' }}>Note:</strong> Transfers are instant and irreversible. 
-          Make sure the recipient's email is correct before confirming.
+          Make sure the recipient's email or nickname is correct before confirming.
         </p>
       </div>
     </div>

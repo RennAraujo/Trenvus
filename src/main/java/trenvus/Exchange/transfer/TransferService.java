@@ -26,12 +26,16 @@ public class TransferService {
 	}
 
 	@Transactional
-	public TransferResult transferTrv(Long fromUserId, String toEmail, long amountTrvCents) {
-		if (toEmail == null || toEmail.isBlank()) {
+	public TransferResult transferTrv(Long fromUserId, String toIdentifier, long amountTrvCents) {
+		if (toIdentifier == null || toIdentifier.isBlank()) {
 			throw new IllegalArgumentException("Destinatário inválido");
 		}
 
-		var toUser = users.findByEmail(toEmail.trim()).orElseThrow(() -> new IllegalArgumentException("Destinatário não encontrado"));
+		var trimmed = toIdentifier.trim();
+		// Try to find by email first, then by nickname
+		var toUser = users.findByEmail(trimmed)
+				.or(() -> users.findByNickname(trimmed))
+				.orElseThrow(() -> new IllegalArgumentException("Destinatário não encontrado"));
 		var toUserId = toUser.getId();
 
 		if (fromUserId.equals(toUserId)) {
