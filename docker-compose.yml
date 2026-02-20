@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: exchange-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - exchange-network
+    restart: always
+
+  backend:
+    build: .
+    container_name: exchange-backend
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_PRIVATE_KEY_B64: ${JWT_PRIVATE_KEY_B64}
+      JWT_PUBLIC_KEY_B64: ${JWT_PUBLIC_KEY_B64}
+      APP_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://195.200.7.31:3000,https://195.200.7.31:3000,http://localhost:5173,http://127.0.0.1:5173"
+      TEST_ACCOUNT_ENABLED: "true"
+      TEST_ACCOUNT_EMAIL: "user@test.com"
+      TEST_ACCOUNT_PASSWORD: "123"
+    ports:
+      - "8080:8080"
+    networks:
+      - exchange-network
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: exchange-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - exchange-network
+    restart: always
+
+volumes:
+  pgdata:
+
+networks:
+  exchange-network:
+    driver: bridge
