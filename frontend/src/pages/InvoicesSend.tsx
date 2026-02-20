@@ -114,11 +114,24 @@ export function InvoicesSend() {
       progress += Math.random() * 15
       if (progress >= 100) {
         progress = 100
-        // Find a QR code matching the selected currency, or random
-        const matchingQrs = DEMO_PAYMENT_QRS.filter(qr => qr.currency === currency)
-        const qrPool = matchingQrs.length > 0 ? matchingQrs : DEMO_PAYMENT_QRS
-        const randomQr = qrPool[Math.floor(Math.random() * qrPool.length)]
-        setDetectedQr(randomQr)
+        // Find a QR code matching the selected currency and amount
+        const exactMatch = DEMO_PAYMENT_QRS.find(qr => 
+          qr.currency === currency && qr.amount === amount
+        )
+        
+        // If exact match found, use it; otherwise find one with matching currency
+        let selectedQr: typeof DEMO_PAYMENT_QRS[0]
+        if (exactMatch) {
+          selectedQr = exactMatch
+        } else {
+          const matchingCurrency = DEMO_PAYMENT_QRS.filter(qr => qr.currency === currency)
+          const qrPool = matchingCurrency.length > 0 ? matchingCurrency : DEMO_PAYMENT_QRS
+          selectedQr = qrPool[Math.floor(Math.random() * qrPool.length)]
+          // Update amount to match the detected QR code
+          setAmount(selectedQr.amount)
+        }
+        
+        setDetectedQr(selectedQr)
         setScanning(false)
         if (scanIntervalRef.current) {
           clearInterval(scanIntervalRef.current)
@@ -138,12 +151,6 @@ export function InvoicesSend() {
 
   async function processPayment() {
     if (!detectedQr) return
-    
-    // Validate amount matches
-    if (detectedQr.amount !== amount || detectedQr.currency !== currency) {
-      setError(`QR code amount (${detectedQr.amount} ${detectedQr.currency}) doesn't match your selection (${amount} ${currency})`)
-      return
-    }
 
     setProcessing(true)
     try {
