@@ -268,7 +268,7 @@ public class InvoiceService {
         );
     }
 
-    private void ensureWalletExists(Long userId, Currency currency) {
+    public void ensureWalletExists(Long userId, Currency currency) {
         wallets.findByUserIdAndCurrency(userId, currency)
                 .orElseGet(() -> {
                     var w = new WalletEntity();
