@@ -27,10 +27,12 @@ public class AuthController {
 	
 	private final AuthService authService;
 	private final TestAccountsConfig testAccounts;
+	private final AdminAccountConfig adminAccount;
 
-	public AuthController(AuthService authService, TestAccountsConfig testAccounts) {
+	public AuthController(AuthService authService, TestAccountsConfig testAccounts, AdminAccountConfig adminAccount) {
 		this.authService = authService;
 		this.testAccounts = testAccounts;
+		this.adminAccount = adminAccount;
 	}
 	
 	@GetMapping("/test-accounts-status")
@@ -90,6 +92,20 @@ public class AuthController {
 	public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
 		authService.logout(request.refreshToken());
 		return ResponseEntity.noContent().build();
+	}
+	
+	@PostMapping("/admin-login")
+	public ResponseEntity<AuthResponse> adminLogin() {
+		logger.info("Admin login attempt, enabled: {}", adminAccount.isLoginEnabled());
+		
+		if (!adminAccount.isLoginEnabled()) {
+			logger.warn("Admin login rejected - admin login is disabled");
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "admin_login_disabled");
+		}
+		
+		var result = authService.login(adminAccount.email(), adminAccount.password());
+		logger.info("Admin login successful for: {}", adminAccount.email());
+		return ResponseEntity.ok(AuthResponse.from(result));
 	}
 
 	public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password) {}

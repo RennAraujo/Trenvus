@@ -44,18 +44,23 @@ export function Login() {
   const isTestLogin = Number.isFinite(testId) && testId >= 1 && testId <= 3
 
   const loginTestAccount = useCallback(async (id: number) => {
+    console.log(`[Login] Attempting test login for account ${id}`)
     setError(null)
     setBusy(true)
     try {
       for (let attempt = 0; attempt < 5; attempt++) {
         try {
+          console.log(`[Login] Test login attempt ${attempt + 1}/5`)
           await auth.loginTestAccount(id)
+          console.log(`[Login] Test login successful, navigating...`)
           navigate('/app', { replace: true })
           return
         } catch (err: any) {
+          console.error(`[Login] Test login attempt ${attempt + 1} failed:`, err)
           const status = typeof err?.status === 'number' ? (err.status as number) : null
           const retryable = err?.name === 'NetworkError' || status === 502 || status === 503 || status === 504
           if (attempt < 4 && retryable) {
+            console.log(`[Login] Retrying in 600ms...`)
             await new Promise((r) => setTimeout(r, 600))
             continue
           }
@@ -63,28 +68,33 @@ export function Login() {
         }
       }
     } catch (err: any) {
-      setError(err?.message || t('errors.loginTestAccount'))
+      console.error('[Login] Test login failed:', err)
+      const errorMsg = err?.message || t('errors.loginTestAccount')
+      setError(`Test Account ${id}: ${errorMsg}`)
     } finally {
       setBusy(false)
     }
   }, [auth, navigate, t])
 
   const loginAdmin = useCallback(async () => {
+    console.log('[Login] Attempting admin login')
     setError(null)
     setBusy(true)
     try {
       await auth.loginAdmin()
+      console.log('[Login] Admin login successful, navigating...')
       navigate('/app/admin/users', { replace: true })
     } catch (err: any) {
+      console.error('[Login] Admin login failed:', err)
       const status = typeof err?.status === 'number' ? (err.status as number) : null
       if (status === 404) {
-        setError(t('errors.loginAdminDisabled'))
+        setError('Admin login: ' + t('errors.loginAdminDisabled'))
       } else if (err?.message === 'admin_account_disabled') {
-        setError(t('errors.adminAccountDisabled'))
+        setError('Admin login: ' + t('errors.adminAccountDisabled'))
       } else if (err?.message === 'admin_login_disabled') {
-        setError(t('errors.loginAdminDisabled'))
+        setError('Admin login: ' + t('errors.loginAdminDisabled'))
       } else {
-        setError(err?.message || t('errors.login'))
+        setError('Admin login: ' + (err?.message || t('errors.login')))
       }
     } finally {
       setBusy(false)
