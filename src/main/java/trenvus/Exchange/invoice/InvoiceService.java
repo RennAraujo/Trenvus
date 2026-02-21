@@ -58,6 +58,19 @@ public class InvoiceService {
             throw new IllegalArgumentException("Não é possível pagar sua própria invoice");
         }
 
+        // Validate that request amount and currency match QR payload
+        if (!request.amount().equals(qrData.amount())) {
+            throw new IllegalArgumentException(
+                String.format("Amount mismatch: QR code amount is %s %s but request amount is %s %s",
+                    qrData.amount(), qrData.currency(), request.amount(), request.currency()));
+        }
+        
+        if (!request.currency().equals(qrData.currency())) {
+            throw new IllegalArgumentException(
+                String.format("Currency mismatch: QR code currency is %s but request currency is %s",
+                    qrData.currency(), request.currency()));
+        }
+
         // Convert amount to cents
         long amountCents = request.amount().multiply(BigDecimal.valueOf(100)).longValue();
         if (amountCents <= 0) {
