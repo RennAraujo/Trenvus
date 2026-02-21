@@ -137,38 +137,143 @@ export function Statement() {
     return `${sign}${formatUsd(Math.abs(cents))} ${currency}`
   }
 
+  // Trenvus Logo as SVG path for PDF
+  function addTrenvusLogo(doc: jsPDF, x: number, y: number, height: number) {
+    const scale = height / 40
+    
+    // Draw the building/shape part of logo (blue gradient representation)
+    doc.setFillColor(0, 102, 204) // Blue color
+    
+    // Left tall building
+    doc.triangle(x + 5*scale, y + 35*scale, x + 15*scale, y + 35*scale, x + 15*scale, y + 5*scale, 'F')
+    doc.triangle(x + 5*scale, y + 35*scale, x + 5*scale, y + 15*scale, x + 15*scale, y + 5*scale, 'F')
+    
+    // Middle building
+    doc.setFillColor(0, 136, 255)
+    doc.triangle(x + 18*scale, y + 35*scale, x + 28*scale, y + 35*scale, x + 28*scale, y + 12*scale, 'F')
+    doc.triangle(x + 18*scale, y + 35*scale, x + 18*scale, y + 22*scale, x + 28*scale, y + 12*scale, 'F')
+    
+    // Right building
+    doc.setFillColor(51, 153, 255)
+    doc.triangle(x + 31*scale, y + 35*scale, x + 42*scale, y + 35*scale, x + 42*scale, y + 20*scale, 'F')
+    doc.triangle(x + 31*scale, y + 35*scale, x + 31*scale, y + 28*scale, x + 42*scale, y + 20*scale, 'F')
+    
+    // Draw text "TRENVUS"
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(24 * scale)
+    doc.setTextColor(0, 0, 0)
+    doc.text('TRENVUS', x + 50*scale, y + 28*scale)
+  }
+
   function exportPdf() {
     const doc = new jsPDF({ unit: 'pt', format: 'a4' })
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const margin = 40
     let y = margin
-    const lineH = 14
-    const smallLineH = 12
 
-    const nowLabel = formatWhen(new Date().toISOString()) || new Date().toISOString()
-    const header = `${t('statement.title')} • ${t('statement.page')} ${page + 1}`
+    const now = new Date()
+    const nowLabel = formatWhen(now.toISOString()) || now.toISOString()
+    
+    // Calculate totals
+    let totalUsdIn = 0, totalUsdOut = 0
+    let totalTrvIn = 0, totalTrvOut = 0
+    
+    for (const item of items) {
+      for (const v of item.values) {
+        if (v.currency === 'USD') {
+          if (v.cents > 0) totalUsdIn += v.cents
+          else totalUsdOut += Math.abs(v.cents)
+        } else if (v.currency === 'TRV') {
+          if (v.cents > 0) totalTrvIn += v.cents
+          else totalTrvOut += Math.abs(v.cents)
+        }
+      }
+    }
 
     function ensureSpace(height: number) {
       if (y + height <= pageHeight - margin) return
       doc.addPage()
-      y = margin
+      addHeader()
+      y = 100
     }
+    
+    function addHeader() {
+      // Logo
+      addTrenvusLogo(doc, margin, 25, 30)
+      
+      // Document title
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(20)
+      doc.setTextColor(0, 51, 102)
+      doc.text(t('statement.title').toUpperCase(), pageWidth - margin, 50, { align: 'right' })
+      
+      // Subtitle
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      doc.text(`${t('statement.page')} ${page + 1} • ${nowLabel}`, pageWidth - margin, 65, { align: 'right' })
+      
+      // Line separator
+      doc.setDrawColor(0, 102, 204)
+      doc.setLineWidth(2)
+      doc.line(margin, 75, pageWidth - margin, 75)
+    }
+    
+    addHeader()
+    y = 100
 
+    // Summary Section
+    doc.setFillColor(245, 248, 252)
+    doc.roundedRect(margin, y, pageWidth - 2*margin, 70, 4, 4, 'F')
+    
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(16)
-    doc.text(header, margin, y)
-    y += 18
-
-    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(12)
+    doc.setTextColor(0, 51, 102)
+    doc.text('RESUMO DA CONTA / ACCOUNT SUMMARY', margin + 10, y + 20)
+    
+    // USD Summary
     doc.setFontSize(10)
-    doc.text(nowLabel, margin, y)
-    y += 18
+    doc.setTextColor(60, 60, 60)
+    doc.text('USD:', margin + 10, y + 40)
+    doc.setTextColor(0, 153, 0)
+    doc.text(`+${formatUsd(totalUsdIn)}`, margin + 60, y + 40)
+    doc.setTextColor(204, 0, 0)
+    doc.text(`-${formatUsd(totalUsdOut)}`, margin + 140, y + 40)
+    doc.setTextColor(0, 0, 0)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`=${formatUsd(totalUsdIn - totalUsdOut)}`, margin + 220, y + 40)
+    
+    // TRV Summary
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(60, 60, 60)
+    doc.text('TRV:', margin + 10, y + 58)
+    doc.setTextColor(0, 153, 0)
+    doc.text(`+${formatUsd(totalTrvIn)}`, margin + 60, y + 58)
+    doc.setTextColor(204, 0, 0)
+    doc.text(`-${formatUsd(totalTrvOut)}`, margin + 140, y + 58)
+    doc.setTextColor(0, 0, 0)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`=${formatUsd(totalTrvIn - totalTrvOut)}`, margin + 220, y + 58)
+    
+    y += 85
 
-    doc.setDrawColor(210, 210, 210)
-    doc.setLineWidth(0.6)
-    doc.line(margin, y, pageWidth - margin, y)
-    y += 16
+    // Table Header
+    doc.setFillColor(0, 102, 204)
+    doc.rect(margin, y, pageWidth - 2*margin, 25, 'F')
+    
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(255, 255, 255)
+    doc.text('DATA / DATE', margin + 8, y + 16)
+    doc.text('TIPO / TYPE', margin + 110, y + 16)
+    doc.text('DETALHES / DETAILS', margin + 220, y + 16)
+    doc.text('VALOR / AMOUNT', pageWidth - margin - 8, y + 16, { align: 'right' })
+    
+    y += 30
+    
+    // Alternating row colors
+    let rowColor = false
 
     for (const item of items) {
       const when = formatWhen(item.createdAt)
@@ -190,69 +295,91 @@ export function Statement() {
 
       const feeLines = movements
         .filter((m) => m.fee)
-        .map((m) => `${t('statement.feeLabel')}: ${formatUsd(Math.abs(m.cents))} ${m.currency}`)
+        .map((m) => `Taxa: ${formatUsd(Math.abs(m.cents))} ${m.currency}`)
 
       const movementLines = movements
         .filter((m) => !m.fee)
         .sort((a, b) => a.cents - b.cents)
         .map((m) => formatSigned(m.currency, m.cents))
 
-      const detailLines = [...feeLines, ...movementLines]
-      ensureSpace(lineH * 2 + (detailLines.length ? detailLines.length * smallLineH : smallLineH) + 18)
-
-      doc.setTextColor(0, 0, 0)
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(12)
-      doc.text(typeLabel(item.type), margin, y)
-      if (netPrimary) {
-        doc.text(netText(netPrimary.cents, netPrimary.currency), pageWidth - margin, y, { align: 'right' })
+      const detailLines = [...movementLines, ...feeLines]
+      const rowHeight = Math.max(35, 20 + detailLines.length * 12)
+      
+      ensureSpace(rowHeight + 5)
+      
+      // Row background
+      if (rowColor) {
+        doc.setFillColor(248, 248, 248)
+        doc.rect(margin, y - 3, pageWidth - 2*margin, rowHeight, 'F')
       }
-      y += lineH
+      rowColor = !rowColor
 
+      // Date column
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(10)
-      doc.setTextColor(40, 40, 40)
-      doc.text(item.tec, margin, y)
-      if (when) {
-        doc.text(when, pageWidth - margin, y, { align: 'right' })
-      }
-      y += lineH
-
-      doc.setTextColor(0, 0, 0)
-      if (detailLines.length) {
-        for (const l of detailLines) {
-          ensureSpace(smallLineH + 6)
-          doc.text(l, margin + 14, y)
-          y += smallLineH
-        }
-      } else {
-        doc.setTextColor(120, 120, 120)
-        doc.text('—', margin + 14, y)
-        y += smallLineH
+      doc.setFontSize(9)
+      doc.setTextColor(80, 80, 80)
+      const dateParts = when ? when.split(' ·') : ['--']
+      doc.text(dateParts[0], margin + 8, y + 12)
+      if (dateParts[1]) {
+        doc.setFontSize(8)
+        doc.text(dateParts[1], margin + 8, y + 24)
       }
 
-      y += 8
-      doc.setDrawColor(230, 230, 230)
-      doc.setLineWidth(0.6)
-      doc.line(margin, y, pageWidth - margin, y)
-      y += 14
+      // Type column
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.setTextColor(0, 51, 102)
+      const label = typeLabel(item.type)
+      doc.text(label.substring(0, 20), margin + 110, y + 14)
+
+      // Details column
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(60, 60, 60)
+      doc.text(`Ref: ${item.tec.substring(0, 15)}...`, margin + 220, y + 10)
+      
+      let detailY = y + 22
+      for (const line of detailLines.slice(0, 3)) {
+        doc.text(line, margin + 220, detailY)
+        detailY += 11
+      }
+
+      // Amount column
+      if (netPrimary) {
+        const isPositive = netPrimary.cents >= 0
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.setTextColor(isPositive ? 0 : 204, isPositive ? 153 : 0, 0)
+        doc.text(netText(netPrimary.cents, netPrimary.currency), pageWidth - margin - 8, y + 14, { align: 'right' })
+      }
+
+      y += rowHeight + 2
     }
 
-    const footerLines = [t('statement.secureNote'), `${t('statement.rateNote')} • ${t('statement.feeNote')}`]
-    ensureSpace(footerLines.length * smallLineH + 10)
+    // Footer section
+    y += 20
+    ensureSpace(60)
+    
+    doc.setDrawColor(0, 102, 204)
+    doc.setLineWidth(1)
+    doc.line(margin, y, pageWidth - margin, y)
+    y += 15
+    
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.setTextColor(80, 80, 80)
-    for (const l of footerLines) {
-      doc.text(l, margin, y)
-      y += smallLineH
-    }
+    doc.setFontSize(9)
+    doc.setTextColor(100, 100, 100)
+    doc.text('Trenvus Exchange Platform', margin, y)
+    doc.text(t('statement.secureNote'), pageWidth / 2, y, { align: 'center' })
+    doc.text(`Página ${doc.getNumberOfPages()}`, pageWidth - margin, y, { align: 'right' })
+    
+    y += 12
+    doc.setFontSize(8)
+    doc.text('www.trenvus.com • support@trenvus.com', margin, y)
+    doc.text(`${t('statement.rateNote')} • ${t('statement.feeNote')}`, pageWidth / 2, y, { align: 'center' })
 
     const ts = new Date()
     const pad2 = (n: number) => String(n).padStart(2, '0')
-    const name = `extrato-p${page + 1}-${ts.getFullYear()}${pad2(ts.getMonth() + 1)}${pad2(ts.getDate())}-${pad2(ts.getHours())}${pad2(
-      ts.getMinutes(),
-    )}.pdf`
+    const name = `trenvus-extrato-${ts.getFullYear()}${pad2(ts.getMonth() + 1)}${pad2(ts.getDate())}.pdf`
     doc.save(name)
   }
 
