@@ -258,6 +258,15 @@ export function Statement() {
     
     y += 85
 
+    // Table column positions (calculated for better spacing)
+    // A4 width = 595pt, margins = 40pt each side = 515pt usable
+    // Column distribution: Date(13%) | Type(28%) | Details(38%) | Amount(21%)
+    const colDateX = margin + 6
+    const colTypeX = margin + 95
+    const colDetailsX = margin + 235
+    const colAmountX = pageWidth - margin - 10
+    const colTypeWidth = colDetailsX - colTypeX - 12 // Available width for type (~128pt)
+    
     // Table Header
     doc.setFillColor(0, 102, 204)
     doc.rect(margin, y, pageWidth - 2*margin, 25, 'F')
@@ -265,15 +274,29 @@ export function Statement() {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
-    doc.text('DATA / DATE', margin + 8, y + 16)
-    doc.text('TIPO / TYPE', margin + 110, y + 16)
-    doc.text('DETALHES / DETAILS', margin + 220, y + 16)
-    doc.text('VALOR / AMOUNT', pageWidth - margin - 8, y + 16, { align: 'right' })
+    doc.text('DATA / DATE', colDateX, y + 16)
+    doc.text('TIPO / TYPE', colTypeX, y + 16)
+    doc.text('DETALHES / DETAILS', colDetailsX, y + 16)
+    doc.text('VALOR / AMOUNT', colAmountX, y + 16, { align: 'right' })
     
     y += 30
     
     // Alternating row colors
     let rowColor = false
+    
+    // Helper to fit text within width
+    const fitText = (text: string, maxWidth: number): string => {
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      let result = text
+      while (doc.getTextWidth(result) > maxWidth && result.length > 0) {
+        result = result.slice(0, -1)
+      }
+      if (result.length < text.length) {
+        result = result.slice(0, -3) + '...'
+      }
+      return result
+    }
 
     for (const item of items) {
       const when = formatWhen(item.createdAt)
@@ -303,54 +326,75 @@ export function Statement() {
         .map((m) => formatSigned(m.currency, m.cents))
 
       const detailLines = [...movementLines, ...feeLines]
-      const rowHeight = Math.max(35, 20 + detailLines.length * 12)
+      const rowHeight = Math.max(42, 18 + detailLines.length * 11)
+      const centerY = y + rowHeight / 2  // Vertical center of the row
       
       ensureSpace(rowHeight + 5)
       
       // Row background
       if (rowColor) {
         doc.setFillColor(248, 248, 248)
-        doc.rect(margin, y - 3, pageWidth - 2*margin, rowHeight, 'F')
+        doc.rect(margin, y - 2, pageWidth - 2*margin, rowHeight, 'F')
       }
       rowColor = !rowColor
 
-      // Date column
+      // Date column - primeira linha no topo, segunda 12pt abaixo
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(9)
       doc.setTextColor(80, 80, 80)
       const dateParts = when ? when.split(' ·') : ['--']
-      doc.text(dateParts[0], margin + 8, y + 12)
+      doc.text(dateParts[0], colDateX, y + 14)
       if (dateParts[1]) {
         doc.setFontSize(8)
-        doc.text(dateParts[1], margin + 8, y + 24)
+        doc.text(dateParts[1], colDateX, y + 26)
       }
 
-      // Type column
+      // Type column - centralizado verticalmente na linha
+      const label = typeLabel(item.type)
+      const fittedLabel = fitText(label, colTypeWidth)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
       doc.setTextColor(0, 51, 102)
-      const label = typeLabel(item.type)
-      doc.text(label.substring(0, 20), margin + 110, y + 14)
+      doc.text(fittedLabel, colTypeX, centerY + 3)
 
-      // Details column
+      // Details column - alinhado com a data
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8)
       doc.setTextColor(60, 60, 60)
-      doc.text(`Ref: ${item.tec.substring(0, 15)}...`, margin + 220, y + 10)
+      const maxDetailWidth = colAmountX - colDetailsX - 15
       
-      let detailY = y + 22
-      for (const line of detailLines.slice(0, 3)) {
-        doc.text(line, margin + 220, detailY)
+      // Reference line - alinhada com primeira linha da data
+      const refText = `Ref: ${item.tec}`
+      let displayRef = refText
+      while (doc.getTextWidth(displayRef) > maxDetailWidth && displayRef.length > 0) {
+        displayRef = displayRef.slice(0, -1)
+      }
+      if (displayRef.length < refText.length) {
+        displayRef = displayRef.slice(0, -3) + '...'
+      }
+      doc.text(displayRef, colDetailsX, y + 14)
+      
+      // Movement and fee lines - espaçamento consistente de 11pt
+      let detailY = y + 25
+      for (const line of detailLines.slice(0, 4)) {
+        let displayLine = line
+        while (doc.getTextWidth(displayLine) > maxDetailWidth && displayLine.length > 0) {
+          displayLine = displayLine.slice(0, -1)
+        }
+        if (displayLine.length < line.length) {
+          displayLine = displayLine.slice(0, -3) + '...'
+        }
+        doc.text(displayLine, colDetailsX, detailY)
         detailY += 11
       }
 
-      // Amount column
+      // Amount column - centralizado verticalmente na linha (mesmo que o tipo)
       if (netPrimary) {
         const isPositive = netPrimary.cents >= 0
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(10)
         doc.setTextColor(isPositive ? 0 : 204, isPositive ? 153 : 0, 0)
-        doc.text(netText(netPrimary.cents, netPrimary.currency), pageWidth - margin - 8, y + 14, { align: 'right' })
+        doc.text(netText(netPrimary.cents, netPrimary.currency), colAmountX, centerY + 3, { align: 'right' })
       }
 
       y += rowHeight + 2
