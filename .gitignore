@@ -71,3 +71,16 @@ yarn-error.log*
 frontend/node_modules/
 frontend/dist/
 frontend/coverage/
+
+### Agent Skills ###
+# Ignore any generated/temp files in agent skills
+.agents/skills/**/.DS_Store
+.agents/skills/**/*.log
+
+### Misc ###
+*.skill
+logs.txt
+*.dump
+*.dumpstream
+.cursor/
+.ai/

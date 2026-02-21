@@ -29,10 +29,16 @@ O frontend foi completamente modernizado com um **Design System** próprio:
 ### Backend
 - **Java 17** & **Spring Boot 3.4.2**
 - **Spring Security** (JWT RS256)
-Para facilitar o desenvolvimento e testes, uma conta administrativa é criada automaticamente na inicialização:
-- **Email**: `user@test.com`
-- **Senha**: `123`
-- **libphonenumber-js** para validação de telefones
+- **Spring Data JPA** & **PostgreSQL 16**
+- **Flyway** - Migrações de banco
+- **H2** - Banco de testes
+
+### Frontend
+- **React 18** & **TypeScript 5.4**
+- **Vite 5.2** - Build tool
+- **React Router DOM 6.22**
+- **jsPDF** - Geração de PDFs
+- **libphonenumber-js** - Validação de telefones
 
 ### Infraestrutura
 - **Docker** & **Docker Compose**
@@ -87,38 +93,63 @@ Configure no `.env` ou `docker-compose.yml`:
 
 ```bash
 TEST_ACCOUNT_ENABLED=true
+TEST_ACCOUNTS="user1@test.com:123:ADMIN;user2@test.com:123:USER;user3@test.com:123:USER"
 ADMIN_ACCOUNT_ENABLED=true
 ADMIN_LOGIN_ENABLED=true
+ADMIN_EMAIL=admin@trenvus.com
+ADMIN_PASSWORD=admin123
+```
+
+| Conta | Email | Senha | Role |
+|-------|-------|-------|------|
+| Teste 1 | user1@test.com | 123 | ADMIN |
+| Teste 2 | user2@test.com | 123 | USER |
+| Teste 3 | user3@test.com | 123 | USER |
+| Admin | admin@trenvus.com | admin123 | ADMIN |
+
 ## 📱 Funcionalidades
 
 ### 💰 Gestão de Carteira
-- **Depósito**: Adicionar fundos em USD (mínimo $10)
+- **Depósito**: Adicionar fundos em USD
 - **Saldos**: Visualização de USD e TRV em tempo real
 - **Modo Privado**: Ocultar valores sensíveis
 
 ### 💱 Câmbio
-- **Conversão**: USD ↔ TRV (taxa 1:1)
-- **Taxa**: 1% por transação (cobrado em USD)
+- **Conversão**: USD ↔ TRV
+- **Taxa**: 1% por transação
 - **Preview**: Visualização do valor líquido antes de confirmar
 
 ### 💸 Transferências
 - **Envio**: Transferir TRV para outros usuários
-- **Destinatário**: Busca por e-mail ou apelido
-- **Gratuito**: Zero taxas para transferências
+- **Destinatário**: Busca por e-mail ou apelido (nickname)
+- **Gratuito**: Zero taxas para transferências P2P
+
+### 📱 QR Code Payments
+- **Enviar**: Gerar QR code para pagamento
+- **Receber**: Escanear QR e confirmar recebimento
+- **Simulação**: Modo demo para testar sem segunda conta
 
 ### 📊 Dados de Mercado
 - **Integração OKX**: Preços em tempo real
-- **Pares**: BTC-USDT, ETH-USDT, XRP-USDT, USDT-BRL
-- **Sparklines**: Gráficos de tendência minimalistas
+- **Pares**: BTC-USDT, ETH-USDT, SOL-USDT
+- **Sparklines**: Gráficos de tendência
 - **Order Book**: Visualização de bids/asks
-- Taxas e taxas de serviço configuráveis.
 
-- **Autenticação**: Login e Registro com JWT.
+### 📄 Extrato
 - **Histórico**: Transações com filtros
-- **Câmbio**: Conversão de USD para TRV (1:1 com taxa fixa de $0.50).
-- **Categorias**: Depósitos, conversões, transferências
-- **Perfil**: Avatar, nickname, telefone
-- **Admin**: Gestão de usuários (role ADMIN)
+- **Categorias**: Depósitos, conversões, transferências, QR payments
+- **Export PDF**: Extrato em PDF com logo da Trenvus
+
+### 👤 Perfil
+- **Avatar**: Upload de imagem
+- **Nickname**: Apelido único
+- **Telefone**: Validação internacional
+- **Senha**: Alteração segura
+
+### 🔐 Admin
+- **Gestão de Usuários**: Listar, editar roles
+- **Carteiras**: Ajustar saldos
+- **Taxas**: Visualizar renda de taxas
 
 ## 📁 Estrutura do Projeto
 
@@ -128,6 +159,7 @@ ADMIN_LOGIN_ENABLED=true
 │   └── main/java/trenvus/Exchange/
 │       ├── auth/                 # Autenticação JWT
 │       ├── exchange/             # Lógica de câmbio
+│       ├── invoice/              # QR Code payments
 │       ├── market/               # Integração OKX
 │       ├── transfer/             # Transferências
 │       ├── user/                 # Entidades de usuário
@@ -137,9 +169,25 @@ ADMIN_LOGIN_ENABLED=true
 │       ├── pages/                # Páginas (Dashboard, Login, etc.)
 │       ├── index.css             # Design System
 │       └── api.ts                # Cliente HTTP
+├── .agents/skills/               # Agentes especializados
+│   ├── exchange-backend/         # Java/Spring Boot
+│   ├── exchange-frontend/        # React/TypeScript
+│   ├── exchange-security/        # Security/JWT
+│   └── exchange-testing/         # QA/Tests
 ├── docker-compose.yml            # Orquestração
 └── .env                          # Variáveis de ambiente
 ```
+
+## 🤖 Agentes Especializados
+
+O projeto inclui 4 agentes especializados em `.agents/skills/`:
+
+- **exchange-backend**: Java/Spring Boot senior developer
+- **exchange-frontend**: React/TypeScript senior developer
+- **exchange-security**: Security engineer (JWT/auth)
+- **exchange-testing**: QA/test engineer
+
+Consulte `AGENTS.md` para detalhes completos.
 
 ## 🔒 Segurança
 
@@ -148,6 +196,18 @@ ADMIN_LOGIN_ENABLED=true
 - **Idempotency Keys**: Prevenção de duplicação
 - **Optimistic Locking**: Prevenção de race conditions
 - **CORS**: Configurável via `APP_CORS_ORIGINS`
+- **SQL Injection**: Protegido por JPA/Hibernate
+
+## 🧪 Testes
+
+```bash
+# Backend
+./mvnw test
+
+# Frontend
+cd frontend
+npm test
+```
 
 ## 🛠️ Troubleshooting
 
@@ -166,3 +226,7 @@ ADMIN_LOGIN_ENABLED=true
 ## 📄 Licença
 
 Este projeto é privado e proprietário.
+
+---
+
+Para mais detalhes, consulte `AGENTS.md`.

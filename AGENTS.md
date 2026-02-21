@@ -351,6 +351,33 @@ ADMIN_PASSWORD=admin123
 
 ---
 
+## Agentes Especializados
+
+O projeto inclui 4 agentes especializados para auxiliar no desenvolvimento:
+
+```
+.agents/skills/
+├── exchange-backend/      # Java/Spring Boot Senior Developer
+├── exchange-frontend/     # React/TypeScript Senior Developer
+├── exchange-security/     # Security Engineer (JWT/Auth)
+└── exchange-testing/      # QA/Test Engineer
+```
+
+### Como Usar
+
+Durante o desenvolvimento, solicite ajuda aos agentes:
+
+- **Backend**: "Consulte o agente de backend para implementar..."
+- **Frontend**: "O agente de frontend deve criar o componente..."
+- **Security**: "O agente de segurança deve revisar..."
+- **Testing**: "O agente de testes deve cobrir..."
+
+Cada agente contém:
+- Especialização técnica detalhada
+- Convenções de código específicas
+- Padrões e boas práticas
+- Exemplos de código
+
 ## Solução de Problemas
 
 ### Erro "Falha de rede ao acessar a API"

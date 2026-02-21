@@ -32,9 +32,9 @@ public class TransferService {
 		}
 
 		var trimmed = toIdentifier.trim();
-		// Try to find by email first, then by nickname
-		var toUser = users.findByEmail(trimmed)
-				.or(() -> users.findByNickname(trimmed))
+		var emailCandidate = trimmed.contains("@") ? trimmed.toLowerCase() : trimmed;
+		var toUser = users.findByEmailIgnoreCase(emailCandidate)
+				.or(() -> users.findByNicknameIgnoreCase(trimmed))
 				.orElseThrow(() -> new IllegalArgumentException("Destinatário não encontrado"));
 		var toUserId = toUser.getId();
 
