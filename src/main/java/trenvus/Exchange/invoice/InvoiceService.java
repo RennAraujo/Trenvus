@@ -120,7 +120,7 @@ public class InvoiceService {
                 UserEntity newUser = new UserEntity();
                 newUser.setEmail(simulatedPayerEmail);
                 newUser.setPasswordHash("DEMO");
-                return users.save(newUser);
+                return users.saveAndFlush(newUser);
             });
         
         // Ensure simulated payer has sufficient balance
