@@ -110,18 +110,20 @@ public class InvoiceService {
                     qrData.currency(), request.currency()));
         }
 
-        // Use a simulated payer (ID 999999) for demo
-        Long simulatedPayerId = 999999L;
+        // Use a simulated payer for demo (find existing or create new)
         String simulatedPayerEmail = "payer@demo.com";
         
-        // Ensure simulated payer exists
-        UserEntity simulatedPayer = users.findById(simulatedPayerId)
+        // Ensure simulated payer exists (find by email to get actual ID)
+        UserEntity simulatedPayer = users.findByEmail(simulatedPayerEmail)
             .orElseGet(() -> {
                 UserEntity newUser = new UserEntity();
                 newUser.setEmail(simulatedPayerEmail);
                 newUser.setPasswordHash("DEMO");
                 return users.saveAndFlush(newUser);
             });
+        
+        Long simulatedPayerId = simulatedPayer.getId();
+        logger.info("Using simulated payer with ID: {}", simulatedPayerId);
         
         // Ensure simulated payer has sufficient balance
         Currency currency = Currency.valueOf(request.currency());
