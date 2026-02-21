@@ -63,23 +63,32 @@ public class AuthController {
 
 	@PostMapping("/test-login")
 	public ResponseEntity<AuthResponse> testLogin(@Valid @RequestBody TestLoginRequest request) {
+		logger.info("========================================");
 		logger.info("Test login attempt for id: {}, test accounts enabled: {}", request.id(), testAccounts.isEnabled());
 		
 		if (!testAccounts.isEnabled()) {
 			logger.warn("Test login rejected - test accounts are disabled");
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "test_accounts_disabled");
 		}
+		
 		TestAccountsConfig.TestAccount account;
 		try {
 			account = testAccounts.getById(request.id());
-			logger.info("Test account found: {}", account.email());
+			logger.info("Test account config found: {} (role: {})", account.email(), account.role());
 		} catch (IllegalArgumentException ex) {
 			logger.warn("Test account not found for id: {}", request.id());
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "test_account_not_found");
 		}
-		var result = authService.login(account.email(), account.password());
-		logger.info("Test login successful for: {}", account.email());
-		return ResponseEntity.ok(AuthResponse.from(result));
+		
+		try {
+			logger.info("Attempting login for: {}", account.email());
+			var result = authService.login(account.email(), account.password());
+			logger.info("Test login SUCCESS for: {}", account.email());
+			return ResponseEntity.ok(AuthResponse.from(result));
+		} catch (Exception e) {
+			logger.error("Test login FAILED for {}: {} - {}", account.email(), e.getClass().getSimpleName(), e.getMessage());
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "login_failed: " + e.getMessage());
+		}
 	}
 
 	@PostMapping("/refresh")

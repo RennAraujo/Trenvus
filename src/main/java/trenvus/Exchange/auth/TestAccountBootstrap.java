@@ -35,35 +35,67 @@ public class TestAccountBootstrap implements ApplicationRunner {
 	@Override
 	@Transactional
 	public void run(ApplicationArguments args) {
-		logger.info("TestAccountBootstrap running. Enabled: {}", testAccounts.isEnabled());
+		logger.info("========================================");
+		logger.info("TestAccountBootstrap STARTING");
+		logger.info("Enabled: {}", testAccounts.isEnabled());
 		
 		if (!testAccounts.isEnabled()) {
-			logger.info("Test accounts are disabled.");
+			logger.info("Test accounts are DISABLED - skipping");
 			return;
 		}
 
 		var accounts = testAccounts.accounts();
-		logger.info("Creating {} test accounts...", accounts.size());
+		logger.info("Found {} test accounts to create/update", accounts.size());
 
 		for (var account : accounts) {
-			logger.info("Processing test account: {} (role: {})", account.email(), account.role());
+			logger.info("----------------------------------------");
+			logger.info("Processing: {} (role: {})", account.email(), account.role());
 			
-			var user = users.findByEmail(account.email()).orElseGet(() -> {
-				logger.info("Creating new test account: {}", account.email());
-				var created = new UserEntity();
-				created.setEmail(account.email());
-				return created;
-			});
+			try {
+				var existingUser = users.findByEmail(account.email());
+				UserEntity user;
+				
+				if (existingUser.isPresent()) {
+					user = existingUser.get();
+					logger.info("  -> Existing user found (id: {}, current role: {}, has password: {})", 
+						user.getId(), user.getRole(), user.getPasswordHash() != null);
+				} else {
+					logger.info("  -> Creating NEW user");
+					user = new UserEntity();
+					user.setEmail(account.email());
+				}
 
-			user.setRole(account.role());
-			user.setPasswordHash(passwordEncoder.encode(account.password()));
-			user = users.save(user);
-			logger.info("Test account saved: {} (id: {})", account.email(), user.getId());
+				user.setRole(account.role());
+				var encodedPassword = passwordEncoder.encode(account.password());
+				user.setPasswordHash(encodedPassword);
+				logger.info("  -> Password encoded (length: {})", encodedPassword.length());
+				
+				user = users.save(user);
+				logger.info("  -> User SAVED (id: {}, passwordHash is null: {})", 
+					user.getId(), user.getPasswordHash() == null);
 
-			walletService.ensureUserWallets(user.getId());
-			logger.info("Wallets ensured for: {}", account.email());
+				walletService.ensureUserWallets(user.getId());
+				logger.info("  -> Wallets ensured");
+				
+			} catch (Exception e) {
+				logger.error("  -> FAILED to process {}: {}", account.email(), e.getMessage(), e);
+			}
 		}
 		
-		logger.info("Test accounts bootstrap completed.");
+		logger.info("========================================");
+		logger.info("TestAccountBootstrap COMPLETED");
+		
+		// Verify accounts were created
+		logger.info("Verifying test accounts in database:");
+		for (var account : accounts) {
+			var found = users.findByEmail(account.email());
+			if (found.isPresent()) {
+				var u = found.get();
+				logger.info("  ✓ {} (id: {}, has password: {})", 
+					u.getEmail(), u.getId(), u.getPasswordHash() != null);
+			} else {
+				logger.warn("  ✗ {} NOT FOUND", account.email());
+			}
+		}
 	}
 }
