@@ -1,6 +1,8 @@
 package trenvus.Exchange.auth;
 
 import java.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +14,8 @@ import trenvus.Exchange.wallet.WalletService;
 
 @Service
 public class AuthService {
+	private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+	
 	private final UserRepository users;
 	private final RefreshTokenRepository refreshTokens;
 	private final PasswordEncoder passwordEncoder;
@@ -37,6 +41,7 @@ public class AuthService {
 
 	@Transactional
 	public AuthResult register(String email, String password) {
+		logger.info("Register attempt for: {}", email);
 		if (users.existsByEmail(email)) {
 			throw new AuthExceptions.EmailAlreadyRegisteredException();
 		}
@@ -47,13 +52,16 @@ public class AuthService {
 		user = users.save(user);
 		walletService.ensureUserWallets(user.getId());
 
+		logger.info("User registered successfully: {}", email);
 		return issueTokens(user, Instant.now());
 	}
 
 	@Transactional
 	public AuthResult login(String email, String password) {
+		logger.info("Login attempt for: {}", email);
 		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
 		var user = users.findByEmail(email).orElseThrow(AuthExceptions.InvalidCredentialsException::new);
+		logger.info("User authenticated: {} (id: {}, role: {})", email, user.getId(), user.getRole());
 		return issueTokens(user, Instant.now());
 	}
 
@@ -87,16 +95,26 @@ public class AuthService {
 	}
 
 	private AuthResult issueTokens(UserEntity user, Instant now) {
-		var access = tokenService.createAccessToken(user, now);
-		var refresh = tokenService.createRefreshToken(now);
+		logger.info("Issuing tokens for user: {} (id: {})", user.getEmail(), user.getId());
+		try {
+			var access = tokenService.createAccessToken(user, now);
+			logger.debug("Access token created for: {}", user.getEmail());
+			
+			var refresh = tokenService.createRefreshToken(now);
+			logger.debug("Refresh token created for: {}", user.getEmail());
 
-		var entity = new RefreshTokenEntity();
-		entity.setUserId(user.getId());
-		entity.setTokenHash(refresh.tokenHash());
-		entity.setExpiresAt(refresh.expiresAt());
-		refreshTokens.save(entity);
+			var entity = new RefreshTokenEntity();
+			entity.setUserId(user.getId());
+			entity.setTokenHash(refresh.tokenHash());
+			entity.setExpiresAt(refresh.expiresAt());
+			refreshTokens.save(entity);
+			logger.info("Tokens issued successfully for: {}", user.getEmail());
 
-		return new AuthResult(access.token(), access.expiresAt(), refresh.token());
+			return new AuthResult(access.token(), access.expiresAt(), refresh.token());
+		} catch (Exception e) {
+			logger.error("Failed to issue tokens for user: {} - {}", user.getEmail(), e.getMessage(), e);
+			throw e;
+		}
 	}
 
 	public record AuthResult(String accessToken, Instant accessExpiresAt, String refreshToken) {}

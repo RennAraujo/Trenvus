@@ -26,9 +26,14 @@ services:
       JWT_PRIVATE_KEY_B64: ${JWT_PRIVATE_KEY_B64}
       JWT_PUBLIC_KEY_B64: ${JWT_PUBLIC_KEY_B64}
       APP_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://195.200.7.31:3000,https://195.200.7.31:3000,http://localhost:5173,http://127.0.0.1:5173"
+      # Test accounts
       TEST_ACCOUNT_ENABLED: "true"
-      TEST_ACCOUNT_EMAIL: "user@test.com"
-      TEST_ACCOUNT_PASSWORD: "123"
+      TEST_ACCOUNTS: "user1@test.com:123:ADMIN;user2@test.com:123:USER;user3@test.com:123:USER"
+      # Admin account
+      ADMIN_ACCOUNT_ENABLED: "true"
+      ADMIN_LOGIN_ENABLED: "true"
+      ADMIN_EMAIL: "admin@trenvus.com"
+      ADMIN_PASSWORD: "admin123"
     ports:
       - "8080:8080"
     networks:
