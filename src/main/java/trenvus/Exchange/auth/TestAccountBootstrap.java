@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import trenvus.Exchange.user.UserRepository;
 import trenvus.Exchange.wallet.WalletService;
 
 @Component
+@Order(100)  // Run after other bootstraps
 public class TestAccountBootstrap implements ApplicationRunner {
 	private static final Logger logger = LoggerFactory.getLogger(TestAccountBootstrap.class);
 	
@@ -30,6 +32,11 @@ public class TestAccountBootstrap implements ApplicationRunner {
 		this.passwordEncoder = passwordEncoder;
 		this.walletService = walletService;
 		this.testAccounts = testAccounts;
+		
+		// Test password encoder
+		var testEncoded = passwordEncoder.encode("test");
+		logger.info("TestAccountBootstrap initialized. PasswordEncoder type: {}, test encoding works: {}",
+			passwordEncoder.getClass().getSimpleName(), testEncoded != null && !testEncoded.isEmpty());
 	}
 
 	@Override
@@ -66,13 +73,29 @@ public class TestAccountBootstrap implements ApplicationRunner {
 				}
 
 				user.setRole(account.role());
-				var encodedPassword = passwordEncoder.encode(account.password());
-				user.setPasswordHash(encodedPassword);
-				logger.info("  -> Password encoded (length: {})", encodedPassword.length());
 				
+				// Encode password
+				logger.info("  -> Encoding password for: {}", account.email());
+				var encodedPassword = passwordEncoder.encode(account.password());
+				logger.info("  -> Password encoded successfully (length: {})", encodedPassword.length());
+				
+				user.setPasswordHash(encodedPassword);
+				logger.info("  -> Password set on entity (before save: {})", user.getPasswordHash() != null);
+				
+				// Save and verify
 				user = users.save(user);
-				logger.info("  -> User SAVED (id: {}, passwordHash is null: {})", 
-					user.getId(), user.getPasswordHash() == null);
+				logger.info("  -> User saved with id: {}", user.getId());
+				
+				// CRITICAL: Verify password was actually saved
+				var savedUser = users.findById(user.getId()).orElse(null);
+				if (savedUser == null) {
+					logger.error("  -> CRITICAL: Could not find saved user!");
+				} else if (savedUser.getPasswordHash() == null) {
+					logger.error("  -> CRITICAL: Password hash is NULL after save!");
+				} else {
+					logger.info("  -> VERIFIED: User saved with password (hash length: {})", 
+						savedUser.getPasswordHash().length());
+				}
 
 				walletService.ensureUserWallets(user.getId());
 				logger.info("  -> Wallets ensured");
