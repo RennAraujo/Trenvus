@@ -107,6 +107,8 @@ export function Transfer() {
       const message = typeof err?.message === 'string' ? err.message : null
       if (message === 'Não é possível transferir para si mesmo') {
         setError(t('errors.transferSelf'))
+      } else if (message?.includes('Destinatário não encontrado') || message?.includes('Recipient not found')) {
+        setError(t('errors.transferRecipientNotFound'))
       } else {
         setError(message || t('errors.transfer'))
       }

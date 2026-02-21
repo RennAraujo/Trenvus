@@ -110,7 +110,7 @@ export const messagesPtBR: Record<string, string> = {
 
   'transfer.title': 'Transferência',
   'transfer.subtitle': 'Transfira TRV entre usuários.',
-  'transfer.toEmail': 'E-mail ou apelido do destinatário',
+  'transfer.toEmail': 'E-mail ou apelido (nickname) do destinatário',
   'transfer.amountTrv': 'Valor (TRV)',
   'transfer.totalLine': 'Total debitado: {total} TRV',
   'transfer.submit': 'Transferir',
@@ -264,6 +264,7 @@ export const messagesPtBR: Record<string, string> = {
   'errors.convert': 'Falha ao converter',
   'errors.transfer': 'Falha ao transferir',
   'errors.transferSelf': 'Não é possível transferir para si mesmo',
+  'errors.transferRecipientNotFound': 'Destinatário não encontrado. Use um e-mail ou apelido válido.',
   'errors.loadStatement': 'Falha ao carregar extrato',
   'errors.loadMarket': 'Falha ao carregar mercado',
   'errors.loadOrderBook': 'Falha ao carregar livro de ofertas',
