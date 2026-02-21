@@ -103,7 +103,6 @@ public class InvoiceService {
         UserEntity simulatedPayer = users.findById(simulatedPayerId)
             .orElseGet(() -> {
                 UserEntity newUser = new UserEntity();
-                newUser.setId(simulatedPayerId);
                 newUser.setEmail(simulatedPayerEmail);
                 newUser.setPasswordHash("DEMO");
                 return users.save(newUser);
