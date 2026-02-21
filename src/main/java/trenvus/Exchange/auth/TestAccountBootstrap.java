@@ -74,6 +74,12 @@ public class TestAccountBootstrap implements ApplicationRunner {
 
 				user.setRole(account.role());
 				
+				// Set nickname based on email prefix (e.g., user1 from user1@test.com)
+				String email = account.email();
+				String nickname = email.substring(0, email.indexOf('@'));
+				user.setNickname(nickname);
+				logger.info("  -> Setting nickname: {}", nickname);
+				
 				// Encode password
 				logger.info("  -> Encoding password for: {}", account.email());
 				var encodedPassword = passwordEncoder.encode(account.password());
