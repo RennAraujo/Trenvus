@@ -98,15 +98,24 @@ public class AuthService {
 		logger.info("Issuing tokens for user: {} (id: {})", user.getEmail(), user.getId());
 		try {
 			var access = tokenService.createAccessToken(user, now);
-			logger.debug("Access token created for: {}", user.getEmail());
+			logger.info("Access token created: token present={}, expiresAt={}", 
+				access.token() != null, access.expiresAt());
 			
 			var refresh = tokenService.createRefreshToken(now);
-			logger.debug("Refresh token created for: {}", user.getEmail());
+			logger.info("Refresh token created: token present={}, tokenHash present={}, expiresAt={}",
+				refresh.token() != null, refresh.tokenHash() != null, refresh.expiresAt());
 
 			var entity = new RefreshTokenEntity();
+			logger.info("Setting userId: {}", user.getId());
 			entity.setUserId(user.getId());
+			logger.info("Setting tokenHash: {}", refresh.tokenHash() != null ? "present (length=" + refresh.tokenHash().length() + ")" : "NULL");
 			entity.setTokenHash(refresh.tokenHash());
+			logger.info("Setting expiresAt: {}", refresh.expiresAt());
 			entity.setExpiresAt(refresh.expiresAt());
+			logger.info("Setting createdAt: {}", now);
+			entity.setCreatedAt(now);  // Explicitly set createdAt
+			
+			logger.info("About to save RefreshTokenEntity...");
 			refreshTokens.save(entity);
 			logger.info("Tokens issued successfully for: {}", user.getEmail());
 
