@@ -41,13 +41,7 @@ public class InvoiceService {
     @Transactional
     public WalletResponse processQrPayment(Long payerUserId, PayInvoiceRequest request) {
         // Parse QR payload
-        QrPayload qrData;
-        try {
-            String decoded = new String(Base64.getDecoder().decode(request.qrPayload()));
-            qrData = objectMapper.readValue(decoded, QrPayload.class);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("QR Code inválido");
-        }
+        QrPayload qrData = parseQrPayload(request.qrPayload());
 
         // Validate QR data
         if (!"INVOICE".equals(qrData.type())) {
@@ -71,6 +65,89 @@ public class InvoiceService {
                     qrData.currency(), request.currency()));
         }
 
+        return processPaymentInternal(payerUserId, qrData.recipientId(), request);
+    }
+    
+    /**
+     * Simulate a payment for demo purposes.
+     * This creates a simulated payer and processes the payment to the recipient.
+     */
+    @Transactional
+    public InvoiceController.SimulatePayResponse simulateQrPayment(Long recipientId, PayInvoiceRequest request) {
+        // Parse QR payload
+        QrPayload qrData = parseQrPayload(request.qrPayload());
+
+        // Validate QR data
+        if (!"INVOICE".equals(qrData.type())) {
+            throw new IllegalArgumentException("Tipo de QR Code não suportado");
+        }
+
+        // Validate that request amount and currency match QR payload
+        if (!request.amount().equals(qrData.amount())) {
+            throw new IllegalArgumentException(
+                String.format("Amount mismatch: QR code amount is %s %s but request amount is %s %s",
+                    qrData.amount(), qrData.currency(), request.amount(), request.currency()));
+        }
+        
+        if (!request.currency().equals(qrData.currency())) {
+            throw new IllegalArgumentException(
+                String.format("Currency mismatch: QR code currency is %s but request currency is %s",
+                    qrData.currency(), request.currency()));
+        }
+
+        // Use a simulated payer (ID 999999) for demo
+        Long simulatedPayerId = 999999L;
+        String simulatedPayerEmail = "payer@demo.com";
+        
+        // Ensure simulated payer exists
+        UserEntity simulatedPayer = users.findById(simulatedPayerId)
+            .orElseGet(() -> {
+                UserEntity newUser = new UserEntity();
+                newUser.setId(simulatedPayerId);
+                newUser.setEmail(simulatedPayerEmail);
+                newUser.setPasswordHash("DEMO");
+                return users.save(newUser);
+            });
+        
+        // Ensure simulated payer has sufficient balance
+        Currency currency = Currency.valueOf(request.currency());
+        ensureWalletExists(simulatedPayerId, currency);
+        ensureWalletExists(recipientId, currency);
+        
+        // Credit the simulated payer with enough funds
+        var payerWallet = wallets.findByUserIdAndCurrency(simulatedPayerId, currency).orElseThrow();
+        long amountCents = request.amount().multiply(BigDecimal.valueOf(100)).longValue();
+        payerWallet.setBalanceCents(payerWallet.getBalanceCents() + amountCents + 10000); // Add extra buffer
+        wallets.save(payerWallet);
+
+        // Process the payment
+        processPaymentInternal(simulatedPayerId, recipientId, request);
+
+        // Return updated recipient balance
+        long newBalanceCents = wallets.findByUserIdAndCurrency(recipientId, currency)
+                .map(WalletEntity::getBalanceCents)
+                .orElse(0L);
+
+        return new InvoiceController.SimulatePayResponse(
+            simulatedPayerId,
+            simulatedPayerEmail,
+            recipientId,
+            request.amount(),
+            request.currency(),
+            newBalanceCents
+        );
+    }
+    
+    private QrPayload parseQrPayload(String qrPayload) {
+        try {
+            String decoded = new String(Base64.getDecoder().decode(qrPayload));
+            return objectMapper.readValue(decoded, QrPayload.class);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("QR Code inválido");
+        }
+    }
+    
+    private WalletResponse processPaymentInternal(Long payerUserId, Long recipientId, PayInvoiceRequest request) {
         // Convert amount to cents
         long amountCents = request.amount().multiply(BigDecimal.valueOf(100)).longValue();
         if (amountCents <= 0) {
@@ -81,11 +158,11 @@ public class InvoiceService {
         
         // Ensure wallets exist
         ensureWalletExists(payerUserId, currency);
-        ensureWalletExists(qrData.recipientId(), currency);
+        ensureWalletExists(recipientId, currency);
 
         // Get wallets with locking
-        Long first = payerUserId < qrData.recipientId() ? payerUserId : qrData.recipientId();
-        Long second = payerUserId < qrData.recipientId() ? qrData.recipientId() : payerUserId;
+        Long first = payerUserId < recipientId ? payerUserId : recipientId;
+        Long second = payerUserId < recipientId ? recipientId : payerUserId;
 
         var firstLocked = wallets.findForUpdate(first, List.of(currency));
         var secondLocked = wallets.findForUpdate(second, List.of(currency));
@@ -94,7 +171,7 @@ public class InvoiceService {
                 .filter(w -> w.getCurrency() == currency)
                 .findFirst()
                 .orElseThrow();
-        var recipientWallet = (qrData.recipientId().equals(first) ? firstLocked : secondLocked).stream()
+        var recipientWallet = (recipientId.equals(first) ? firstLocked : secondLocked).stream()
                 .filter(w -> w.getCurrency() == currency)
                 .findFirst()
                 .orElseThrow();
@@ -117,11 +194,11 @@ public class InvoiceService {
         } else {
             outTx.setTrvAmountCents(amountCents);
         }
-        outTx.setSourceUserId(qrData.recipientId());
+        outTx.setSourceUserId(recipientId);
         transactions.save(outTx);
 
         var inTx = new TransactionEntity();
-        inTx.setUserId(qrData.recipientId());
+        inTx.setUserId(recipientId);
         inTx.setType(TransactionType.TRANSFER_TRV_IN);
         if (currency == Currency.USD) {
             inTx.setUsdAmountCents(amountCents);

@@ -340,6 +340,12 @@ export const api = {
       accessToken,
       body: JSON.stringify({ qrPayload, amount, currency }),
     }),
+  simulatePayInvoice: (accessToken: string, qrPayload: string, amount: string, currency: string) =>
+    request<{ simulatedPayerId: number; simulatedPayerEmail: string; recipientId: number; amount: string; currency: string; newBalanceCents: number }>('/invoices/simulate-pay', {
+      method: 'POST',
+      accessToken,
+      body: JSON.stringify({ qrPayload, amount, currency }),
+    }),
 }
 
 export function formatUsd(cents: number): string {

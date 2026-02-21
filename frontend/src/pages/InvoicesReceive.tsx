@@ -146,12 +146,15 @@ export function InvoicesReceive() {
     setProcessing(true)
     try {
       const token = await auth.getValidAccessToken()
-      const result = await api.payInvoice(token, qrPayload, amount, currency)
+      // Use simulatePayInvoice for demo - this simulates a payer without needing a second account
+      const result = await api.simulatePayInvoice(token, qrPayload, amount, currency)
       setResult({
         success: true,
-        message: `Successfully received ${amount} ${currency} from ${detectedPayer}`,
-        wallet: result
+        message: `Successfully received ${amount} ${currency} from ${result.simulatedPayerEmail}`,
+        wallet: { usdCents: currency === 'USD' ? result.newBalanceCents : (wallet?.usdCents || 0), trvCents: currency === 'TRV' ? result.newBalanceCents : (wallet?.trvCents || 0) }
       })
+      // Reload wallet to get updated balance
+      await loadWallet()
       setDetectedPayer(null)
     } catch (err: any) {
       setResult({
