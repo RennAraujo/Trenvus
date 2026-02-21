@@ -5,6 +5,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import java.util.Arrays;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,14 +32,18 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
+	private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		logger.info("Configuring SecurityFilterChain");
 		return http
 				.csrf(csrf -> csrf.disable())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.cors(Customizer.withDefaults())
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
+				.authorizeHttpRequests(auth -> {
+					logger.info("Configuring authorizeHttpRequests");
+					auth.requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/register")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/login")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/test-login")).permitAll()
@@ -50,9 +56,32 @@ public class SecurityConfig {
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui/**")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/v3/api-docs")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/v3/api-docs/**")).permitAll()
-						.anyRequest().authenticated()
-				)
-				.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+						.anyRequest().authenticated();
+					logger.info("authorizeHttpRequests configured successfully");
+				})
+				.oauth2ResourceServer(oauth2 -> {
+					oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()));
+					oauth2.bearerTokenResolver(request -> {
+						// Para endpoints públicos, não exigir token
+						String path = request.getRequestURI();
+						logger.debug("BearerTokenResolver - path: {}", path);
+						if (path.startsWith("/auth/register") || 
+						    path.startsWith("/auth/login") ||
+						    path.startsWith("/auth/test-login") ||
+						    path.startsWith("/auth/admin-login") ||
+						    path.startsWith("/auth/test-accounts-status") ||
+						    path.startsWith("/swagger-ui") ||
+						    path.startsWith("/v3/api-docs")) {
+							logger.debug("Public endpoint, allowing without token: {}", path);
+							return null;
+						}
+						String authHeader = request.getHeader("Authorization");
+						if (authHeader != null && authHeader.startsWith("Bearer ")) {
+							return authHeader.substring(7);
+						}
+						return null;
+					});
+				})
 				.build();
 	}
 

@@ -64,7 +64,8 @@ public class AuthController {
 	@PostMapping("/test-login")
 	public ResponseEntity<AuthResponse> testLogin(@Valid @RequestBody TestLoginRequest request) {
 		logger.info("========================================");
-		logger.info("Test login attempt for id: {}, test accounts enabled: {}", request.id(), testAccounts.isEnabled());
+		logger.info("Test login endpoint REACHED");
+		logger.info("Request id: {}, test accounts enabled: {}", request.id(), testAccounts.isEnabled());
 		
 		if (!testAccounts.isEnabled()) {
 			logger.warn("Test login rejected - test accounts are disabled");
