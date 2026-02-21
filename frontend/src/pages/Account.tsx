@@ -53,7 +53,6 @@ export function Account() {
   const { t } = useI18n()
 
   const [me, setMe] = useState<MeResponse | null>(null)
-  const [nickname, setNickname] = useState('')
   const [phoneCountry, setPhoneCountry] = useState<CountryCode>('BR')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -64,11 +63,6 @@ export function Account() {
   const [success, setSuccess] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const canSaveNickname = useMemo(() => {
-    const v = nickname.trim()
-    if (!v) return false
-    return /^[A-Za-z0-9._-]{3,20}$/.test(v)
-  }, [nickname])
   const canSavePhone = useMemo(() => digitsOnly(phoneNumber).length > 0, [phoneNumber])
   const canChangePassword = useMemo(() => {
     if (!currentPassword) return false
@@ -95,7 +89,6 @@ export function Account() {
       const token = await auth.getValidAccessToken()
       const data = await api.getMe(token)
       setMe(data)
-      setNickname(data.nickname || '')
       const parts = splitE164Phone(data.phone, defaultPhoneCountry)
       setPhoneCountry(parts.iso2)
       setPhoneNumber(parts.national)
@@ -109,25 +102,6 @@ export function Account() {
   useEffect(() => {
     void load()
   }, [])
-
-  async function onSaveNickname(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setSuccess(null)
-    if (!canSaveNickname) return
-    setBusy(true)
-    try {
-      const token = await auth.getValidAccessToken()
-      const data = await api.updateMyNickname(token, nickname.trim())
-      setMe(data)
-      setNickname(data.nickname || '')
-      setSuccess(t('account.nickname.saved'))
-    } catch (err: any) {
-      setError(err?.message || t('errors.save'))
-    } finally {
-      setBusy(false)
-    }
-  }
 
   async function onSavePhone(e: React.FormEvent) {
     e.preventDefault()
@@ -393,58 +367,6 @@ export function Account() {
               <button 
                 className="btn btn-primary" 
                 disabled={busy || !canSavePhone} 
-                type="submit"
-                style={{ marginTop: 16 }}
-              >
-                <SaveIcon />
-                {t('actions.save')}
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: 10, 
-                background: 'var(--color-primary-alpha-10)',
-                color: 'var(--color-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <UserIcon />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{t('account.nickname.title')}</h3>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>{t('account.nickname.subtitle')}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card-body">
-            <form onSubmit={onSaveNickname}>
-              <div className="field">
-                <label className="field-label">{t('labels.nickname')}</label>
-                <input
-                  className="input"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  placeholder={t('labels.nickname')}
-                  disabled={busy}
-                />
-                <p className="text-xs text-muted" style={{ marginTop: 6 }}>{t('account.nickname.hint')}</p>
-              </div>
-
-              <button 
-                className="btn btn-primary" 
-                disabled={busy || !canSaveNickname} 
                 type="submit"
                 style={{ marginTop: 16 }}
               >

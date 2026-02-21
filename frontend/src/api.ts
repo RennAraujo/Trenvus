@@ -280,8 +280,6 @@ export const api = {
     request<TransferResponse>('/transfer/trv', { method: 'POST', accessToken, body: JSON.stringify({ toIdentifier, amountTrv }) }),
 
   getMe: (accessToken: string) => request<MeResponse>('/me', { accessToken }),
-  updateMyNickname: (accessToken: string, nickname: string) =>
-    request<MeResponse>('/me/nickname', { method: 'PUT', accessToken, body: JSON.stringify({ nickname }) }),
   updateMyPhone: (accessToken: string, phone: string) =>
     request<MeResponse>('/me/phone', { method: 'PUT', accessToken, body: JSON.stringify({ phone }) }),
   changeMyPassword: (accessToken: string, currentPassword: string, newPassword: string) =>

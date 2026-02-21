@@ -2,7 +2,6 @@ package trenvus.Exchange.user;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Base64;
 import org.springframework.http.ResponseEntity;
@@ -61,26 +60,6 @@ public class MeController {
 		return ResponseEntity.noContent().build();
 	}
 
-	@PutMapping("/nickname")
-	public ResponseEntity<MeResponse> updateNickname(@Valid @RequestBody UpdateNicknameRequest request, @AuthenticationPrincipal Jwt jwt) {
-		Long userId = Long.valueOf(jwt.getSubject());
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
-
-		var nickname = request.nickname().trim();
-		if (nickname.isBlank()) {
-			throw new IllegalArgumentException("Apelido inválido");
-		}
-
-		var existing = users.findByNicknameIgnoreCase(nickname);
-		if (existing.isPresent() && !existing.get().getId().equals(userId)) {
-			throw new IllegalArgumentException("Apelido já está em uso");
-		}
-
-		user.setNickname(nickname);
-		user = users.save(user);
-		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
-	}
-
 	@PostMapping("/avatar")
 	public ResponseEntity<MeResponse> uploadAvatar(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
@@ -126,13 +105,6 @@ public class MeController {
 	public record UpdatePhoneRequest(@NotBlank String phone) {}
 
 	public record ChangePasswordRequest(@NotBlank String currentPassword, @NotBlank @Size(min = 4) String newPassword) {}
-
-	public record UpdateNicknameRequest(
-			@NotBlank
-			@Size(min = 3, max = 20)
-			@Pattern(regexp = "^[A-Za-z0-9._-]{3,20}$")
-			String nickname
-	) {}
 
 	public record MeResponse(String email, String nickname, String phone, String avatarDataUrl) {}
 }
