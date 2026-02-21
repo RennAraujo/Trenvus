@@ -2,6 +2,8 @@ package trenvus.Exchange.invoice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import trenvus.Exchange.invoice.InvoiceController.GenerateInvoiceRequest;
@@ -25,6 +27,8 @@ import java.util.UUID;
 
 @Service
 public class InvoiceService {
+    private static final Logger logger = LoggerFactory.getLogger(InvoiceService.class);
+    
     private final WalletRepository wallets;
     private final TransactionRepository transactions;
     private final UserRepository users;
@@ -74,8 +78,19 @@ public class InvoiceService {
      */
     @Transactional
     public InvoiceController.SimulatePayResponse simulateQrPayment(Long recipientId, PayInvoiceRequest request) {
+        logger.info("simulateQrPayment called: recipientId={}, amount={}, currency={}", 
+            recipientId, request.amount(), request.currency());
+        
         // Parse QR payload
-        QrPayload qrData = parseQrPayload(request.qrPayload());
+        QrPayload qrData;
+        try {
+            qrData = parseQrPayload(request.qrPayload());
+            logger.info("QR payload parsed: type={}, recipientId={}, amount={}, currency={}",
+                qrData.type(), qrData.recipientId(), qrData.amount(), qrData.currency());
+        } catch (Exception e) {
+            logger.error("Failed to parse QR payload: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid QR code payload: " + e.getMessage());
+        }
 
         // Validate QR data
         if (!"INVOICE".equals(qrData.type())) {

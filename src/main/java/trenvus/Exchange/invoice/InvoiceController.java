@@ -49,10 +49,24 @@ public class InvoiceController {
     ) {
         Long recipientId = Long.valueOf(jwt.getSubject());
         logger.info("Simulate pay invoice request for recipient: {}", recipientId);
+        logger.info("Request payload: qrPayload length={}, amount={}, currency={}", 
+            request.qrPayload() != null ? request.qrPayload().length() : 0,
+            request.amount(),
+            request.currency());
         
-        // Use a fixed "simulated payer" ID (999999) for demo purposes
-        var result = invoiceService.simulateQrPayment(recipientId, request);
-        return ResponseEntity.ok(result);
+        try {
+            // Use a fixed "simulated payer" ID (999999) for demo purposes
+            var result = invoiceService.simulateQrPayment(recipientId, request);
+            logger.info("Simulate pay successful: recipientId={}, newBalance={}", 
+                result.recipientId(), result.newBalanceCents());
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Simulate pay validation error: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Simulate pay failed: {}", e.getMessage(), e);
+            throw new RuntimeException("Simulate pay failed: " + e.getMessage(), e);
+        }
     }
 
     @PostMapping("/generate")
