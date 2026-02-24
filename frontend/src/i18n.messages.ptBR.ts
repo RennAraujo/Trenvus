@@ -69,6 +69,12 @@ export const messagesPtBR: Record<string, string> = {
   'dashboard.convert.feeLine': 'Câmbio 1:1. Taxa: 1% do valor por transação.',
   'dashboard.convert.submit': 'Converter',
 
+  'paypal.title': 'Pagamento via PayPal',
+  'paypal.description': 'Você será redirecionado para o PayPal para completar o pagamento de {amount} BRL.',
+  'paypal.continue': 'Continuar para o PayPal',
+  'paypal.cancel': 'Cancelar',
+  'paypal.processing': 'Processando...',
+
   'statement.title': 'Extrato privado',
   'statement.subtitle': 'Apenas valores são exibidos para manter privacidade.',
   'statement.empty': 'Sem transações',

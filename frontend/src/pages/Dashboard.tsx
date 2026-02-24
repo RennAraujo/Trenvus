@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, createIdempotencyKey, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
+import { PayPalModal } from '../components/PayPalModal'
 
 type ConvertDirection = 'USD_TO_TRV' | 'TRV_TO_USD'
 
@@ -84,6 +85,7 @@ export function Dashboard() {
   const [convertDirection, setConvertDirection] = useState<ConvertDirection>('USD_TO_TRV')
   const [convertDigits, setConvertDigits] = useState('1000')
   const [activeTab, setActiveTab] = useState<'deposit' | 'convert'>('deposit')
+  const [isPayPalModalOpen, setIsPayPalModalOpen] = useState(false)
   const depositInputRef = useRef<HTMLInputElement | null>(null)
   const convertInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -119,17 +121,8 @@ export function Dashboard() {
       setError(t('errors.depositMin', { min: '10,00' }))
       return
     }
-    setBusy(true)
-    try {
-      const token = await auth.getValidAccessToken()
-      const data = await api.depositUsd(token, parsed.plain)
-      setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
-      setDepositDigits('')
-    } catch (err: any) {
-      setError(err?.message || t('errors.deposit'))
-    } finally {
-      setBusy(false)
-    }
+    // Abre o modal do PayPal em vez de fazer o depósito direto
+    setIsPayPalModalOpen(true)
   }
 
   async function onConvert(e: React.FormEvent) {
@@ -509,6 +502,18 @@ export function Dashboard() {
           )}
         </div>
       </div>
+      
+      {/* PayPal Modal */}
+      <PayPalModal
+        isOpen={isPayPalModalOpen}
+        onClose={() => setIsPayPalModalOpen(false)}
+        amount={formatMoneyDigits(depositDigits).plain || '0'}
+        onSuccess={() => {
+          setIsPayPalModalOpen(false)
+          setDepositDigits('')
+          loadWallet()
+        }}
+      />
     </div>
   )
 }

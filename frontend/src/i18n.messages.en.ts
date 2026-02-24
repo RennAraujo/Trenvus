@@ -69,6 +69,12 @@ export const messagesEn: Record<string, string> = {
   'dashboard.convert.feeLine': 'Rate 1:1. Fee: 1% of the amount per transaction.',
   'dashboard.convert.submit': 'Convert',
 
+  'paypal.title': 'PayPal Payment',
+  'paypal.description': 'You will be redirected to PayPal to complete the payment of {amount} USD.',
+  'paypal.continue': 'Continue to PayPal',
+  'paypal.cancel': 'Cancel',
+  'paypal.processing': 'Processing...',
+
   'statement.title': 'Private statement',
   'statement.subtitle': 'Only values are shown to preserve privacy.',
   'statement.empty': 'No transactions',
