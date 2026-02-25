@@ -75,6 +75,12 @@ export const messagesPtBR: Record<string, string> = {
   'paypal.cancel': 'Cancelar',
   'paypal.processing': 'Processando...',
 
+  'mercadopago.title': 'Pagamento via Mercado Pago',
+  'mercadopago.description': 'Complete o pagamento de {amount} BRL usando o Mercado Pago.',
+  'mercadopago.pay': 'Pagar',
+  'mercadopago.cancel': 'Cancelar',
+  'mercadopago.processing': 'Processando...',
+
   'statement.title': 'Extrato privado',
   'statement.subtitle': 'Apenas valores são exibidos para manter privacidade.',
   'statement.empty': 'Sem transações',

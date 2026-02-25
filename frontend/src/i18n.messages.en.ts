@@ -75,6 +75,12 @@ export const messagesEn: Record<string, string> = {
   'paypal.cancel': 'Cancel',
   'paypal.processing': 'Processing...',
 
+  'mercadopago.title': 'Mercado Pago Payment',
+  'mercadopago.description': 'Complete the payment of {amount} USD using Mercado Pago.',
+  'mercadopago.pay': 'Pay',
+  'mercadopago.cancel': 'Cancel',
+  'mercadopago.processing': 'Processing...',
+
   'statement.title': 'Private statement',
   'statement.subtitle': 'Only values are shown to preserve privacy.',
   'statement.empty': 'No transactions',

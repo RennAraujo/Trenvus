@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, createIdempotencyKey, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
-import { PayPalModal } from '../components/PayPalModal'
+import { MercadoPagoModal } from '../components/MercadoPagoModal'
 
 type ConvertDirection = 'USD_TO_TRV' | 'TRV_TO_USD'
 
@@ -85,7 +85,7 @@ export function Dashboard() {
   const [convertDirection, setConvertDirection] = useState<ConvertDirection>('USD_TO_TRV')
   const [convertDigits, setConvertDigits] = useState('1000')
   const [activeTab, setActiveTab] = useState<'deposit' | 'convert'>('deposit')
-  const [isPayPalModalOpen, setIsPayPalModalOpen] = useState(false)
+  const [isMercadoPagoModalOpen, setIsMercadoPagoModalOpen] = useState(false)
   const depositInputRef = useRef<HTMLInputElement | null>(null)
   const convertInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -121,8 +121,8 @@ export function Dashboard() {
       setError(t('errors.depositMin', { min: '10,00' }))
       return
     }
-    // Abre o modal do PayPal em vez de fazer o depósito direto
-    setIsPayPalModalOpen(true)
+    // Abre o modal do Mercado Pago em vez de fazer o depósito direto
+    setIsMercadoPagoModalOpen(true)
   }
 
   async function onConvert(e: React.FormEvent) {
@@ -503,13 +503,13 @@ export function Dashboard() {
         </div>
       </div>
       
-      {/* PayPal Modal */}
-      <PayPalModal
-        isOpen={isPayPalModalOpen}
-        onClose={() => setIsPayPalModalOpen(false)}
+      {/* Mercado Pago Modal */}
+      <MercadoPagoModal
+        isOpen={isMercadoPagoModalOpen}
+        onClose={() => setIsMercadoPagoModalOpen(false)}
         amount={formatMoneyDigits(depositDigits).plain || '0'}
         onSuccess={() => {
-          setIsPayPalModalOpen(false)
+          setIsMercadoPagoModalOpen(false)
           setDepositDigits('')
           loadWallet()
         }}
