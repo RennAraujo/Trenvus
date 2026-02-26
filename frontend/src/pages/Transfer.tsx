@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
+import { TransferConfirmationModal } from '../components/TransferConfirmationModal'
 
 // Icons
 
@@ -59,6 +60,7 @@ export function Transfer() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const amountInputRef = useRef<HTMLInputElement | null>(null)
 
   const totals = useMemo(() => {
@@ -95,6 +97,11 @@ export function Transfer() {
       setError(t('errors.transfer'))
       return
     }
+    // Mostra o modal de confirmação
+    setShowConfirmation(true)
+  }
+
+  async function executeTransfer() {
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
@@ -103,6 +110,7 @@ export function Transfer() {
       setAmountDigits('')
       setToIdentifier('')
       setSuccess(t('transfer.success'))
+      setShowConfirmation(false)
     } catch (err: any) {
       const message = typeof err?.message === 'string' ? err.message : null
       if (message === 'Não é possível transferir para si mesmo') {
@@ -114,6 +122,7 @@ export function Transfer() {
       } else {
         setError(message || t('errors.transfer'))
       }
+      setShowConfirmation(false)
     } finally {
       setBusy(false)
     }
@@ -297,7 +306,7 @@ export function Transfer() {
               style={{ marginTop: 24, width: '100%' }}
             >
               {busy ? (
-                <span className="animate-pulse">Processing...</span>
+                <span className="animate-pulse">{t('actions.processing')}</span>
               ) : (
                 <>
                   <SendIcon />
@@ -308,6 +317,16 @@ export function Transfer() {
           </form>
         </div>
       </div>
+
+      {/* Modal de Confirmação */}
+      <TransferConfirmationModal
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={executeTransfer}
+        recipient={toIdentifier}
+        amount={amount.formatted}
+        isLoading={busy}
+      />
 
       {/* Info */}
       <div style={{ marginTop: 24, padding: 20, background: 'var(--bg-subtle)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
