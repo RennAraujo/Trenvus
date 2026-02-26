@@ -1,5 +1,6 @@
 package trenvus.Exchange.tx;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,5 +15,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
 	@Query("SELECT COALESCE(SUM(t.usdAmountCents), 0) FROM TransactionEntity t WHERE t.userId = :userId AND t.type = :type")
 	long sumUsdAmountCentsByUserIdAndType(@Param("userId") Long userId, @Param("type") TransactionType type);
+
+	List<TransactionEntity> findByUserId(Long userId);
 }
 
