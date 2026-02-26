@@ -104,7 +104,7 @@ public class MeController {
 		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
 	}
 
-	@DeleteMapping
+	@PostMapping("/delete")
 	@Transactional
 	public ResponseEntity<Void> deleteAccount(@Valid @RequestBody DeleteAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
