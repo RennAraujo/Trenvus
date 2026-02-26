@@ -37,6 +37,10 @@ const FiatIcon = () => (
 const DEFAULT_CRYPTO_PAIRS = ['BTC-USDT', 'ETH-USDT', 'XRP-USDT', 'SOL-USDT', 'ADA-USDT', 'USDT-BRL']
 const DEFAULT_FIAT_PAIRS = ['USD-EUR', 'USD-GBP', 'USD-JPY', 'USD-CNY', 'USD-CHF', 'USD-BRL']
 
+// Keep for future use when implementing pair filtering
+void DEFAULT_CRYPTO_PAIRS
+void DEFAULT_FIAT_PAIRS
+
 export function Market() {
   const auth = useAuth()
   const { t } = useI18n()
@@ -64,6 +68,9 @@ export function Market() {
   function normalizeInstId(instId: string): string {
     return instId.trim().toUpperCase().replace('/', '-')
   }
+
+  // Keep for future use
+  void normalizeInstId
 
   async function refreshAll() {
     if (refreshInFlightRef.current) return
@@ -190,6 +197,9 @@ export function Market() {
   function getCategoryIcon(category: 'crypto' | 'fiat') {
     return category === 'crypto' ? <CryptoIcon /> : <FiatIcon />
   }
+
+  // Keep for future use
+  void getCategoryIcon
 
   function getCategoryLabel(category: 'crypto' | 'fiat') {
     return category === 'crypto' ? t('market.crypto') || 'Cryptocurrencies' : t('market.fiat') || 'Fiat Currencies'
