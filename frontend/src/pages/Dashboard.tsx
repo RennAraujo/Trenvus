@@ -192,8 +192,8 @@ export function Dashboard() {
         <div className="balance-card balance-card-accent">
           <div className="balance-card-content">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div className="balance-label">USD Balance</div>
-              <span className="badge badge-primary">Available</span>
+              <div className="balance-label">{t('dashboard.usdBalance')}</div>
+              <span className="badge badge-primary">{t('dashboard.available')}</span>
             </div>
             <div className="balance-value tabular-nums" style={{ marginTop: 8 }}>
               {privateMode ? (
@@ -216,7 +216,7 @@ export function Dashboard() {
         <div className="balance-card">
           <div className="balance-card-content">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div className="balance-label">TRV Balance</div>
+              <div className="balance-label">{t('dashboard.trvBalance')}</div>
               <span className="badge badge-secondary">Trenvus</span>
             </div>
             <div className="balance-value tabular-nums" style={{ marginTop: 8 }}>
@@ -232,7 +232,7 @@ export function Dashboard() {
           </div>
           <div className="balance-footer">
             <div style={{ flex: 1 }} />
-            <div className="text-xs text-tertiary">Native token</div>
+            <div className="text-xs text-tertiary">{t('dashboard.nativeToken')}</div>
           </div>
         </div>
       </div>
@@ -240,32 +240,32 @@ export function Dashboard() {
       {/* Stats Row */}
       <div className="grid grid-cols-4 md:grid-cols-2 sm:grid-cols-1" style={{ gap: 16, marginBottom: 32 }}>
         <div className="stat-card">
-          <div className="stat-label">Total Balance</div>
+          <div className="stat-label">{t('dashboard.totalBalance')}</div>
           <div className="stat-value tabular-nums">{formattedTotal}</div>
           <div className="stat-change stat-change-positive">
             <span style={{ transform: 'rotate(180deg)', display: 'inline-block' }}><ArrowDownIcon /></span>
-            Available
+            {t('dashboard.available')}
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Exchange Rate</div>
+          <div className="stat-label">{t('dashboard.exchangeRate')}</div>
           <div className="stat-value tabular-nums">1.00</div>
           <div className="stat-change stat-change-positive">
             USD/TRV
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Conversion Fee</div>
+          <div className="stat-label">{t('dashboard.conversionFee')}</div>
           <div className="stat-value tabular-nums">1%</div>
           <div className="stat-change stat-change-negative">
-            Per transaction
+            {t('dashboard.perTransaction')}
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Network</div>
+          <div className="stat-label">{t('dashboard.network')}</div>
           <div className="stat-value">Trenvus</div>
           <div className="stat-change stat-change-positive">
-            Active
+            {t('dashboard.active')}
           </div>
         </div>
       </div>
@@ -359,7 +359,7 @@ export function Dashboard() {
                   />
                   <span className="text-sm text-secondary" style={{ fontWeight: 500 }}>USD</span>
                 </div>
-                <p className="text-xs text-muted" style={{ marginTop: 4 }}>Minimum deposit: 10,00 USD</p>
+                <p className="text-xs text-muted" style={{ marginTop: 4 }}>{t('dashboard.deposit.minimum')}</p>
               </div>
               
               <button 

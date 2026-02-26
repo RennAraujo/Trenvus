@@ -102,7 +102,7 @@ export function Transfer() {
       setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
       setAmountDigits('')
       setToIdentifier('')
-      setSuccess('Transfer completed successfully!')
+      setSuccess(t('transfer.success'))
     } catch (err: any) {
       const message = typeof err?.message === 'string' ? err.message : null
       if (message === 'Não é possível transferir para si mesmo') {
@@ -155,7 +155,7 @@ export function Transfer() {
         <div className="stat-card">
           <div className="stat-label">Transfer Fee</div>
           <div className="stat-value">0%</div>
-          <div className="stat-change stat-change-positive">Free transfers</div>
+          <div className="stat-change stat-change-positive">{t('transfer.free')} transfers</div>
         </div>
       </div>
 
@@ -176,9 +176,9 @@ export function Transfer() {
               <SendIcon />
             </div>
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Send TRV</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{t('transfer.sendTrv')}</h3>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                Transfer to any user by email or nickname
+                {t('transfer.description')}
               </p>
             </div>
           </div>
@@ -205,7 +205,7 @@ export function Transfer() {
 
           <form onSubmit={onSubmit} style={{ maxWidth: 480 }}>
             <div className="field">
-              <label className="field-label">Recipient (Email or Nickname)</label>
+              <label className="field-label">{t('transfer.recipientLabel')}</label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
                   <UserIcon />
@@ -214,7 +214,7 @@ export function Transfer() {
                   className="input" 
                   value={toIdentifier} 
                   onChange={(e) => setToIdentifier(e.target.value)}
-                  placeholder="email@example.com or nickname"
+                  placeholder={t('transfer.recipientPlaceholder')}
                   style={{ paddingLeft: 44 }}
                   required
                 />
@@ -257,7 +257,7 @@ export function Transfer() {
                 />
                 <span className="text-sm text-secondary" style={{ fontWeight: 500 }}>TRV</span>
               </div>
-              <p className="text-xs text-muted" style={{ marginTop: 4 }}>Minimum: 0,01 TRV</p>
+              <p className="text-xs text-muted" style={{ marginTop: 4 }}>{t('transfer.minimum')}</p>
             </div>
 
             {/* Transfer Preview */}
@@ -273,16 +273,16 @@ export function Transfer() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span className="text-secondary">You send</span>
+                  <span className="text-secondary">{t('transfer.youSend')}</span>
                   <span className="font-mono font-semibold">{amount.formatted} TRV</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span className="text-secondary">Network fee</span>
-                  <span className="font-mono text-success">Free</span>
+                  <span className="text-secondary">{t('transfer.networkFee')}</span>
+                  <span className="font-mono text-success">{t('transfer.free')}</span>
                 </div>
                 <div style={{ height: 1, background: 'var(--border-subtle)', margin: '12px 0' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span className="text-secondary">Recipient receives</span>
+                  <span className="text-secondary">{t('transfer.recipientReceives')}</span>
                   <span className="font-mono font-bold text-accent">{amount.formatted} TRV</span>
                 </div>
               </div>
@@ -310,8 +310,7 @@ export function Transfer() {
       {/* Info */}
       <div style={{ marginTop: 24, padding: 20, background: 'var(--bg-subtle)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
         <p className="text-sm text-secondary">
-          <strong style={{ color: 'var(--text-primary)' }}>Note:</strong> Transfers are instant and irreversible. 
-          Make sure the recipient's email or nickname is correct before confirming.
+          <strong style={{ color: 'var(--text-primary)' }}>{t('transfer.note')}</strong> {t('transfer.noteText')}
         </p>
       </div>
     </div>
