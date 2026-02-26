@@ -294,6 +294,7 @@ export const messagesPtBR: Record<string, string> = {
   'errors.transfer': 'Falha ao transferir',
   'errors.transferSelf': 'Não é possível transferir para si mesmo',
   'errors.transferRecipientNotFound': 'Destinatário não encontrado. Use um e-mail ou apelido válido.',
+  'errors.transferInsufficientBalance': 'Saldo insuficiente.',
   'errors.loadStatement': 'Falha ao carregar extrato',
   'errors.loadMarket': 'Falha ao carregar mercado',
   'errors.loadOrderBook': 'Falha ao carregar livro de ofertas',

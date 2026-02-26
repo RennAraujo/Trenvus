@@ -294,6 +294,7 @@ export const messagesEn: Record<string, string> = {
   'errors.transfer': 'Failed to transfer',
   'errors.transferSelf': "You can't transfer to yourself",
   'errors.transferRecipientNotFound': 'Recipient not found. Use a valid email or nickname.',
+  'errors.transferInsufficientBalance': 'Insufficient balance.',
   'errors.loadStatement': 'Failed to load statement',
   'errors.loadMarket': 'Failed to load market',
   'errors.loadOrderBook': 'Failed to load order book',

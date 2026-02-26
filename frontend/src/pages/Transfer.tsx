@@ -109,6 +109,8 @@ export function Transfer() {
         setError(t('errors.transferSelf'))
       } else if (message?.includes('Destinatário não encontrado') || message?.includes('Recipient not found')) {
         setError(t('errors.transferRecipientNotFound'))
+      } else if (message?.includes('Saldo insuficiente') || message?.includes('Insufficient balance')) {
+        setError(t('errors.transferInsufficientBalance'))
       } else {
         setError(message || t('errors.transfer'))
       }
