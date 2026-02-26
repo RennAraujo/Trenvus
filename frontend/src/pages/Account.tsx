@@ -194,7 +194,7 @@ export function Account() {
     } catch (err: any) {
       console.error('Erro ao deletar conta:', err)
       setError(err?.message || t('errors.deleteAccount'))
-      setShowDeleteModal(false)
+      // Não fecha o modal em caso de erro para o usuário ver a mensagem
     } finally {
       setBusy(false)
     }
@@ -524,10 +524,14 @@ export function Account() {
       {/* Delete Account Modal */}
       <DeleteAccountModal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setError(null)
+        }}
         onConfirm={onDeleteAccount}
         userEmail={me?.email || auth.userEmail || ''}
         isLoading={busy}
+        error={error}
       />
     </div>
   )

@@ -7,6 +7,7 @@ interface DeleteAccountModalProps {
   onConfirm: (email: string, password: string) => void
   userEmail: string
   isLoading: boolean
+  error?: string | null
 }
 
 export function DeleteAccountModal({
@@ -14,7 +15,8 @@ export function DeleteAccountModal({
   onClose,
   onConfirm,
   userEmail,
-  isLoading
+  isLoading,
+  error
 }: DeleteAccountModalProps) {
   const { t } = useI18n()
   const [email, setEmail] = useState('')
@@ -34,6 +36,20 @@ export function DeleteAccountModal({
         </div>
 
         <div className="modal-body">
+          {error && (
+            <div style={{ 
+              background: 'var(--color-danger-alpha-10)', 
+              padding: 12, 
+              borderRadius: 8,
+              border: '1px solid var(--color-danger-alpha-20)',
+              marginBottom: 16,
+              color: 'var(--color-danger)',
+              fontSize: 14
+            }}>
+              ⚠️ {error}
+            </div>
+          )}
+
           <div style={{ 
             background: 'var(--color-danger-alpha-10)', 
             padding: 16, 
