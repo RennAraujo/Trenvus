@@ -89,9 +89,10 @@ export function Market() {
       setCryptoTickers(cryptoData)
       setFiatTickers(fiatData)
 
-      // Fetch candles for crypto only (fiat uses synthetic rates)
+      // Fetch candles for both crypto and fiat
+      const allTickers = [...cryptoData, ...fiatData]
       const candleResults = await Promise.allSettled(
-        cryptoData
+        allTickers
           .filter((t) => !isCoinextInstId(t.instId))
           .map(async (t) => ({ instId: t.instId, candles: await api.getMarketCandles(token, t.instId, '1H', 24) })),
       )

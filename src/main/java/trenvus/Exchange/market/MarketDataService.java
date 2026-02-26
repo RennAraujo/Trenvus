@@ -37,7 +37,7 @@ public class MarketDataService {
 	public MarketDataService(
 			@Value("${MARKET_OKX_INST_IDS:BTC-USDT,ETH-USDT,XRP-USDT,SOL-USDT,ADA-USDT}") String okxInstIdsRaw,
 			@Value("${MARKET_ASSETS:}") String legacyAssetsRaw,
-			@Value("${MARKET_FOREX_PAIRS:USD-EUR,USD-GBP,USD-JPY,USD-CNY,USD-CHF}") String forexPairsRaw,
+			@Value("${MARKET_FOREX_PAIRS:USD-EUR,USD-GBP,USD-JPY,USD-CNY,USD-CHF,USDT-BRL}") String forexPairsRaw,
 			@Value("${MARKET_CACHE_TTL_SECONDS:10}") long ttlSeconds
 	) {
 		this.restClient = RestClient.builder().baseUrl("https://www.okx.com").build();
@@ -246,6 +246,11 @@ public class MarketDataService {
 	}
 
 	public List<CandlePoint> getCandles(String instId, String bar, int limit) {
+		// Check if it's a fiat pair
+		if (isFiatPair(instId)) {
+			return getFiatSyntheticCandles(instId, limit);
+		}
+
 		if (isCoinextInstId(instId)) {
 			return getSyntheticCandles(normalizeInstId(instId), limit);
 		}
@@ -267,6 +272,38 @@ public class MarketDataService {
 			candlesCache.put(key, new CandleCacheEntry(value, now.plus(cacheTtl)));
 		}
 		return value;
+	}
+
+	private boolean isFiatPair(String instId) {
+		String normalized = normalizeInstId(instId);
+		return forexPairs.contains(normalized);
+	}
+
+	private List<CandlePoint> getFiatSyntheticCandles(String instId, int limit) {
+		int clampedLimit = Math.max(5, Math.min(100, limit));
+		String normalized = normalizeInstId(instId);
+		
+		// Generate synthetic historical data based on the current rate
+		Double currentRate = getSyntheticForexRate(normalized);
+		if (currentRate == null) {
+			return List.of();
+		}
+
+		var points = new ArrayList<CandlePoint>();
+		var now = Instant.now();
+		
+		// Generate random walk around the current rate
+		double rate = currentRate;
+		for (int i = clampedLimit - 1; i >= 0; i--) {
+			// Add small random variation (±0.5%)
+			double variation = (Math.random() - 0.5) * 0.01;
+			rate = rate * (1 + variation);
+			
+			String ts = String.valueOf(now.minusSeconds(i * 3600).toEpochMilli());
+			points.add(new CandlePoint(ts, rate));
+		}
+		
+		return points;
 	}
 
 	private List<CandlePoint> fetchCandles(String instId, String bar, int limit) {
