@@ -5,31 +5,31 @@ public final class AuthExceptions {
 
 	public static class EmailAlreadyRegisteredException extends RuntimeException {
 		public EmailAlreadyRegisteredException() {
-			super("Email já cadastrado");
+			super("Email already registered");
 		}
 	}
 
 	public static class InvalidCredentialsException extends RuntimeException {
 		public InvalidCredentialsException() {
-			super("Credenciais inválidas");
+			super("Invalid credentials");
 		}
 	}
 
 	public static class InvalidRefreshTokenException extends RuntimeException {
 		public InvalidRefreshTokenException() {
-			super("Refresh token inválido");
+			super("Invalid refresh token");
 		}
 	}
 
 	public static class ExpiredRefreshTokenException extends RuntimeException {
 		public ExpiredRefreshTokenException() {
-			super("Refresh token expirado");
+			super("Refresh token expired");
 		}
 	}
 
 	public static class InvalidUserException extends RuntimeException {
 		public InvalidUserException() {
-			super("Usuário inválido");
+			super("Invalid user");
 		}
 	}
 }

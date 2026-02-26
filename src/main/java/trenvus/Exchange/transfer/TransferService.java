@@ -28,22 +28,22 @@ public class TransferService {
 	@Transactional
 	public TransferResult transferTrv(Long fromUserId, String toIdentifier, long amountTrvCents) {
 		if (toIdentifier == null || toIdentifier.isBlank()) {
-			throw new IllegalArgumentException("Destinatário inválido");
+			throw new IllegalArgumentException("Invalid recipient");
 		}
 
 		var trimmed = toIdentifier.trim();
 		// Try to find by email first, then by nickname
 		var toUser = users.findByEmail(trimmed)
 				.or(() -> users.findByNickname(trimmed))
-				.orElseThrow(() -> new IllegalArgumentException("Destinatário não encontrado"));
+				.orElseThrow(() -> new IllegalArgumentException("Recipient not found"));
 		var toUserId = toUser.getId();
 
 		if (fromUserId.equals(toUserId)) {
-			throw new IllegalArgumentException("Não é possível transferir para si mesmo");
+			throw new IllegalArgumentException("Cannot transfer to yourself");
 		}
 
 		if (amountTrvCents <= 0) {
-			throw new IllegalArgumentException("Valor deve ser maior que zero");
+			throw new IllegalArgumentException("Amount must be greater than zero");
 		}
 
 		walletService.ensureUserWallets(fromUserId);
@@ -65,7 +65,7 @@ public class TransferService {
 				.orElseThrow();
 
 		if (fromWallet.getBalanceCents() < amountTrvCents) {
-			throw new IllegalArgumentException("Saldo insuficiente");
+			throw new IllegalArgumentException("Insufficient balance");
 		}
 
 		fromWallet.setBalanceCents(fromWallet.getBalanceCents() - amountTrvCents);

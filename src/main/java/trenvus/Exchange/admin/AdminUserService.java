@@ -47,7 +47,7 @@ public class AdminUserService {
 
 	@Transactional(readOnly = true)
 	public UserSummary getUser(Long userId) {
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 		return new UserSummary(user.getId(), user.getEmail(), user.getRole());
 	}
 
@@ -111,7 +111,7 @@ public class AdminUserService {
 
 	@Transactional
 	public UserSummary setUserRole(Long userId, UserRole role) {
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 		user.setRole(role == null ? UserRole.USER : role);
 		user = users.save(user);
 		return new UserSummary(user.getId(), user.getEmail(), user.getRole());
@@ -119,19 +119,19 @@ public class AdminUserService {
 
 	private static long parseCentsAllowZero(String value) {
 		if (value == null || value.isBlank()) {
-			throw new IllegalArgumentException("Valor inválido");
+			throw new IllegalArgumentException("Invalid value");
 		}
 		try {
 			var amount = new BigDecimal(value.trim());
 			amount = amount.setScale(2, RoundingMode.UNNECESSARY);
 			if (amount.signum() < 0) {
-				throw new IllegalArgumentException("Valor não pode ser negativo");
+				throw new IllegalArgumentException("Value cannot be negative");
 			}
 			return amount.movePointRight(2).longValueExact();
 		} catch (ArithmeticException ex) {
-			throw new IllegalArgumentException("Valor deve ter no máximo 2 casas decimais");
+			throw new IllegalArgumentException("Value must have at most 2 decimal places");
 		} catch (NumberFormatException ex) {
-			throw new IllegalArgumentException("Valor inválido");
+			throw new IllegalArgumentException("Invalid value");
 		}
 	}
 

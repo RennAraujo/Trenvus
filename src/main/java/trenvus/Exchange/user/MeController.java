@@ -45,14 +45,14 @@ public class MeController {
 	@GetMapping
 	public ResponseEntity<MeResponse> getMe(@AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
 	}
 
 	@PutMapping("/phone")
 	public ResponseEntity<MeResponse> updatePhone(@Valid @RequestBody UpdatePhoneRequest request, @AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 		user.setPhone(request.phone().trim());
 		user = users.save(user);
 		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
@@ -61,10 +61,10 @@ public class MeController {
 	@PutMapping("/password")
 	public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request, @AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
-			throw new IllegalArgumentException("Senha atual incorreta");
+			throw new IllegalArgumentException("Current password is incorrect");
 		}
 		user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
 		users.save(user);
@@ -74,31 +74,31 @@ public class MeController {
 	@PostMapping("/avatar")
 	public ResponseEntity<MeResponse> uploadAvatar(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		if (file == null || file.isEmpty()) {
-			throw new IllegalArgumentException("Arquivo inválido");
+			throw new IllegalArgumentException("Invalid file");
 		}
 		if (file.getSize() > AVATAR_MAX_BYTES) {
-			throw new IllegalArgumentException("Imagem deve ter no máximo 1MB");
+			throw new IllegalArgumentException("Image must be at most 1MB");
 		}
 		var contentType = file.getContentType();
 		if (contentType == null || contentType.isBlank()) {
-			throw new IllegalArgumentException("Tipo de imagem inválido");
+			throw new IllegalArgumentException("Invalid image type");
 		}
 		if (!contentType.equals("image/png")
 				&& !contentType.equals("image/jpeg")
 				&& !contentType.equals("image/webp")
 				&& !contentType.equals("image/gif")
 		) {
-			throw new IllegalArgumentException("Tipo de imagem inválido");
+			throw new IllegalArgumentException("Invalid image type");
 		}
 
 		byte[] bytes;
 		try {
 			bytes = file.getBytes();
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Falha ao ler arquivo");
+			throw new IllegalArgumentException("Failed to read file");
 		}
 		var b64 = Base64.getEncoder().encodeToString(bytes);
 		var dataUrl = "data:" + contentType + ";base64," + b64;
@@ -111,16 +111,16 @@ public class MeController {
 	@Transactional
 	public ResponseEntity<Void> deleteAccount(@Valid @RequestBody DeleteAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		// Verifica se o email corresponde
 		if (!user.getEmail().equalsIgnoreCase(request.email())) {
-			throw new IllegalArgumentException("Email não corresponde");
+			throw new IllegalArgumentException("Email does not match");
 		}
 
 		// Verifica se a senha está correta
 		if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-			throw new IllegalArgumentException("Senha incorreta");
+			throw new IllegalArgumentException("Password is incorrect");
 		}
 
 		// Deleta todos os refresh tokens do usuário
