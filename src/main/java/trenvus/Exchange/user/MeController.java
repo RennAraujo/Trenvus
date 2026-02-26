@@ -120,9 +120,13 @@ public class MeController {
 			throw new IllegalArgumentException("Senha incorreta");
 		}
 
-		// Deleta todas as transações do usuário
+		// Deleta todas as transações onde o usuário é o destinatário (user_id)
 		var userTransactions = transactions.findByUserId(userId);
 		transactions.deleteAll(userTransactions);
+
+		// Deleta todas as transações onde o usuário é o remetente (source_user_id)
+		var sentTransactions = transactions.findBySourceUserId(userId);
+		transactions.deleteAll(sentTransactions);
 
 		// Deleta todas as wallets do usuário
 		var userWallets = wallets.findByUserId(userId);

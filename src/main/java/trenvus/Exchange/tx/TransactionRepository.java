@@ -17,5 +17,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 	long sumUsdAmountCentsByUserIdAndType(@Param("userId") Long userId, @Param("type") TransactionType type);
 
 	List<TransactionEntity> findByUserId(Long userId);
+
+	List<TransactionEntity> findBySourceUserId(Long sourceUserId);
 }
 
