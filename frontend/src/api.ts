@@ -204,7 +204,7 @@ async function request<T>(
         await new Promise((r) => setTimeout(r, 600))
         continue
       }
-      throw new NetworkError({ message: 'Falha de rede ao acessar a API', url, cause })
+      throw new NetworkError({ message: 'Network error accessing API', url, cause })
     }
 
     if (response.status === 502 || response.status === 503 || response.status === 504) {
@@ -218,10 +218,10 @@ async function request<T>(
   }
 
   if (!response) {
-    throw new NetworkError({ message: 'Falha de rede ao acessar a API', url, cause: lastFetchError })
+    throw new NetworkError({ message: 'Network error accessing API', url, cause: lastFetchError })
   }
   if (!response.ok) {
-    let message = 'Erro na requisição'
+    let message = 'Request error'
     const raw = await response.text().catch(() => '')
     if (raw) {
       try {
@@ -241,7 +241,7 @@ async function request<T>(
   try {
     return JSON.parse(raw) as T
   } catch {
-    throw new ResponseParseError({ message: 'Resposta inválida da API', url, body: raw })
+    throw new ResponseParseError({ message: 'Invalid API response', url, body: raw })
   }
 }
 

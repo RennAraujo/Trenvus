@@ -354,4 +354,8 @@ export const messagesEn: Record<string, string> = {
   'account.delete.passwordLabel': 'Enter your password',
   'account.delete.passwordPlaceholder': '••••••••',
   'account.delete.confirmButton': 'Permanently Delete Account',
+
+  'errors.networkError': 'Network error accessing API',
+  'errors.requestError': 'Request error',
+  'errors.invalidResponse': 'Invalid API response',
 }

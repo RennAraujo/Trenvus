@@ -354,4 +354,8 @@ export const messagesPtBR: Record<string, string> = {
   'account.delete.passwordLabel': 'Digite sua senha',
   'account.delete.passwordPlaceholder': '••••••••',
   'account.delete.confirmButton': 'Excluir Conta Permanentemente',
+
+  'errors.networkError': 'Erro de rede ao acessar a API',
+  'errors.requestError': 'Erro na requisição',
+  'errors.invalidResponse': 'Resposta inválida da API',
 }
