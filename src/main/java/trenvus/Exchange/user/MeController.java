@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import trenvus.Exchange.wallet.WalletRepository;
 import trenvus.Exchange.tx.TransactionRepository;
+import trenvus.Exchange.auth.RefreshTokenRepository;
 
 @RestController
 @RequestMapping("/me")
@@ -29,13 +30,15 @@ public class MeController {
 	private final UserRepository users;
 	private final WalletRepository wallets;
 	private final TransactionRepository transactions;
+	private final RefreshTokenRepository refreshTokens;
 	private final PasswordEncoder passwordEncoder;
 	private static final long AVATAR_MAX_BYTES = 1_000_000;
 
-	public MeController(UserRepository users, WalletRepository wallets, TransactionRepository transactions, PasswordEncoder passwordEncoder) {
+	public MeController(UserRepository users, WalletRepository wallets, TransactionRepository transactions, RefreshTokenRepository refreshTokens, PasswordEncoder passwordEncoder) {
 		this.users = users;
 		this.wallets = wallets;
 		this.transactions = transactions;
+		this.refreshTokens = refreshTokens;
 		this.passwordEncoder = passwordEncoder;
 	}
 
@@ -119,6 +122,10 @@ public class MeController {
 		if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
 			throw new IllegalArgumentException("Senha incorreta");
 		}
+
+		// Deleta todos os refresh tokens do usuário
+		var userRefreshTokens = refreshTokens.findByUserId(userId);
+		refreshTokens.deleteAll(userRefreshTokens);
 
 		// Deleta todas as transações onde o usuário é o destinatário (user_id)
 		var userTransactions = transactions.findByUserId(userId);
