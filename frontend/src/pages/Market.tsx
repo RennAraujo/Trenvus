@@ -108,7 +108,6 @@ export function Market() {
       })
 
       // Auto-select first ticker if none selected
-      const allTickers = [...cryptoData, ...fiatData]
       let instId = selectedInstIdRef.current
       if (!instId && allTickers.length > 0) {
         instId = allTickers[0].instId
