@@ -3,6 +3,7 @@ import { api, createIdempotencyKey, formatUsd, type WalletResponse } from '../ap
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 import { MercadoPagoModal } from '../components/MercadoPagoModal'
+import { ConvertConfirmationModal } from '../components/ConvertConfirmationModal'
 
 type ConvertDirection = 'USD_TO_TRV' | 'TRV_TO_USD'
 
@@ -86,6 +87,7 @@ export function Dashboard() {
   const [convertDigits, setConvertDigits] = useState('1000')
   const [activeTab, setActiveTab] = useState<'deposit' | 'convert'>('deposit')
   const [isMercadoPagoModalOpen, setIsMercadoPagoModalOpen] = useState(false)
+  const [showConvertConfirmation, setShowConvertConfirmation] = useState(false)
   const depositInputRef = useRef<HTMLInputElement | null>(null)
   const convertInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -133,6 +135,17 @@ export function Dashboard() {
       setError(t('errors.convert'))
       return
     }
+    // Mostra o modal de confirmação
+    setShowConvertConfirmation(true)
+  }
+
+  async function executeConvert() {
+    const parsed = formatMoneyDigits(convertDigits)
+    if (!parsed.plain) {
+      setError(t('errors.convert'))
+      setShowConvertConfirmation(false)
+      return
+    }
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
@@ -143,8 +156,10 @@ export function Dashboard() {
           : await api.convertTrvToUsd(token, parsed.plain, idempotencyKey)
       setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
       setConvertDigits('')
+      setShowConvertConfirmation(false)
     } catch (err: any) {
       setError(err?.message || t('errors.convert'))
+      setShowConvertConfirmation(false)
     } finally {
       setBusy(false)
     }
@@ -513,6 +528,18 @@ export function Dashboard() {
           setDepositDigits('')
           loadWallet()
         }}
+      />
+
+      {/* Convert Confirmation Modal */}
+      <ConvertConfirmationModal
+        isOpen={showConvertConfirmation}
+        onClose={() => setShowConvertConfirmation(false)}
+        onConfirm={executeConvert}
+        direction={convertDirection}
+        amount={formatMoneyDigits(convertDigits).formatted}
+        fee={formatMoneyDigits((Number(displayCents) / 100).toString().split('.')[0]).formatted}
+        receive={formatMoneyDigits((Number(displayCents) * 0.99).toString().split('.')[0]).formatted}
+        isLoading={busy}
       />
     </div>
   )
