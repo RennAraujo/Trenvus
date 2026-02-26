@@ -306,7 +306,7 @@ export function Market() {
                 {ticker.last.toFixed(isCrypto ? 4 : 2)}
               </div>
             </div>
-            {isCrypto ? buildSparklineSvg(candles) : null}
+            {buildSparklineSvg(candles)}
           </div>
 
           <div style={{ display: 'flex', gap: 16, marginTop: 20, flexWrap: 'wrap' }}>
