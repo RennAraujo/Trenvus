@@ -95,9 +95,17 @@ export function DeleteAccountModal({
           </button>
           <button
             className="btn btn-danger"
-            onClick={() => onConfirm(email, password)}
+            onClick={() => {
+              console.log('Botão de confirmar cliqueado, chamando onConfirm com:', { email, password: '***' })
+              onConfirm(email, password)
+            }}
             disabled={!canConfirm || isLoading}
-            style={{ background: 'var(--color-danger)', color: 'white' }}
+            style={{ 
+              background: canConfirm ? 'var(--color-danger)' : '#ccc', 
+              color: 'white',
+              cursor: canConfirm ? 'pointer' : 'not-allowed',
+              opacity: canConfirm ? 1 : 0.6
+            }}
           >
             {isLoading ? (
               <span className="animate-pulse">{t('actions.processing')}</span>

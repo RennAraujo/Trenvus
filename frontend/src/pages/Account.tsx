@@ -180,15 +180,19 @@ export function Account() {
   }
 
   async function onDeleteAccount(email: string, password: string) {
+    console.log('onDeleteAccount chamado com:', { email, password: '***' })
     setError(null)
     setSuccess(null)
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
+      console.log('Token obtido, chamando api.deleteAccount...')
       await api.deleteAccount(token, email, password)
+      console.log('Conta deletada com sucesso, fazendo logout...')
       // Logout after successful deletion
       auth.logout()
     } catch (err: any) {
+      console.error('Erro ao deletar conta:', err)
       setError(err?.message || t('errors.deleteAccount'))
       setShowDeleteModal(false)
     } finally {
