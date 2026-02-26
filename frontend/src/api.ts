@@ -321,6 +321,8 @@ export const api = {
     ),
 
   getMarketTickers: (accessToken: string) => request<MarketTicker[]>('/market/tickers', { accessToken }),
+  getCryptoTickers: (accessToken: string) => request<MarketTicker[]>('/market/tickers/crypto', { accessToken }),
+  getFiatTickers: (accessToken: string) => request<MarketTicker[]>('/market/tickers/fiat', { accessToken }),
   getMarketOrderBook: (accessToken: string, instId: string, size = 10) =>
     request<OrderBook>(`/market/orderbook?instId=${encodeURIComponent(instId)}&size=${size}`, { accessToken }),
   getMarketCandles: (accessToken: string, instId: string, bar = '1H', limit = 24) =>

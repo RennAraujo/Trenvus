@@ -18,7 +18,17 @@ public class MarketController {
 
 	@GetMapping("/tickers")
 	public ResponseEntity<List<MarketDataService.MarketTicker>> getTickers() {
-		return ResponseEntity.ok(marketDataService.getTickers());
+		return ResponseEntity.ok(marketDataService.getAllTickers());
+	}
+
+	@GetMapping("/tickers/crypto")
+	public ResponseEntity<List<MarketDataService.MarketTicker>> getCryptoTickers() {
+		return ResponseEntity.ok(marketDataService.getCryptoTickers());
+	}
+
+	@GetMapping("/tickers/fiat")
+	public ResponseEntity<List<MarketDataService.MarketTicker>> getFiatTickers() {
+		return ResponseEntity.ok(marketDataService.getFiatTickers());
 	}
 
 	@GetMapping("/orderbook")

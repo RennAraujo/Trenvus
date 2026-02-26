@@ -152,6 +152,8 @@ export const messagesEn: Record<string, string> = {
 
   'market.title': 'Market',
   'market.subtitle': 'Track prices, 24h change, and the order book.',
+  'market.crypto': 'Cryptocurrencies',
+  'market.fiat': 'Fiat Currencies',
 
   'transfer.title': 'Transfer',
   'transfer.subtitle': 'Transfer TRV between users.',

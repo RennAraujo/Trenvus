@@ -23,17 +23,21 @@ public class MarketDataService {
 	private final RestClient coinextClient;
 	private final List<String> instIds;
 	private final List<String> coinextInstIds;
+	private final List<String> forexPairs;
 	private final Duration cacheTtl;
 	private final Duration coinextFallbackTtl;
+	private final Duration forexCacheTtl;
 
-	private volatile CacheEntry cache = null;
+	private volatile CacheEntry cryptoCache = null;
+	private volatile CacheEntry forexCache = null;
 	private final Map<String, CandleCacheEntry> candlesCache = new HashMap<>();
 	private final Map<String, List<CandlePoint>> syntheticCandlesByInstId = new HashMap<>();
 	private final Map<String, CoinextTickerCacheEntry> coinextTickerCache = new HashMap<>();
 
 	public MarketDataService(
-			@Value("${MARKET_OKX_INST_IDS:BTC-USDT,ETH-USDT,XRP-USDT}") String okxInstIdsRaw,
+			@Value("${MARKET_OKX_INST_IDS:BTC-USDT,ETH-USDT,XRP-USDT,SOL-USDT,ADA-USDT}") String okxInstIdsRaw,
 			@Value("${MARKET_ASSETS:}") String legacyAssetsRaw,
+			@Value("${MARKET_FOREX_PAIRS:USD-EUR,USD-GBP,USD-JPY,USD-CNY,USD-CHF}") String forexPairsRaw,
 			@Value("${MARKET_CACHE_TTL_SECONDS:10}") long ttlSeconds
 	) {
 		this.restClient = RestClient.builder().baseUrl("https://www.okx.com").build();
@@ -46,32 +50,63 @@ public class MarketDataService {
 				.requestFactory(new JdkClientHttpRequestFactory(coinextHttpClient))
 				.build();
 		this.instIds = parseInstIds(okxInstIdsRaw, legacyAssetsRaw);
-		this.coinextInstIds = List.of();
+		this.coinextInstIds = List.of("USDT-BRL");
+		this.forexPairs = parseForexPairs(forexPairsRaw);
 		this.cacheTtl = Duration.ofSeconds(Math.max(5, ttlSeconds));
 		this.coinextFallbackTtl = Duration.ofMinutes(5);
+		this.forexCacheTtl = Duration.ofMinutes(1);
 	}
 
-	public List<MarketTicker> getTickers() {
-		var cached = cache;
+	public List<MarketTicker> getCryptoTickers() {
+		var cached = cryptoCache;
 		var now = Instant.now();
 		if (cached != null && cached.expiresAt.isAfter(now)) {
 			return cached.value;
 		}
 
 		synchronized (this) {
-			cached = cache;
+			cached = cryptoCache;
 			now = Instant.now();
 			if (cached != null && cached.expiresAt.isAfter(now)) {
 				return cached.value;
 			}
 
-			var tickers = fetchTickers();
-			cache = new CacheEntry(tickers, now.plus(cacheTtl));
+			var tickers = fetchCryptoTickers();
+			cryptoCache = new CacheEntry(tickers, now.plus(cacheTtl));
 			return tickers;
 		}
 	}
 
-	private List<MarketTicker> fetchTickers() {
+	public List<MarketTicker> getFiatTickers() {
+		var cached = forexCache;
+		var now = Instant.now();
+		if (cached != null && cached.expiresAt.isAfter(now)) {
+			return cached.value;
+		}
+
+		synchronized (this) {
+			cached = forexCache;
+			now = Instant.now();
+			if (cached != null && cached.expiresAt.isAfter(now)) {
+				return cached.value;
+			}
+
+			var tickers = fetchFiatTickers();
+			forexCache = new CacheEntry(tickers, now.plus(forexCacheTtl));
+			return tickers;
+		}
+	}
+
+	public List<MarketTicker> getAllTickers() {
+		var crypto = getCryptoTickers();
+		var fiat = getFiatTickers();
+		var result = new ArrayList<MarketTicker>(crypto.size() + fiat.size());
+		result.addAll(crypto);
+		result.addAll(fiat);
+		return result;
+	}
+
+	private List<MarketTicker> fetchCryptoTickers() {
 		var result = new ArrayList<MarketTicker>();
 		for (var instId : instIds) {
 			try {
@@ -92,6 +127,87 @@ public class MarketDataService {
 			}
 		}
 		return result;
+	}
+
+	private List<MarketTicker> fetchFiatTickers() {
+		var result = new ArrayList<MarketTicker>();
+		for (var pair : forexPairs) {
+			try {
+				var t = fetchForexTicker(pair);
+				if (t != null) {
+					result.add(t);
+				}
+			} catch (Exception ignored) {
+			}
+		}
+		return result;
+	}
+
+	private MarketTicker fetchForexTicker(String pair) {
+		// For now, return synthetic forex rates
+		// In production, you would integrate with a forex API like exchangerate-api.com
+		var currencies = parsePairCurrencies(pair);
+		var rate = getSyntheticForexRate(pair);
+		if (rate == null) return null;
+
+		return new MarketTicker(
+				pair,
+				currencies.baseCurrency(),
+				currencies.quoteCurrency(),
+				rate,
+				rate * 0.9995, // synthetic bid
+				rate * 1.0005, // synthetic ask
+				null, // change24hPercent
+				null, // high24h
+				null, // low24h
+				null, // vol24hBase
+				null, // vol24hQuote
+				String.valueOf(System.currentTimeMillis())
+		);
+	}
+
+	private Double getSyntheticForexRate(String pair) {
+		// Synthetic rates for demo purposes
+		// In production, integrate with a real forex API
+		return switch (pair.toUpperCase()) {
+			case "USD-EUR" -> 0.92;
+			case "EUR-USD" -> 1.09;
+			case "USD-GBP" -> 0.79;
+			case "GBP-USD" -> 1.27;
+			case "USD-JPY" -> 149.50;
+			case "JPY-USD" -> 0.0067;
+			case "USD-CNY" -> 7.19;
+			case "CNY-USD" -> 0.139;
+			case "USD-CHF" -> 0.88;
+			case "CHF-USD" -> 1.14;
+			case "USD-BRL" -> 5.05;
+			case "BRL-USD" -> 0.198;
+			default -> null;
+		};
+	}
+
+	private static List<String> parseForexPairs(String raw) {
+		String pairs = (raw == null ? "" : raw).trim();
+		if (pairs.isBlank()) {
+			return List.of("USD-EUR", "USD-GBP", "USD-JPY");
+		}
+		return java.util.Arrays.stream(pairs.split(","))
+				.map(String::trim)
+				.filter(s -> !s.isBlank())
+				.distinct()
+				.toList();
+	}
+
+	private record PairCurrencies(String baseCurrency, String quoteCurrency) {}
+
+	private static PairCurrencies parsePairCurrencies(String pair) {
+		if (pair == null) return new PairCurrencies(null, null);
+		String normalized = pair.trim().toUpperCase();
+		var parts = normalized.split("-");
+		if (parts.length >= 2) {
+			return new PairCurrencies(parts[0], parts[1]);
+		}
+		return new PairCurrencies(null, null);
 	}
 
 	public OrderBook getOrderBook(String instId, int size) {

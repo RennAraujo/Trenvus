@@ -152,6 +152,8 @@ export const messagesPtBR: Record<string, string> = {
 
   'market.title': 'Mercado',
   'market.subtitle': 'Acompanhe preços, variação 24h e livro de ofertas.',
+  'market.crypto': 'Criptomoedas',
+  'market.fiat': 'Moedas Fiat',
 
   'transfer.title': 'Transferência',
   'transfer.subtitle': 'Transfira TRV entre usuários.',
