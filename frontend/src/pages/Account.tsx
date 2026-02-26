@@ -3,6 +3,7 @@ import { api, type MeResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 import { buildE164Phone, digitsOnly, getPhoneCountryOptions, splitE164Phone } from '../phone'
+import { DeleteAccountModal } from '../components/DeleteAccountModal'
 import type { CountryCode } from 'libphonenumber-js'
 
 // Icons
@@ -48,6 +49,12 @@ const SaveIcon = () => (
   </svg>
 )
 
+const TrashIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>
+  </svg>
+)
+
 export function Account() {
   const auth = useAuth()
   const { t } = useI18n()
@@ -62,6 +69,7 @@ export function Account() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const canSavePhone = useMemo(() => digitsOnly(phoneNumber).length > 0, [phoneNumber])
   const canChangePassword = useMemo(() => {
@@ -166,6 +174,23 @@ export function Account() {
       setSuccess(t('account.avatar.saved'))
     } catch (err: any) {
       setError(err?.message || t('errors.save'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onDeleteAccount(email: string, password: string) {
+    setError(null)
+    setSuccess(null)
+    setBusy(true)
+    try {
+      const token = await auth.getValidAccessToken()
+      await api.deleteAccount(token, email, password)
+      // Logout after successful deletion
+      auth.logout()
+    } catch (err: any) {
+      setError(err?.message || t('errors.deleteAccount'))
+      setShowDeleteModal(false)
     } finally {
       setBusy(false)
     }
@@ -447,7 +472,59 @@ export function Account() {
             </form>
           </div>
         </div>
+
+        {/* Delete Account Card */}
+        <div className="card" style={{ gridColumn: 'span 2' as any, border: '1px solid var(--color-danger-alpha-30)' }}>
+          <div className="card-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ 
+                width: 40, 
+                height: 40, 
+                borderRadius: 10, 
+                background: 'var(--color-danger-alpha-10)',
+                color: 'var(--color-danger)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <TrashIcon />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: 'var(--color-danger)' }}>{t('account.delete.title')}</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>{t('account.delete.subtitle')}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card-body">
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
+              {t('account.delete.description')}
+            </p>
+            <button 
+              className="btn btn-danger" 
+              onClick={() => setShowDeleteModal(true)}
+              disabled={busy}
+              style={{ 
+                background: 'var(--color-danger)', 
+                color: 'white',
+                border: 'none'
+              }}
+            >
+              <TrashIcon />
+              {t('account.delete.button')}
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={onDeleteAccount}
+        userEmail={me?.email || auth.userEmail || ''}
+        isLoading={busy}
+      />
     </div>
   )
 }

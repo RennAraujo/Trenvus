@@ -284,6 +284,8 @@ export const api = {
     request<MeResponse>('/me/phone', { method: 'PUT', accessToken, body: JSON.stringify({ phone }) }),
   changeMyPassword: (accessToken: string, currentPassword: string, newPassword: string) =>
     request<void>('/me/password', { method: 'PUT', accessToken, body: JSON.stringify({ currentPassword, newPassword }) }),
+  deleteAccount: (accessToken: string, email: string, password: string) =>
+    request<void>('/me', { method: 'DELETE', accessToken, body: JSON.stringify({ email, password }) }),
   uploadMyAvatar: (accessToken: string, file: File) => {
     const body = new FormData()
     body.append('file', file)
