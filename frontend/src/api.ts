@@ -291,7 +291,7 @@ export const api = {
   },
 
   getPrivateStatement: (accessToken: string, page: number, size: number) =>
-    request<PrivateStatementItem[]>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),
+    request<{ items: PrivateStatementItem[]; hasNext: boolean }>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),
 
   adminListUsers: (accessToken: string, query?: string, limit = 100) =>
     request<AdminUserSummary[]>(

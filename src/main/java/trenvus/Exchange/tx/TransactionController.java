@@ -23,7 +23,7 @@ public class TransactionController {
 	}
 
 	@GetMapping("/private")
-	public ResponseEntity<List<PrivateStatementItem>> privateStatement(
+	public ResponseEntity<PrivateStatementResponse> privateStatement(
 			@AuthenticationPrincipal Jwt jwt,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "20") int size
@@ -38,7 +38,8 @@ public class TransactionController {
 		Long userId = Long.valueOf(jwt.getSubject());
 		var result = transactions.findByUserIdOrderByIdDesc(userId, PageRequest.of(page, size));
 		var items = result.getContent().stream().map(TransactionController::toPrivateItem).toList();
-		return ResponseEntity.ok(items);
+		boolean hasNext = result.hasNext();
+		return ResponseEntity.ok(new PrivateStatementResponse(items, hasNext));
 	}
 
 	private static PrivateStatementItem toPrivateItem(TransactionEntity tx) {
@@ -86,4 +87,6 @@ public class TransactionController {
 	public record PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values) {}
 
 	public record ValueLine(String currency, long cents, boolean fee) {}
+
+	public record PrivateStatementResponse(List<PrivateStatementItem> items, boolean hasNext) {}
 }

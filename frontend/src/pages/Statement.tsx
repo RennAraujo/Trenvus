@@ -29,8 +29,6 @@ const DepositIcon = () => (
   </svg>
 )
 
-
-
 const ConvertIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/>
@@ -87,6 +85,9 @@ function getTxIcon(type: string) {
   }
 }
 
+const PAGE_SIZE_OPTIONS = [20, 50, 100] as const
+type PageSize = typeof PAGE_SIZE_OPTIONS[number]
+
 export function Statement() {
   const auth = useAuth()
   const { t } = useI18n()
@@ -94,6 +95,7 @@ export function Statement() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [page, setPage] = useState(0)
+  const [pageSize, setPageSize] = useState<PageSize>(20)
   const [hasNext, setHasNext] = useState(false)
 
   function typeLabel(type: string): string {
@@ -197,251 +199,147 @@ export function Statement() {
       addHeader()
       y = 100
     }
-    
+
     function addHeader() {
       // Logo
-      addTrenvusLogo(doc, margin, 25, 30)
+      addTrenvusLogo(doc, margin, 30, 30)
       
-      // Document title
+      // Title
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(20)
-      doc.setTextColor(0, 51, 102)
-      doc.text(t('statement.title').toUpperCase(), pageWidth - margin, 50, { align: 'right' })
+      doc.setTextColor(0, 0, 0)
+      doc.text(t('statement.pdf.title'), margin, 90)
       
-      // Subtitle
+      // Date
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(10)
       doc.setTextColor(100, 100, 100)
-      doc.text(`${t('statement.page')} ${page + 1} • ${nowLabel}`, pageWidth - margin, 65, { align: 'right' })
-      
-      // Line separator
-      doc.setDrawColor(0, 102, 204)
-      doc.setLineWidth(2)
-      doc.line(margin, 75, pageWidth - margin, 75)
+      doc.text(`${t('statement.pdf.generated')}: ${nowLabel}`, margin, 105)
     }
-    
+
+    function addFooter(pageNum: number, totalPages: number) {
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9)
+      doc.setTextColor(150, 150, 150)
+      doc.text(`${t('statement.pdf.page')} ${pageNum} ${t('statement.pdf.of')} ${totalPages}`, pageWidth / 2, pageHeight - 20, { align: 'center' })
+    }
+
+    // First page header
     addHeader()
-    y = 100
+    y = 120
 
     // Summary Section
-    doc.setFillColor(245, 248, 252)
-    doc.roundedRect(margin, y, pageWidth - 2*margin, 70, 4, 4, 'F')
+    doc.setFillColor(245, 245, 250)
+    doc.roundedRect(margin, y, pageWidth - margin * 2, 80, 4, 4, 'F')
     
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(12)
-    doc.setTextColor(0, 51, 102)
-    doc.text('RESUMO DA CONTA / ACCOUNT SUMMARY', margin + 10, y + 20)
-    
-    // USD Summary
-    doc.setFontSize(10)
-    doc.setTextColor(60, 60, 60)
-    doc.text('USD:', margin + 10, y + 40)
-    doc.setTextColor(0, 153, 0)
-    doc.text(`+${formatUsd(totalUsdIn)}`, margin + 60, y + 40)
-    doc.setTextColor(204, 0, 0)
-    doc.text(`-${formatUsd(totalUsdOut)}`, margin + 140, y + 40)
     doc.setTextColor(0, 0, 0)
-    doc.setFont('helvetica', 'bold')
-    doc.text(`=${formatUsd(totalUsdIn - totalUsdOut)}`, margin + 220, y + 40)
+    doc.text(t('statement.pdf.summary'), margin + 10, y + 20)
     
-    // TRV Summary
+    // Summary content
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(60, 60, 60)
-    doc.text('TRV:', margin + 10, y + 58)
-    doc.setTextColor(0, 153, 0)
-    doc.text(`+${formatUsd(totalTrvIn)}`, margin + 60, y + 58)
-    doc.setTextColor(204, 0, 0)
-    doc.text(`-${formatUsd(totalTrvOut)}`, margin + 140, y + 58)
-    doc.setTextColor(0, 0, 0)
+    doc.setFontSize(9)
+    doc.setTextColor(80, 80, 80)
+    
+    const col1 = margin + 10
+    const col2 = margin + 180
+    const col3 = margin + 350
+    
+    doc.text(`${t('statement.pdf.usdIn')}:`, col1, y + 40)
+    doc.text(`${t('statement.pdf.usdOut')}:`, col1, y + 55)
+    doc.text(`${t('statement.pdf.trvIn')}:`, col2, y + 40)
+    doc.text(`${t('statement.pdf.trvOut')}:`, col2, y + 55)
+    doc.text(`${t('statement.pdf.total')}:`, col3, y + 40)
+    
     doc.setFont('helvetica', 'bold')
-    doc.text(`=${formatUsd(totalTrvIn - totalTrvOut)}`, margin + 220, y + 58)
+    doc.setTextColor(0, 0, 0)
+    doc.text(`+${formatUsd(totalUsdIn)} USD`, col1 + 70, y + 40)
+    doc.text(`-${formatUsd(totalUsdOut)} USD`, col1 + 70, y + 55)
+    doc.text(`+${formatUsd(totalTrvIn)} TRV`, col2 + 70, y + 40)
+    doc.text(`-${formatUsd(totalTrvOut)} TRV`, col2 + 70, y + 55)
     
-    y += 85
+    const totalNet = totalUsdIn - totalUsdOut + totalTrvIn - totalTrvOut
+    doc.text(formatUsd(Math.abs(totalNet)), col3 + 50, y + 40)
+    
+    y += 100
 
-    // Table column positions (calculated for better spacing)
-    // A4 width = 595pt, margins = 40pt each side = 515pt usable
-    // Column distribution: Date(13%) | Type(28%) | Details(38%) | Amount(21%)
-    const colDateX = margin + 6
-    const colTypeX = margin + 95
-    const colDetailsX = margin + 235
-    const colAmountX = pageWidth - margin - 10
-    const colTypeWidth = colDetailsX - colTypeX - 12 // Available width for type (~128pt)
-    
-    // Table Header
+    // Transactions Table Header
     doc.setFillColor(0, 102, 204)
-    doc.rect(margin, y, pageWidth - 2*margin, 25, 'F')
+    doc.rect(margin, y, pageWidth - margin * 2, 25, 'F')
     
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
-    doc.text('DATA / DATE', colDateX, y + 16)
-    doc.text('TIPO / TYPE', colTypeX, y + 16)
-    doc.text('DETALHES / DETAILS', colDetailsX, y + 16)
-    doc.text('VALOR / AMOUNT', colAmountX, y + 16, { align: 'right' })
+    doc.text(t('statement.pdf.date'), margin + 10, y + 16)
+    doc.text(t('statement.pdf.type'), margin + 120, y + 16)
+    doc.text(t('statement.pdf.values'), margin + 280, y + 16)
     
-    y += 30
-    
-    // Alternating row colors
-    let rowColor = false
-    
-    // Helper to fit text within width
-    const fitText = (text: string, maxWidth: number): string => {
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(9)
-      let result = text
-      while (doc.getTextWidth(result) > maxWidth && result.length > 0) {
-        result = result.slice(0, -1)
-      }
-      if (result.length < text.length) {
-        result = result.slice(0, -3) + '...'
-      }
-      return result
-    }
+    y += 35
 
-    for (const item of items) {
-      const when = formatWhen(item.createdAt)
-
-      const netByCurrency = new Map<string, number>()
-      for (const v of item.values) {
-        netByCurrency.set(v.currency, (netByCurrency.get(v.currency) || 0) + v.cents)
-      }
-      const netEntries = Array.from(netByCurrency.entries())
-        .map(([currency, cents]) => ({ currency, cents }))
-        .filter((v) => v.cents !== 0)
-
-      const netPrimary =
-        netEntries.find((n) => n.currency === 'TRV') || netEntries.find((n) => n.currency === 'USD') || netEntries[0] || null
-
-      const movements = item.values
-        .filter((v) => v.cents !== 0)
-        .map((v) => ({ currency: v.currency, cents: v.cents, fee: v.fee }))
-
-      const feeLines = movements
-        .filter((m) => m.fee)
-        .map((m) => `Taxa: ${formatUsd(Math.abs(m.cents))} ${m.currency}`)
-
-      const movementLines = movements
-        .filter((m) => !m.fee)
-        .sort((a, b) => a.cents - b.cents)
-        .map((m) => formatSigned(m.currency, m.cents))
-
-      const detailLines = [...movementLines, ...feeLines]
-      const rowHeight = Math.max(42, 18 + detailLines.length * 11)
-      const centerY = y + rowHeight / 2  // Vertical center of the row
-      
-      ensureSpace(rowHeight + 5)
-      
-      // Row background
-      if (rowColor) {
-        doc.setFillColor(248, 248, 248)
-        doc.rect(margin, y - 2, pageWidth - 2*margin, rowHeight, 'F')
-      }
-      rowColor = !rowColor
-
-      // Date column - primeira linha no topo, segunda 12pt abaixo
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(9)
-      doc.setTextColor(80, 80, 80)
-      const dateParts = when ? when.split(' ·') : ['--']
-      doc.text(dateParts[0], colDateX, y + 14)
-      if (dateParts[1]) {
-        doc.setFontSize(8)
-        doc.text(dateParts[1], colDateX, y + 26)
-      }
-
-      // Type column - centralizado verticalmente na linha
-      const label = typeLabel(item.type)
-      const fittedLabel = fitText(label, colTypeWidth)
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(9)
-      doc.setTextColor(0, 51, 102)
-      doc.text(fittedLabel, colTypeX, centerY + 3)
-
-      // Details column - alinhado com a data
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8)
-      doc.setTextColor(60, 60, 60)
-      const maxDetailWidth = colAmountX - colDetailsX - 15
-      
-      // Reference line - alinhada com primeira linha da data
-      const refText = `Ref: ${item.tec}`
-      let displayRef = refText
-      while (doc.getTextWidth(displayRef) > maxDetailWidth && displayRef.length > 0) {
-        displayRef = displayRef.slice(0, -1)
-      }
-      if (displayRef.length < refText.length) {
-        displayRef = displayRef.slice(0, -3) + '...'
-      }
-      doc.text(displayRef, colDetailsX, y + 14)
-      
-      // Movement and fee lines - espaçamento consistente de 11pt
-      let detailY = y + 25
-      for (const line of detailLines.slice(0, 4)) {
-        let displayLine = line
-        while (doc.getTextWidth(displayLine) > maxDetailWidth && displayLine.length > 0) {
-          displayLine = displayLine.slice(0, -1)
-        }
-        if (displayLine.length < line.length) {
-          displayLine = displayLine.slice(0, -3) + '...'
-        }
-        doc.text(displayLine, colDetailsX, detailY)
-        detailY += 11
-      }
-
-      // Amount column - centralizado verticalmente na linha (mesmo que o tipo)
-      if (netPrimary) {
-        const isPositive = netPrimary.cents >= 0
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(10)
-        doc.setTextColor(isPositive ? 0 : 204, isPositive ? 153 : 0, 0)
-        doc.text(netText(netPrimary.cents, netPrimary.currency), colAmountX, centerY + 3, { align: 'right' })
-      }
-
-      y += rowHeight + 2
-    }
-
-    // Footer section
-    y += 20
-    ensureSpace(60)
-    
-    doc.setDrawColor(0, 102, 204)
-    doc.setLineWidth(1)
-    doc.line(margin, y, pageWidth - margin, y)
-    y += 15
-    
+    // Transactions
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
-    doc.setTextColor(100, 100, 100)
-    doc.text('Trenvus Exchange Platform', margin, y)
-    doc.text(t('statement.secureNote'), pageWidth / 2, y, { align: 'center' })
-    doc.text(`Página ${doc.getNumberOfPages()}`, pageWidth - margin, y, { align: 'right' })
+    doc.setTextColor(0, 0, 0)
     
-    y += 12
-    doc.setFontSize(8)
-    doc.text('www.trenvus.com • support@trenvus.com', margin, y)
-    doc.text(`${t('statement.rateNote')} • ${t('statement.feeNote')}`, pageWidth / 2, y, { align: 'center' })
+    for (const item of items) {
+      ensureSpace(40)
+      
+      // Date
+      const dateStr = formatWhen(item.createdAt?.toString() || null) || '-'
+      doc.setFontSize(8)
+      doc.text(dateStr, margin + 10, y)
+      
+      // Type
+      doc.setFontSize(9)
+      doc.text(typeLabel(item.type), margin + 120, y)
+      
+      // Values
+      let valueY = y
+      for (const v of item.values) {
+        const valueText = formatSigned(v.currency, v.cents)
+        
+        if (v.fee) {
+          doc.setTextColor(150, 150, 150)
+          doc.setFontSize(8)
+          doc.text(`${valueText} (${t('statement.fee').toLowerCase()})`, margin + 280, valueY)
+        } else {
+          doc.setTextColor(v.cents >= 0 ? 0 : 200, v.cents >= 0 ? 150 : 0, 0)
+          doc.setFontSize(9)
+          doc.text(valueText, margin + 280, valueY)
+        }
+        
+        valueY += 12
+      }
+      
+      doc.setTextColor(0, 0, 0)
+      y = Math.max(y + 25, valueY + 5)
+      
+      // Separator line
+      if (y < pageHeight - margin - 50) {
+        doc.setDrawColor(230, 230, 230)
+        doc.line(margin, y - 5, pageWidth - margin, y - 5)
+      }
+    }
 
-    const ts = new Date()
-    const pad2 = (n: number) => String(n).padStart(2, '0')
-    const name = `trenvus-extrato-${ts.getFullYear()}${pad2(ts.getMonth() + 1)}${pad2(ts.getDate())}.pdf`
-    doc.save(name)
+    // Calculate total pages and add footers
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      addFooter(i, totalPages)
+    }
+
+    doc.save(`trenvus-statement-${now.toISOString().split('T')[0]}.pdf`)
   }
 
-  function netText(cents: number, currency: string): string {
-    const sign = cents >= 0 ? '+' : '-'
-    return `${sign}${formatUsd(Math.abs(cents))} ${currency}`
-  }
-
-  async function load(nextPage: number) {
+  async function load() {
     setError(null)
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
-      const data = await api.getPrivateStatement(token, nextPage, 10)
-      const next = await api.getPrivateStatement(token, nextPage + 1, 1)
-      setItems(data)
-      setPage(nextPage)
-      setHasNext(next.length > 0)
+      const data = await api.getPrivateStatement(token, page, pageSize)
+      setItems(data.items)
+      setHasNext(data.hasNext)
     } catch (err: any) {
       setError(err?.message || t('errors.loadStatement'))
     } finally {
@@ -450,8 +348,8 @@ export function Statement() {
   }
 
   useEffect(() => {
-    void load(0)
-  }, [])
+    load()
+  }, [page, pageSize])
 
   return (
     <div className="animate-fade-in">
@@ -462,196 +360,179 @@ export function Statement() {
             <h1 className="page-title">{t('statement.title')}</h1>
             <p className="page-subtitle">{t('statement.subtitle')}</p>
           </div>
-          <button 
-            className="btn btn-secondary" 
-            type="button" 
-            disabled={busy || items.length === 0} 
-            onClick={exportPdf}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button 
+              className="btn btn-secondary btn-icon" 
+              onClick={load} 
+              disabled={busy}
+              title="Refresh"
+            >
+              <RefreshIcon />
+            </button>
+            <button 
+              className="btn btn-primary" 
+              onClick={exportPdf}
+              disabled={items.length === 0}
+            >
+              <DownloadIcon />
+              <span style={{ marginLeft: 8 }}>{t('actions.exportPdf')}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Page Size Selector */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 12, 
+        marginBottom: 20,
+        padding: '12px 16px',
+        background: 'var(--bg-subtle)',
+        borderRadius: 8,
+        border: '1px solid var(--border-subtle)'
+      }}>
+        <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          {t('statement.itemsPerPage')}:
+        </span>
+        <select
+          value={pageSize}
+          onChange={(e) => {
+            setPageSize(Number(e.target.value) as PageSize)
+            setPage(0) // Reset to first page when changing size
+          }}
+          className="input"
+          style={{ width: 'auto', minWidth: 80 }}
+          disabled={busy}
+        >
+          {PAGE_SIZE_OPTIONS.map(size => (
+            <option key={size} value={size}>{size}</option>
+          ))}
+        </select>
+      </div>
+
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: 20 }}>
+          {error}
+        </div>
+      )}
+
+      {/* Transactions List */}
+      <div className="card">
+        <div className="card-body" style={{ padding: 0 }}>
+          {items.length === 0 && !busy && (
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>
+              {t('statement.empty')}
+            </div>
+          )}
+
+          {items.map((item, idx) => {
+            const { Icon, bg, color } = getTxIcon(item.type)
+            return (
+              <div 
+                key={item.id ?? idx} 
+                className="tx-item"
+                style={{ 
+                  borderBottom: idx < items.length - 1 ? '1px solid var(--border-subtle)' : 'none'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+                  <div style={{ 
+                    width: 40, 
+                    height: 40, 
+                    borderRadius: 10, 
+                    background: bg,
+                    color: color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Icon />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 500, marginBottom: 2 }}>{typeLabel(item.type)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <TagIcon />
+                        {item.tec}
+                      </span>
+                      <span>·</span>
+                      <span>{formatWhen(item.createdAt?.toString() || null)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="tx-amount" style={{ textAlign: 'right' }}>
+                  {item.values.map((v, i) => (
+                    <div 
+                      key={i} 
+                      style={{ 
+                        fontSize: 14, 
+                        fontWeight: 500,
+                        color: v.fee ? 'var(--text-muted)' : (v.cents >= 0 ? 'var(--color-success)' : 'var(--text-primary)'),
+                        fontFamily: 'var(--font-mono)'
+                      }}
+                    >
+                      {formatSigned(v.currency, v.cents)}
+                      {v.fee && <span style={{ fontSize: 11, marginLeft: 4 }}>({t('statement.fee')})</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Pagination */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        marginTop: 24,
+        padding: '16px 20px',
+        background: 'var(--bg-subtle)',
+        borderRadius: 12,
+        border: '1px solid var(--border-subtle)'
+      }}>
+        <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          {t('statement.showing', { n: items.length })} {t('statement.transactions')}
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            className="btn btn-secondary btn-icon"
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0 || busy}
           >
-            <DownloadIcon />
-            {t('actions.exportPdf')}
+            <ChevronLeftIcon />
+          </button>
+          
+          <span className="text-sm" style={{ fontWeight: 500 }}>
+            {t('statement.page')} {page + 1}
+          </span>
+          
+          <button
+            className="btn btn-secondary btn-icon"
+            onClick={() => setPage(p => p + 1)}
+            disabled={!hasNext || busy}
+          >
+            <ChevronRightIcon />
           </button>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="card">
-        <div className="card-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ 
-              width: 40, 
-              height: 40, 
-              borderRadius: 10, 
-              background: 'var(--color-secondary-alpha-10)',
-              color: 'var(--color-secondary-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <FileTextIcon />
-            </div>
-            <div>
-              <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Transaction History</h3>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                {items.length > 0 ? `Showing ${items.length} transactions` : 'No transactions'}
-              </p>
-            </div>
-          </div>
-          
-          {items.length > 0 && (
-            <div className="text-sm text-secondary">
-              Page {page + 1}
-            </div>
-          )}
-        </div>
-
-        <div className="card-body" style={{ padding: 0 }}>
-          {error && (
-            <div className="alert alert-error" style={{ margin: 24 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
-              </svg>
-              {error}
-            </div>
-          )}
-
-          {items.length === 0 && !busy ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <FileTextIcon />
-              </div>
-              <h3 className="empty-state-title">No transactions yet</h3>
-              <p className="empty-state-desc">Your transaction history will appear here once you start using the platform.</p>
-            </div>
-          ) : (
-            <div className="tx-list" style={{ padding: 24 }}>
-              {items.map((item, index) => {
-                const when = formatWhen(item.createdAt)
-                const { Icon, bg, color } = getTxIcon(item.type)
-
-                const netByCurrency = new Map<string, number>()
-                for (const v of item.values) {
-                  netByCurrency.set(v.currency, (netByCurrency.get(v.currency) || 0) + v.cents)
-                }
-                const netEntries = Array.from(netByCurrency.entries())
-                  .map(([currency, cents]) => ({ currency, cents }))
-                  .filter((v) => v.cents !== 0)
-
-                const netPrimary =
-                  netEntries.find((n) => n.currency === 'TRV') ||
-                  netEntries.find((n) => n.currency === 'USD') ||
-                  netEntries[0] ||
-                  null
-
-                const movements = item.values
-                  .filter((v) => v.cents !== 0)
-                  .map((v) => ({ currency: v.currency, cents: v.cents, fee: v.fee }))
-
-                const feeLines = movements
-                  .filter((m) => m.fee)
-                  .map((m) => `${t('statement.feeLabel')}: ${formatUsd(Math.abs(m.cents))} ${m.currency}`)
-
-                const movementLines = movements
-                  .filter((m) => !m.fee)
-                  .sort((a, b) => a.cents - b.cents)
-                  .map((m) => formatSigned(m.currency, m.cents))
-
-                const lines = [...feeLines, ...movementLines]
-                const isPositive = netPrimary ? netPrimary.cents >= 0 : false
-
-                return (
-                  <div 
-                    key={item.id} 
-                    className="tx-item"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div 
-                      className="tx-icon" 
-                      style={{ background: bg, color }}
-                    >
-                      <Icon />
-                    </div>
-                    
-                    <div className="tx-details">
-                      <div className="tx-title">{typeLabel(item.type)}</div>
-                      <div className="tx-meta">
-                        <span className="tx-tec">{item.tec}</span>
-                        {when && (
-                          <>
-                            <span>·</span>
-                            <span>{when}</span>
-                          </>
-                        )}
-                      </div>
-                      {lines.length > 0 && (
-                        <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                          {lines.map((line, i) => (
-                            <span 
-                              key={i}
-                              style={{ 
-                                fontSize: 12, 
-                                color: 'var(--text-tertiary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4
-                              }}
-                            >
-                              <TagIcon />
-                              {line}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="tx-amount">
-                      {netPrimary && (
-                        <>
-                          <div className={`tx-amount-value tabular-nums ${isPositive ? 'tx-amount-positive' : 'tx-amount-negative'}`}>
-                            {netText(netPrimary.cents, netPrimary.currency)}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {items.length > 0 && (
-            <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="text-sm text-secondary">
-                <span style={{ verticalAlign: 'middle', marginRight: 6, display: 'inline-block' }}><ShieldIcon /></span>
-                {t('statement.secureNote')}
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button 
-                  className="btn btn-secondary btn-sm" 
-                  disabled={busy || page === 0} 
-                  onClick={() => load(page - 1)}
-                >
-                  <ChevronLeftIcon />
-                  {t('actions.previous')}
-                </button>
-                <button 
-                  className="btn btn-secondary btn-sm" 
-                  disabled={busy || !hasNext} 
-                  onClick={() => load(page + 1)}
-                >
-                  {t('actions.next')}
-                  <ChevronRightIcon />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Info Footer */}
-      <div style={{ marginTop: 24, textAlign: 'center' }}>
-        <p className="text-sm text-muted">
-          {t('statement.rateNote')} • {t('statement.feeNote')}
+      {/* Info */}
+      <div style={{ marginTop: 24, padding: 20, background: 'var(--bg-subtle)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+        <p className="text-sm text-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <ShieldIcon />
+          {t('statement.secureNote')}
+        </p>
+        <p className="text-sm text-secondary" style={{ marginTop: 8 }}>
+          {t('statement.rateNote')}
+        </p>
+        <p className="text-sm text-secondary" style={{ marginTop: 4 }}>
+          {t('statement.feeNote')}
         </p>
       </div>
     </div>
