@@ -102,6 +102,11 @@ export function Transfer() {
   }
 
   async function executeTransfer() {
+    if (!amount.plain) {
+      setError(t('errors.transfer'))
+      setShowConfirmation(false)
+      return
+    }
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
