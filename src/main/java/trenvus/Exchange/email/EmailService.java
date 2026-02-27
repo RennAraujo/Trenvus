@@ -109,16 +109,8 @@ public class EmailService {
 
 	public void sendEmailChangedNotification(String oldEmail, String newEmail) {
 		String subject = "Your email has been changed";
-		String body = String.format("""
-			Hello,
-
-			Your email address has been changed from %s to %s.
-
-			If you didn't make this change, please contact support immediately.
-
-			Best regards,
-			Trenvus Team
-			""", oldEmail, newEmail);
+		String bodyTemplate = "Hello,\n\nYour email address has been changed from %s to %s.\n\nIf you didn't make this change, please contact support immediately.\n\nBest regards,\nTrenvus Team";
+		String body = String.format(bodyTemplate, oldEmail, newEmail);
 
 		// Try to send via SMTP if configured
 		JavaMailSender sender = getMailSender();
