@@ -319,6 +319,11 @@ export const api = {
       `/admin/users/${encodeURIComponent(String(userId))}/fees?size=${encodeURIComponent(String(size))}`,
       { accessToken },
     ),
+  adminGetUserStatement: (accessToken: string, userId: number, page = 0, size = 20) =>
+    request<{ items: PrivateStatementItem[]; hasNext: boolean }>(
+      `/admin/users/${encodeURIComponent(String(userId))}/statement?page=${page}&size=${size}`,
+      { accessToken },
+    ),
 
   getMarketTickers: (accessToken: string) => request<MarketTicker[]>('/market/tickers', { accessToken }),
   getCryptoTickers: (accessToken: string) => request<MarketTicker[]>('/market/tickers/crypto', { accessToken }),

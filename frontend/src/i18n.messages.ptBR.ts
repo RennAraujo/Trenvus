@@ -360,4 +360,7 @@ export const messagesPtBR: Record<string, string> = {
   'errors.networkError': 'Erro de rede ao acessar a API',
   'errors.requestError': 'Erro na requisição',
   'errors.invalidResponse': 'Resposta inválida da API',
+
+  'admin.users.statement.title': 'Extrato da Conta',
+  'admin.users.statement.empty': 'Nenhuma transação encontrada',
 }

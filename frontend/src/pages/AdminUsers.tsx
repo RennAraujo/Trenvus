@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, formatUsd, type AdminFeeIncomeResponse, type AdminUserSummary } from '../api'
+import { api, formatUsd, type AdminFeeIncomeResponse, type AdminUserSummary, type PrivateStatementItem } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
@@ -47,6 +47,24 @@ const DollarIcon = () => (
   </svg>
 )
 
+const FileTextIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/>
+  </svg>
+)
+
+const ChevronLeftIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m15 18-6-6 6-6"/>
+  </svg>
+)
+
+const ChevronRightIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m9 18 6-6-6-6"/>
+  </svg>
+)
+
 export function AdminUsers() {
   const auth = useAuth()
   const { t } = useI18n()
@@ -56,6 +74,10 @@ export function AdminUsers() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [selectedWallet, setSelectedWallet] = useState<{ usdCents: number; trvCents: number } | null>(null)
   const [feeIncome, setFeeIncome] = useState<AdminFeeIncomeResponse | null>(null)
+  const [statement, setStatement] = useState<PrivateStatementItem[]>([])
+  const [statementPage, setStatementPage] = useState(0)
+  const [statementHasNext, setStatementHasNext] = useState(false)
+  const [statementSize, setStatementSize] = useState(20)
   const [walletUsd, setWalletUsd] = useState('0.00')
   const [walletTrv, setWalletTrv] = useState('0.00')
   const [role, setRole] = useState('USER')
@@ -110,6 +132,24 @@ export function AdminUsers() {
     }
   }
 
+  async function loadStatement(userId: number, page = 0, size = 20) {
+    setError(null)
+    setBusy(true)
+    try {
+      const token = await auth.getValidAccessToken()
+      const data = await api.adminGetUserStatement(token, userId, page, size)
+      setStatement(data.items)
+      setStatementHasNext(data.hasNext)
+      setStatementPage(page)
+    } catch (err: any) {
+      setError(err?.message || t('errors.loadStatement'))
+      setStatement([])
+      setStatementHasNext(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function saveWallet() {
     if (!selectedId) return
     setError(null)
@@ -149,6 +189,7 @@ export function AdminUsers() {
     setRole(selectedUser.role || 'USER')
     void loadWallet(selectedUser.id)
     void loadFeeIncome(selectedUser.id)
+    void loadStatement(selectedUser.id, 0, statementSize)
   }, [selectedUser?.id])
 
   return (
@@ -378,6 +419,108 @@ export function AdminUsers() {
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Statement Section */}
+                    <div style={{ padding: 16, background: 'var(--bg-subtle)', borderRadius: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                        <FileTextIcon />
+                        <span className="font-semibold">{t('admin.users.statement.title') || 'Account Statement'}</span>
+                        <button className="btn btn-ghost btn-sm ml-auto" disabled={busy} onClick={() => loadStatement(selectedUser.id, 0, statementSize)}>
+                          <RefreshIcon />
+                        </button>
+                      </div>
+
+                      {/* Pagination Size Selector */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                        <span className="text-xs text-tertiary">Items per page:</span>
+                        <select 
+                          className="input input-sm" 
+                          value={statementSize} 
+                          onChange={(e) => {
+                            const newSize = Number(e.target.value)
+                            setStatementSize(newSize)
+                            void loadStatement(selectedUser.id, 0, newSize)
+                          }}
+                          style={{ width: 80 }}
+                        >
+                          <option value={20}>20</option>
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 400, overflow: 'auto' }}>
+                        {statement.length ? (
+                          statement.map((tx) => (
+                            <div 
+                              key={tx.id} 
+                              style={{ 
+                                padding: 12, 
+                                background: 'var(--bg-elevated)', 
+                                borderRadius: 8,
+                                border: '1px solid var(--border-subtle)'
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span className="font-mono text-xs text-tertiary">{tx.tec}</span>
+                                <span className="badge badge-secondary">{tx.type}</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                  {tx.usdAmountCents !== null && tx.usdAmountCents !== 0 && (
+                                    <span className={`badge ${tx.usdAmountCents >= 0 ? 'badge-success' : 'badge-danger'}`}>
+                                      {tx.usdAmountCents >= 0 ? '+' : ''}{formatUsd(tx.usdAmountCents)} USD
+                                    </span>
+                                  )}
+                                  {tx.trvAmountCents !== null && tx.trvAmountCents !== 0 && (
+                                    <span className={`badge ${tx.trvAmountCents >= 0 ? 'badge-success' : 'badge-danger'}`}>
+                                      {tx.trvAmountCents >= 0 ? '+' : ''}{formatUsd(tx.trvAmountCents)} TRV
+                                    </span>
+                                  )}
+                                  {tx.feeUsdCents !== null && tx.feeUsdCents > 0 && (
+                                    <span className="badge badge-warning">
+                                      Fee: {formatUsd(tx.feeUsdCents)} USD
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-xs text-muted">
+                                  {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '—'}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center text-muted" style={{ padding: 40 }}>
+                            {t('admin.users.statement.empty') || 'No transactions found'}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Pagination */}
+                      {statement.length > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+                          <button 
+                            className="btn btn-secondary btn-sm" 
+                            disabled={busy || statementPage === 0}
+                            onClick={() => loadStatement(selectedUser.id, statementPage - 1, statementSize)}
+                          >
+                            <ChevronLeftIcon />
+                            Previous
+                          </button>
+                          <span className="text-sm text-secondary">
+                            Page {statementPage + 1}
+                          </span>
+                          <button 
+                            className="btn btn-secondary btn-sm" 
+                            disabled={busy || !statementHasNext}
+                            onClick={() => loadStatement(selectedUser.id, statementPage + 1, statementSize)}
+                          >
+                            Next
+                            <ChevronRightIcon />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

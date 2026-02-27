@@ -360,4 +360,7 @@ export const messagesEn: Record<string, string> = {
   'errors.networkError': 'Network error accessing API',
   'errors.requestError': 'Request error',
   'errors.invalidResponse': 'Invalid API response',
+
+  'admin.users.statement.title': 'Account Statement',
+  'admin.users.statement.empty': 'No transactions found',
 }
