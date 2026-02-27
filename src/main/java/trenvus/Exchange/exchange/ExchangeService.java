@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import trenvus.Exchange.tx.TransactionEntity;
 import trenvus.Exchange.tx.TransactionRepository;
 import trenvus.Exchange.tx.TransactionType;
+import trenvus.Exchange.user.UserRepository;
+import trenvus.Exchange.user.UserRole;
 import trenvus.Exchange.wallet.Currency;
 import trenvus.Exchange.wallet.WalletRepository;
 import trenvus.Exchange.wallet.WalletService;
@@ -20,11 +22,13 @@ public class ExchangeService {
 	private final WalletRepository wallets;
 	private final WalletService walletService;
 	private final TransactionRepository transactions;
+	private final UserRepository users;
 
-	public ExchangeService(WalletRepository wallets, WalletService walletService, TransactionRepository transactions) {
+	public ExchangeService(WalletRepository wallets, WalletService walletService, TransactionRepository transactions, UserRepository users) {
 		this.wallets = wallets;
 		this.walletService = walletService;
 		this.transactions = transactions;
+		this.users = users;
 	}
 
 	@Transactional
@@ -84,6 +88,28 @@ public class ExchangeService {
 
 		usdWallet.setBalanceCents(usdWallet.getBalanceCents() - debitUsd);
 		trvWallet.setBalanceCents(Math.addExact(trvWallet.getBalanceCents(), amountUsdCents));
+
+		// Transfer fee to admin
+		Long adminUserId = getAdminUserId();
+		if (adminUserId != null && feeUsdCents > 0) {
+			walletService.ensureUserWallets(adminUserId);
+			var adminWallets = wallets.findForUpdate(adminUserId, List.of(Currency.USD));
+			var adminUsdWallet = adminWallets.stream()
+					.filter(w -> w.getCurrency() == Currency.USD)
+					.findFirst()
+					.orElse(null);
+			if (adminUsdWallet != null) {
+				adminUsdWallet.setBalanceCents(Math.addExact(adminUsdWallet.getBalanceCents(), feeUsdCents));
+				
+				// Create fee income transaction for admin
+				var adminTx = new TransactionEntity();
+				adminTx.setUserId(adminUserId);
+				adminTx.setType(TransactionType.FEE_INCOME_USD);
+				adminTx.setUsdAmountCents(feeUsdCents);
+				adminTx.setSourceUserId(userId);
+				transactions.save(adminTx);
+			}
+		}
 
 		var tx = new TransactionEntity();
 		tx.setUserId(userId);
@@ -148,6 +174,28 @@ public class ExchangeService {
 		trvWallet.setBalanceCents(trvWallet.getBalanceCents() - amountTrvCents);
 		usdWallet.setBalanceCents(Math.addExact(usdWallet.getBalanceCents(), creditUsd));
 
+		// Transfer fee to admin
+		Long adminUserId = getAdminUserId();
+		if (adminUserId != null && feeUsdCents > 0) {
+			walletService.ensureUserWallets(adminUserId);
+			var adminWallets = wallets.findForUpdate(adminUserId, List.of(Currency.USD));
+			var adminUsdWallet = adminWallets.stream()
+					.filter(w -> w.getCurrency() == Currency.USD)
+					.findFirst()
+					.orElse(null);
+			if (adminUsdWallet != null) {
+				adminUsdWallet.setBalanceCents(Math.addExact(adminUsdWallet.getBalanceCents(), feeUsdCents));
+				
+				// Create fee income transaction for admin
+				var adminTx = new TransactionEntity();
+				adminTx.setUserId(adminUserId);
+				adminTx.setType(TransactionType.FEE_INCOME_USD);
+				adminTx.setUsdAmountCents(feeUsdCents);
+				adminTx.setSourceUserId(userId);
+				transactions.save(adminTx);
+			}
+		}
+
 		var tx = new TransactionEntity();
 		tx.setUserId(userId);
 		tx.setType(TransactionType.CONVERT_TRV_TO_USD);
@@ -178,6 +226,13 @@ public class ExchangeService {
 			throw new IllegalArgumentException("Valor deve ser no mínimo 1.00");
 		}
 		return fee;
+	}
+
+	private Long getAdminUserId() {
+		var admin = users.findAll().stream()
+				.filter(u -> u.getRole() == UserRole.ADMIN)
+				.findFirst();
+		return admin.map(trenvus.Exchange.user.UserEntity::getId).orElse(null);
 	}
 
 	public record WalletOperationResult(long usdCents, long trvCents, Long transactionId) {}
