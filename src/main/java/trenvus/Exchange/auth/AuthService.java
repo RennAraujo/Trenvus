@@ -44,7 +44,7 @@ public class AuthService {
 	}
 
 	@Transactional
-	public AuthResult register(String email, String password) {
+	public AuthResult register(String email, String password, String nickname, String phone) {
 		logger.info("Register attempt for: {}", email);
 		if (users.existsByEmail(email)) {
 			throw new AuthExceptions.EmailAlreadyRegisteredException();
@@ -53,6 +53,15 @@ public class AuthService {
 		var user = new UserEntity();
 		user.setEmail(email);
 		user.setPasswordHash(passwordEncoder.encode(password));
+		
+		// Set optional fields
+		if (nickname != null && !nickname.isBlank()) {
+			user.setNickname(nickname.trim());
+		}
+		if (phone != null && !phone.isBlank()) {
+			user.setPhone(phone.trim());
+		}
+		
 		user = users.save(user);
 		walletService.ensureUserWallets(user.getId());
 

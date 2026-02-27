@@ -51,7 +51,7 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-		var result = authService.register(request.email(), request.password());
+		var result = authService.register(request.email(), request.password(), request.nickname(), request.phone());
 		return ResponseEntity.ok(AuthResponse.from(result));
 	}
 
@@ -118,7 +118,7 @@ public class AuthController {
 		return ResponseEntity.ok(AuthResponse.from(result));
 	}
 
-	public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password) {}
+	public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password, String nickname, String phone) {}
 
 	public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {}
 
