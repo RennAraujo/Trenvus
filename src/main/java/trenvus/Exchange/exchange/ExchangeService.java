@@ -91,6 +91,7 @@ public class ExchangeService {
 
 		// Transfer fee to admin
 		Long adminUserId = getAdminUserId();
+		System.out.println("DEBUG USD->TRV: Admin user ID found: " + adminUserId);
 		if (adminUserId != null && feeUsdCents > 0) {
 			walletService.ensureUserWallets(adminUserId);
 			var adminWallets = wallets.findForUpdate(adminUserId, List.of(Currency.USD));
@@ -98,8 +99,10 @@ public class ExchangeService {
 					.filter(w -> w.getCurrency() == Currency.USD)
 					.findFirst()
 					.orElse(null);
+			System.out.println("DEBUG USD->TRV: Admin USD wallet found: " + (adminUsdWallet != null));
 			if (adminUsdWallet != null) {
 				adminUsdWallet.setBalanceCents(Math.addExact(adminUsdWallet.getBalanceCents(), feeUsdCents));
+				System.out.println("DEBUG USD->TRV: Fee transferred to admin: " + feeUsdCents);
 				
 				// Create fee income transaction for admin
 				var adminTx = new TransactionEntity();
@@ -229,10 +232,21 @@ public class ExchangeService {
 	}
 
 	private Long getAdminUserId() {
+		// Try to find by ADMIN role
 		var admin = users.findAll().stream()
-				.filter(u -> u.getRole() == UserRole.ADMIN)
+				.filter(u -> u.getRole() != null && "ADMIN".equals(u.getRole().name()))
 				.findFirst();
-		return admin.map(trenvus.Exchange.user.UserEntity::getId).orElse(null);
+		
+		if (admin.isPresent()) {
+			return admin.get().getId();
+		}
+		
+		// Fallback: try to find by email pattern
+		var adminByEmail = users.findAll().stream()
+				.filter(u -> u.getEmail() != null && u.getEmail().toLowerCase().contains("admin"))
+				.findFirst();
+		
+		return adminByEmail.map(trenvus.Exchange.user.UserEntity::getId).orElse(null);
 	}
 
 	public record WalletOperationResult(long usdCents, long trvCents, Long transactionId) {}
