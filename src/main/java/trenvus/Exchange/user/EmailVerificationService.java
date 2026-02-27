@@ -104,4 +104,3 @@ public class EmailVerificationService {
 
 	public record VerificationResult(Long userId, String email, String tokenType) {}
 }
-}
