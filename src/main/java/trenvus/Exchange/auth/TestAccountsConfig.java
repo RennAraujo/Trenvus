@@ -52,7 +52,7 @@ public class TestAccountsConfig {
 		var password = legacyPassword == null || legacyPassword.isBlank() ? "123" : legacyPassword;
 		var email1 = legacyEmail == null || legacyEmail.isBlank() ? "user1@test.com" : legacyEmail;
 		return List.of(
-				new TestAccount(email1, password, UserRole.ADMIN),
+				new TestAccount(email1, password, UserRole.USER),
 				new TestAccount("user2@test.com", password, UserRole.USER),
 				new TestAccount("user3@test.com", password, UserRole.USER)
 		);
