@@ -118,7 +118,7 @@ public class EmailService {
 
 			Best regards,
 			Trenvus Team
-			"", oldEmail, newEmail);
+			""", oldEmail, newEmail);
 
 		// Try to send via SMTP if configured
 		JavaMailSender sender = getMailSender();
