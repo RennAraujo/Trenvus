@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { jsPDF } from 'jspdf'
 import { api, formatUsd, type AdminFeeIncomeResponse, type AdminUserSummary, type AdminStatementItem } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
@@ -160,38 +161,178 @@ export function AdminUsers() {
     if (!selectedUser || statement.length === 0) return
 
     const userEmail = selectedUser.email || `user-${selectedUser.id}`
+    const userName = selectedUser.email?.split('@')[0] || `User ${selectedUser.id}`
     const dateStr = new Date().toISOString().split('T')[0]
-    const filename = `statement-${userEmail}-${dateStr}.txt`
+    const filename = `statement-${userEmail}-${dateStr}.pdf`
 
-    // Build CSV content
-    const headers = ['TEC', 'Type', 'Date', 'USD Amount', 'TRV Amount', 'Fee USD']
-    const rows = statement.map(tx => [
-      tx.tec,
-      tx.type,
-      tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '—',
-      tx.usdAmountCents !== null ? (tx.usdAmountCents / 100).toFixed(2) : '0.00',
-      tx.trvAmountCents !== null ? (tx.trvAmountCents / 100).toFixed(2) : '0.00',
-      tx.feeUsdCents !== null ? (tx.feeUsdCents / 100).toFixed(2) : '0.00'
-    ])
+    // Calculate totals
+    let totalUsdIn = 0, totalUsdOut = 0
+    let totalTrvIn = 0, totalTrvOut = 0
+    let totalFees = 0
 
-    const csvContent = [
-      `Account Statement for: ${userEmail}`,
-      `Generated: ${new Date().toLocaleString()}`,
-      '',
-      headers.join(','),
-      ...rows.map(r => r.join(',')),
-      '',
-      `Total Transactions: ${statement.length}`
-    ].join('\n')
+    for (const tx of statement) {
+      if (tx.usdAmountCents && tx.usdAmountCents > 0) totalUsdIn += tx.usdAmountCents
+      if (tx.usdAmountCents && tx.usdAmountCents < 0) totalUsdOut += Math.abs(tx.usdAmountCents)
+      if (tx.trvAmountCents && tx.trvAmountCents > 0) totalTrvIn += tx.trvAmountCents
+      if (tx.trvAmountCents && tx.trvAmountCents < 0) totalTrvOut += Math.abs(tx.trvAmountCents)
+      if (tx.feeUsdCents) totalFees += tx.feeUsdCents
+    }
 
-    // Download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = filename.replace(/[^a-zA-Z0-9.-]/g, '_')
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // Create PDF
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' })
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const margin = 40
+    let y = 40
+
+    // Header with user info
+    doc.setFillColor(0, 102, 204)
+    doc.rect(0, 0, pageWidth, 100, 'F')
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(24)
+    doc.setTextColor(255, 255, 255)
+    doc.text('Account Statement', margin, 60)
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(12)
+    doc.text(`User: ${userName}`, margin, 85)
+    doc.text(`Email: ${userEmail}`, margin + 200, 85)
+
+    y = 120
+
+    // Generated date
+    doc.setFontSize(10)
+    doc.setTextColor(100, 100, 100)
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y)
+    y += 30
+
+    // Summary Section
+    doc.setFillColor(245, 245, 250)
+    doc.roundedRect(margin, y, pageWidth - margin * 2, 100, 4, 4, 'F')
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(12)
+    doc.setTextColor(0, 0, 0)
+    doc.text('Summary', margin + 10, y + 20)
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(80, 80, 80)
+
+    const col1 = margin + 10
+    const col2 = margin + 180
+    const col3 = margin + 350
+
+    doc.text('USD In:', col1, y + 45)
+    doc.text('USD Out:', col1, y + 65)
+    doc.text('TRV In:', col2, y + 45)
+    doc.text('TRV Out:', col2, y + 65)
+    doc.text('Total Fees:', col3, y + 45)
+
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 0, 0)
+    doc.text(`+${formatUsd(totalUsdIn)} USD`, col1 + 70, y + 45)
+    doc.text(`-${formatUsd(totalUsdOut)} USD`, col1 + 70, y + 65)
+    doc.text(`+${formatUsd(totalTrvIn)} TRV`, col2 + 70, y + 45)
+    doc.text(`-${formatUsd(totalTrvOut)} TRV`, col2 + 70, y + 65)
+    doc.text(`${formatUsd(totalFees)} USD`, col3 + 70, y + 45)
+
+    y += 120
+
+    // Transactions Table Header
+    doc.setFillColor(0, 102, 204)
+    doc.rect(margin, y, pageWidth - margin * 2, 25, 'F')
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(255, 255, 255)
+    doc.text('Date', margin + 10, y + 16)
+    doc.text('TEC', margin + 120, y + 16)
+    doc.text('Type', margin + 220, y + 16)
+    doc.text('USD', margin + 320, y + 16)
+    doc.text('TRV', margin + 400, y + 16)
+    doc.text('Fee', margin + 480, y + 16)
+
+    y += 35
+
+    // Transactions
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(0, 0, 0)
+
+    for (const tx of statement) {
+      // Check if we need a new page
+      if (y > pageHeight - 60) {
+        doc.addPage()
+        y = 40
+
+        // Repeat header on new page
+        doc.setFillColor(0, 102, 204)
+        doc.rect(margin, y, pageWidth - margin * 2, 25, 'F')
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.setTextColor(255, 255, 255)
+        doc.text('Date', margin + 10, y + 16)
+        doc.text('TEC', margin + 120, y + 16)
+        doc.text('Type', margin + 220, y + 16)
+        doc.text('USD', margin + 320, y + 16)
+        doc.text('TRV', margin + 400, y + 16)
+        doc.text('Fee', margin + 480, y + 16)
+        y += 35
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        doc.setTextColor(0, 0, 0)
+      }
+
+      // Date
+      const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '-'
+      doc.text(dateStr, margin + 10, y)
+
+      // TEC
+      doc.text(tx.tec, margin + 120, y)
+
+      // Type
+      doc.text(tx.type, margin + 220, y)
+
+      // USD
+      if (tx.usdAmountCents !== null && tx.usdAmountCents !== 0) {
+        const usdValue = (tx.usdAmountCents / 100).toFixed(2)
+        const usdText = tx.usdAmountCents >= 0 ? `+${usdValue}` : usdValue
+        doc.setTextColor(tx.usdAmountCents >= 0 ? 0 : 200, tx.usdAmountCents >= 0 ? 150 : 0, 0)
+        doc.text(`${usdText} USD`, margin + 320, y)
+        doc.setTextColor(0, 0, 0)
+      }
+
+      // TRV
+      if (tx.trvAmountCents !== null && tx.trvAmountCents !== 0) {
+        const trvValue = (tx.trvAmountCents / 100).toFixed(2)
+        const trvText = tx.trvAmountCents >= 0 ? `+${trvValue}` : trvValue
+        doc.setTextColor(tx.trvAmountCents >= 0 ? 0 : 200, tx.trvAmountCents >= 0 ? 150 : 0, 0)
+        doc.text(`${trvText} TRV`, margin + 400, y)
+        doc.setTextColor(0, 0, 0)
+      }
+
+      // Fee
+      if (tx.feeUsdCents !== null && tx.feeUsdCents > 0) {
+        doc.text(`${(tx.feeUsdCents / 100).toFixed(2)} USD`, margin + 480, y)
+      }
+
+      y += 20
+    }
+
+    // Footer
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9)
+      doc.setTextColor(150, 150, 150)
+      doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 20, { align: 'center' })
+    }
+
+    // Download
+    doc.save(filename.replace(/[^a-zA-Z0-9.-]/g, '_'))
   }
 
   async function saveWallet() {
