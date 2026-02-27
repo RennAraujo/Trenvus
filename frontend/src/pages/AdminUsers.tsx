@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, formatUsd, type AdminFeeIncomeResponse, type AdminUserSummary, type PrivateStatementItem } from '../api'
+import { api, formatUsd, type AdminFeeIncomeResponse, type AdminUserSummary, type AdminStatementItem } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
@@ -74,7 +74,7 @@ export function AdminUsers() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [selectedWallet, setSelectedWallet] = useState<{ usdCents: number; trvCents: number } | null>(null)
   const [feeIncome, setFeeIncome] = useState<AdminFeeIncomeResponse | null>(null)
-  const [statement, setStatement] = useState<PrivateStatementItem[]>([])
+  const [statement, setStatement] = useState<AdminStatementItem[]>([])
   const [statementPage, setStatementPage] = useState(0)
   const [statementHasNext, setStatementHasNext] = useState(false)
   const [statementSize, setStatementSize] = useState(20)

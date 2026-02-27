@@ -48,6 +48,17 @@ export type PrivateStatementItem = {
   values: Array<{ currency: string; cents: number; fee: boolean }>
 }
 
+export type AdminStatementItem = {
+  id: number
+  tec: string
+  type: string
+  createdAt: string | null
+  usdAmountCents: number | null
+  trvAmountCents: number | null
+  feeUsdCents: number | null
+  sourceUserId: number | null
+}
+
 export type AdminUserSummary = {
   id: number
   email: string | null
@@ -320,7 +331,7 @@ export const api = {
       { accessToken },
     ),
   adminGetUserStatement: (accessToken: string, userId: number, page = 0, size = 20) =>
-    request<{ items: PrivateStatementItem[]; hasNext: boolean }>(
+    request<{ items: AdminStatementItem[]; hasNext: boolean }>(
       `/admin/users/${encodeURIComponent(String(userId))}/statement?page=${page}&size=${size}`,
       { accessToken },
     ),
