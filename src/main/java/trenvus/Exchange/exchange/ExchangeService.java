@@ -91,7 +91,6 @@ public class ExchangeService {
 
 		// Transfer fee to admin
 		Long adminUserId = getAdminUserId();
-		System.out.println("DEBUG USD->TRV: Admin user ID found: " + adminUserId);
 		if (adminUserId != null && feeUsdCents > 0) {
 			walletService.ensureUserWallets(adminUserId);
 			var adminWallets = wallets.findForUpdate(adminUserId, List.of(Currency.USD));
@@ -99,10 +98,8 @@ public class ExchangeService {
 					.filter(w -> w.getCurrency() == Currency.USD)
 					.findFirst()
 					.orElse(null);
-			System.out.println("DEBUG USD->TRV: Admin USD wallet found: " + (adminUsdWallet != null));
 			if (adminUsdWallet != null) {
 				adminUsdWallet.setBalanceCents(Math.addExact(adminUsdWallet.getBalanceCents(), feeUsdCents));
-				System.out.println("DEBUG USD->TRV: Fee transferred to admin: " + feeUsdCents);
 				
 				// Create fee income transaction for admin
 				var adminTx = new TransactionEntity();
