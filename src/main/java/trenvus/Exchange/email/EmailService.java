@@ -60,24 +60,20 @@ public class EmailService {
 
 		String verificationUrl = appBaseUrl + "/verify-email?token=" + token;
 
-		String body = String.format("""
-			Hello,
+		String greeting = tokenType.equals("REGISTRATION") 
+				? "Thank you for registering!" 
+				: "You requested to change your email.";
 
-			%s
-
-			Please click the link below to verify your email:
-			%s
-
-			This link will expire in 24 hours.
-
-			If you didn't request this, please ignore this email.
-
-			Best regards,
-			Trenvus Team
-			"",
-			tokenType.equals("REGISTRATION") ? "Thank you for registering!" : "You requested to change your email.",
-			verificationUrl
-		);
+		StringBuilder bodyBuilder = new StringBuilder();
+		bodyBuilder.append("Hello,\n\n");
+		bodyBuilder.append(greeting).append("\n\n");
+		bodyBuilder.append("Please click the link below to verify your email:\n");
+		bodyBuilder.append(verificationUrl).append("\n\n");
+		bodyBuilder.append("This link will expire in 24 hours.\n\n");
+		bodyBuilder.append("If you didn't request this, please ignore this email.\n\n");
+		bodyBuilder.append("Best regards,\n");
+		bodyBuilder.append("Trenvus Team");
+		String body = bodyBuilder.toString();
 
 		// Try to send via SMTP if configured
 		JavaMailSender sender = getMailSender();
@@ -109,8 +105,14 @@ public class EmailService {
 
 	public void sendEmailChangedNotification(String oldEmail, String newEmail) {
 		String subject = "Your email has been changed";
-		String bodyTemplate = "Hello,\n\nYour email address has been changed from %s to %s.\n\nIf you didn't make this change, please contact support immediately.\n\nBest regards,\nTrenvus Team";
-		String body = String.format(bodyTemplate, oldEmail, newEmail);
+		
+		StringBuilder bodyBuilder = new StringBuilder();
+		bodyBuilder.append("Hello,\n\n");
+		bodyBuilder.append("Your email address has been changed from ").append(oldEmail).append(" to ").append(newEmail).append(".\n\n");
+		bodyBuilder.append("If you didn't make this change, please contact support immediately.\n\n");
+		bodyBuilder.append("Best regards,\n");
+		bodyBuilder.append("Trenvus Team");
+		String body = bodyBuilder.toString();
 
 		// Try to send via SMTP if configured
 		JavaMailSender sender = getMailSender();
