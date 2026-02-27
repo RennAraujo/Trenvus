@@ -363,4 +363,5 @@ export const messagesEn: Record<string, string> = {
 
   'admin.users.statement.title': 'Account Statement',
   'admin.users.statement.empty': 'No transactions found',
+  'admin.users.statement.export': 'Export',
 }

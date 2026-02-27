@@ -363,4 +363,5 @@ export const messagesPtBR: Record<string, string> = {
 
   'admin.users.statement.title': 'Extrato da Conta',
   'admin.users.statement.empty': 'Nenhuma transação encontrada',
+  'admin.users.statement.export': 'Exportar',
 }
