@@ -93,5 +93,15 @@ public class EmailVerificationService {
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
 	}
 
+	@Transactional
+	public void markEmailAsVerified(Long userId) {
+		var user = userRepository.findById(userId)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+		user.setEmailVerified(true);
+		userRepository.save(user);
+		System.out.println("User email marked as verified: " + user.getEmail());
+	}
+
 	public record VerificationResult(Long userId, String email, String tokenType) {}
+}
 }

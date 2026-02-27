@@ -29,6 +29,9 @@ public class EmailVerificationController {
 		// Complete the email change if this was an email change verification
 		if ("EMAIL_CHANGE".equals(result.tokenType())) {
 			verificationService.completeEmailVerification(result.userId(), result.email());
+		} else if ("REGISTRATION".equals(result.tokenType())) {
+			// Mark user's email as verified for registration
+			verificationService.markEmailAsVerified(result.userId());
 		}
 		
 		return ResponseEntity.ok(new VerifyResponse(
