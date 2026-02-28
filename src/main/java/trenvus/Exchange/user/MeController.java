@@ -1,7 +1,6 @@
 package trenvus.Exchange.user;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Base64;
@@ -11,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,16 +31,14 @@ public class MeController {
 	private final TransactionRepository transactions;
 	private final RefreshTokenRepository refreshTokens;
 	private final PasswordEncoder passwordEncoder;
-	private final EmailVerificationService emailVerificationService;
 	private static final long AVATAR_MAX_BYTES = 1_000_000;
 
-	public MeController(UserRepository users, WalletRepository wallets, TransactionRepository transactions, RefreshTokenRepository refreshTokens, PasswordEncoder passwordEncoder, EmailVerificationService emailVerificationService) {
+	public MeController(UserRepository users, WalletRepository wallets, TransactionRepository transactions, RefreshTokenRepository refreshTokens, PasswordEncoder passwordEncoder) {
 		this.users = users;
 		this.wallets = wallets;
 		this.transactions = transactions;
 		this.refreshTokens = refreshTokens;
 		this.passwordEncoder = passwordEncoder;
-		this.emailVerificationService = emailVerificationService;
 	}
 
 	@GetMapping
@@ -59,22 +55,6 @@ public class MeController {
 		user.setPhone(request.phone().trim());
 		user = users.save(user);
 		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
-	}
-
-	@PostMapping("/email-change-request")
-	public ResponseEntity<EmailChangeResponse> requestEmailChange(@Valid @RequestBody EmailChangeRequest request, @AuthenticationPrincipal Jwt jwt) {
-		Long userId = Long.valueOf(jwt.getSubject());
-		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-		
-		// Check if email is already in use
-		if (users.existsByEmail(request.newEmail())) {
-			throw new IllegalArgumentException("Email already registered");
-		}
-		
-		// Create verification token
-		String token = emailVerificationService.createVerificationToken(userId, request.newEmail(), "EMAIL_CHANGE");
-		
-		return ResponseEntity.ok(new EmailChangeResponse("Verification email sent", request.newEmail()));
 	}
 
 	@PutMapping("/password")
@@ -175,10 +155,6 @@ public class MeController {
 	public record ChangePasswordRequest(@NotBlank String currentPassword, @NotBlank @Size(min = 4) String newPassword) {}
 
 	public record DeleteAccountRequest(@NotBlank String email, @NotBlank String password) {}
-
-	public record EmailChangeRequest(@NotBlank @Email String newEmail) {}
-
-	public record EmailChangeResponse(String message, String newEmail) {}
 
 	public record MeResponse(String email, String nickname, String phone, String avatarDataUrl) {}
 }

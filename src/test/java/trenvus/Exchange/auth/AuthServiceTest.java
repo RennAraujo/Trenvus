@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import trenvus.Exchange.user.EmailVerificationService;
 import trenvus.Exchange.user.UserEntity;
 import trenvus.Exchange.user.UserRepository;
 import trenvus.Exchange.wallet.WalletService;
@@ -40,9 +39,6 @@ class AuthServiceTest {
 
     @Mock
     private WalletService walletService;
-
-    @Mock
-    private EmailVerificationService emailVerificationService;
 
     @InjectMocks
     private AuthService authService;
@@ -82,7 +78,6 @@ class AuthServiceTest {
         assertEquals("refresh_token", result.refreshToken());
         verify(users).save(any(UserEntity.class));
         verify(walletService).ensureUserWallets(1L);
-        verify(emailVerificationService).createVerificationToken(1L, email, "REGISTRATION");
     }
 
     @Test
@@ -95,24 +90,6 @@ class AuthServiceTest {
         assertThrows(AuthExceptions.EmailAlreadyRegisteredException.class, () -> {
             authService.register(email, "password", null, null);
         });
-    }
-
-    @Test
-    void register_ShouldNotFail_WhenEmailServiceThrowsException() {
-        // Given
-        String email = "test@example.com";
-        when(users.existsByEmail(email)).thenReturn(false);
-        when(passwordEncoder.encode(any())).thenReturn("encoded");
-        when(users.save(any())).thenReturn(testUser);
-        when(tokenService.createAccessToken(any(), any())).thenReturn(new TokenService.AccessTokenResult("token", Instant.now()));
-        when(tokenService.createRefreshToken(any())).thenReturn(new TokenService.RefreshTokenResult("refresh", "hash", Instant.now()));
-        doThrow(new RuntimeException("Email service failed")).when(emailVerificationService).createVerificationToken(anyLong(), any(), any());
-
-        // When
-        AuthService.AuthResult result = authService.register(email, "password", null, null);
-
-        // Then
-        assertNotNull(result);  // Should not fail even if email service fails
     }
 
     @Test
