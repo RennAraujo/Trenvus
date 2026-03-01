@@ -33,6 +33,7 @@ services:
       SMTP_PASSWORD: gyme rbuj myiv lify
       SMTP_FROM: noreply@trenvus.com
       APP_BASE_URL: http://localhost:3000
+      API_BASE_URL: http://localhost:8080
       # Test accounts
       TEST_ACCOUNT_ENABLED: "true"
       TEST_ACCOUNTS: "user1@test.com:123:ADMIN;user2@test.com:123:USER;user3@test.com:123:USER"

@@ -20,13 +20,16 @@ public class EmailService {
     @Value("${APP_BASE_URL:http://localhost:3000}")
     private String appBaseUrl;
 
+    @Value("${API_BASE_URL:http://localhost:8080}")
+    private String apiBaseUrl;
+
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
 
     public void sendRegistrationConfirmation(String toEmail, String token) throws MessagingException, UnsupportedEncodingException {
         String subject = "Confirme seu cadastro - Trenvus";
-        String confirmationUrl = appBaseUrl + "/confirm-registration?token=" + token;
+        String confirmationUrl = apiBaseUrl + "/auth/confirm-registration?token=" + token;
         String htmlContent = buildRegistrationEmail(confirmationUrl);
         sendHtmlEmail(toEmail, subject, htmlContent);
     }

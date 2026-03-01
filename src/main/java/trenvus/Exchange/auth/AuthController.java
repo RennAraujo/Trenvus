@@ -68,9 +68,9 @@ public class AuthController {
 		}
 	}
 
-	@PostMapping("/confirm-registration")
+	@GetMapping("/confirm-registration")
 	public ResponseEntity<ConfirmationResponse> confirmRegistration(@RequestParam @NotBlank String token) {
-		logger.info("Registration confirmation requested");
+		logger.info("Registration confirmation requested with token: {}", token.substring(0, Math.min(10, token.length())) + "...");
 		try {
 			var result = registrationService.confirmRegistration(token);
 			logger.info("Registration confirmed for: {}", result.getEmail());
@@ -79,6 +79,9 @@ public class AuthController {
 		} catch (IllegalArgumentException e) {
 			logger.warn("Registration confirmation failed: {}", e.getMessage());
 			return ResponseEntity.badRequest().body(new ConfirmationResponse("error", e.getMessage(), null, null, null));
+		} catch (Exception e) {
+			logger.error("Registration confirmation error: {}", e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ConfirmationResponse("error", "Failed to confirm registration", null, null, null));
 		}
 	}
 
