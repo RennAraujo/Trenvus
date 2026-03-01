@@ -81,10 +81,20 @@ public class RegistrationService {
 
     @Transactional
     public UserEntity confirmRegistration(String token) {
-        logger.info("Confirming registration with token");
+        logger.info("Confirming registration with token: {}", token.substring(0, Math.min(10, token.length())) + "...");
+        
+        // Log para debug - verificar tokens no banco
+        var allPending = pendingRepository.findAll();
+        logger.info("Total pending registrations in DB: {}", allPending.size());
+        for (var p : allPending) {
+            logger.info("Pending: email={}, token={}...", p.getEmail(), p.getToken().substring(0, Math.min(10, p.getToken().length())));
+        }
         
         PendingRegistration pending = pendingRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired token"));
+                .orElseThrow(() -> {
+                    logger.warn("Token not found in database: {}...", token.substring(0, Math.min(10, token.length())));
+                    return new IllegalArgumentException("Invalid or expired token");
+                });
 
         if (pending.isExpired()) {
             pendingRepository.delete(pending);
