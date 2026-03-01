@@ -29,7 +29,7 @@ public class EmailService {
 
     public void sendRegistrationConfirmation(String toEmail, String token) throws MessagingException, UnsupportedEncodingException {
         String subject = "Confirme seu cadastro - Trenvus";
-        String confirmationUrl = apiBaseUrl + "/auth/confirm-registration?token=" + token;
+        String confirmationUrl = appBaseUrl + "/confirm-registration?token=" + token;
         String htmlContent = buildRegistrationEmail(confirmationUrl);
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
