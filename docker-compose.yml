@@ -36,7 +36,7 @@ services:
       API_BASE_URL: http://localhost:8080
       # Test accounts
       TEST_ACCOUNT_ENABLED: "true"
-      TEST_ACCOUNTS: "user1@test.com:123:ADMIN;user2@test.com:123:USER;user3@test.com:123:USER"
+      TEST_ACCOUNTS: "user1@test.com:123:USER;user2@test.com:123:USER;user3@test.com:123:USER"
       # Admin account
       ADMIN_ACCOUNT_ENABLED: "true"
       ADMIN_LOGIN_ENABLED: "true"
