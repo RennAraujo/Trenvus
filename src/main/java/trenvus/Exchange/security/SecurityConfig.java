@@ -45,6 +45,7 @@ public class SecurityConfig {
 					logger.info("Configuring authorizeHttpRequests");
 					auth.requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/register")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/confirm-registration")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/login")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/test-login")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/admin-login")).permitAll()
@@ -66,6 +67,7 @@ public class SecurityConfig {
 						String path = request.getRequestURI();
 						logger.debug("BearerTokenResolver - path: {}", path);
 						if (path.startsWith("/auth/register") || 
+						    path.startsWith("/auth/confirm-registration") ||
 						    path.startsWith("/auth/login") ||
 						    path.startsWith("/auth/test-login") ||
 						    path.startsWith("/auth/admin-login") ||
