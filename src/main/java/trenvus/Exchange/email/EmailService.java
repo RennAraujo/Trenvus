@@ -1,7 +1,9 @@
 package trenvus.Exchange.email;
 
+import jakarta.activation.DataSource;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -51,7 +53,10 @@ public class EmailService {
         helper.setTo(toEmail);
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
-        helper.addAttachment(fileName, new jakarta.mail.util.ByteArrayDataSource(pdfBytes, "application/pdf"));
+        
+        DataSource dataSource = new ByteArrayDataSource(pdfBytes, "application/pdf");
+        helper.addAttachment(fileName, dataSource);
+        
         mailSender.send(message);
     }
 

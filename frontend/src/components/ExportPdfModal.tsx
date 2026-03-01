@@ -35,14 +35,14 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
       
       if (response.status === 'success') {
         setSendStatus('success')
-        setSendMessage(response.message)
+        setSendMessage('PDF enviado com sucesso! Verifique sua caixa de entrada.')
       } else {
         setSendStatus('error')
-        setSendMessage(response.message || 'Failed to send email')
+        setSendMessage('Não foi possível enviar o email. Tente novamente mais tarde.')
       }
     } catch (error: any) {
       setSendStatus('error')
-      setSendMessage(error?.message || 'Failed to send email')
+      setSendMessage('Erro de conexão. Verifique sua internet e tente novamente.')
     } finally {
       setIsSending(false)
     }
