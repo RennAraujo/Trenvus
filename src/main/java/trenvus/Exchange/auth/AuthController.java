@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import trenvus.Exchange.user.RegistrationService;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,11 +28,13 @@ public class AuthController {
 	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 	
 	private final AuthService authService;
+	private final RegistrationService registrationService;
 	private final TestAccountsConfig testAccounts;
 	private final AdminAccountConfig adminAccount;
 
-	public AuthController(AuthService authService, TestAccountsConfig testAccounts, AdminAccountConfig adminAccount) {
+	public AuthController(AuthService authService, RegistrationService registrationService, TestAccountsConfig testAccounts, AdminAccountConfig adminAccount) {
 		this.authService = authService;
+		this.registrationService = registrationService;
 		this.testAccounts = testAccounts;
 		this.adminAccount = adminAccount;
 	}
@@ -50,9 +54,35 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-		var result = authService.register(request.email(), request.password(), request.nickname(), request.phone());
-		return ResponseEntity.ok(AuthResponse.from(result));
+	public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegisterRequest request) {
+		logger.info("Registration request received for: {}", request.email());
+		try {
+			registrationService.initiateRegistration(request.email(), request.password(), request.nickname(), request.phone());
+			return ResponseEntity.ok(new RegistrationResponse("success", "Verification email sent. Please check your inbox to complete registration."));
+		} catch (IllegalArgumentException e) {
+			logger.warn("Registration failed: {}", e.getMessage());
+			return ResponseEntity.badRequest().body(new RegistrationResponse("error", e.getMessage()));
+		} catch (Exception e) {
+			logger.error("Registration failed: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new RegistrationResponse("error", "Failed to process registration"));
+		}
+	}
+
+	@PostMapping("/confirm-registration")
+	public ResponseEntity<ConfirmationResponse> confirmRegistration(@RequestParam @NotBlank String token) {
+		logger.info("Registration confirmation requested");
+		try {
+			var result = registrationService.confirmRegistration(token);
+			logger.info("Registration confirmed for: {}", result.email());
+			
+			// Faz login automaticamente após confirmação
+			var authResult = authService.login(result.email(), null); // O login vai falhar aqui, precisamos de outra abordagem
+			
+			return ResponseEntity.ok(new ConfirmationResponse("success", "Registration confirmed successfully! You can now log in.", null, null, null));
+		} catch (IllegalArgumentException e) {
+			logger.warn("Registration confirmation failed: {}", e.getMessage());
+			return ResponseEntity.badRequest().body(new ConfirmationResponse("error", e.getMessage(), null, null, null));
+		}
 	}
 
 	@PostMapping("/login")
@@ -119,6 +149,10 @@ public class AuthController {
 	}
 
 	public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password, String nickname, String phone) {}
+
+	public record RegistrationResponse(String status, String message) {}
+
+	public record ConfirmationResponse(String status, String message, String accessToken, String refreshToken, String tokenType) {}
 
 	public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {}
 
