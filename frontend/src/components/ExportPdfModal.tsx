@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useI18n } from '../i18n'
 import { api } from '../api'
 import { useAuth } from '../auth'
 
@@ -12,7 +11,6 @@ interface ExportPdfModalProps {
 }
 
 export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName }: ExportPdfModalProps) {
-  const { t } = useI18n()
   const auth = useAuth()
   const [isSending, setIsSending] = useState(false)
   const [sendStatus, setSendStatus] = useState<'idle' | 'success' | 'error'>('idle')
