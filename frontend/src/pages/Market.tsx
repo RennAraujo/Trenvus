@@ -362,11 +362,22 @@ export function Market() {
       </div>
 
       {error && (
-        <div className="alert alert-error" style={{ marginBottom: 24 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
-          </svg>
-          {error}
+        <div className="alert" style={{ 
+          marginBottom: 24, 
+          background: 'rgba(245, 158, 11, 0.1)', 
+          border: '1px solid rgba(245, 158, 11, 0.3)',
+          borderRadius: 12,
+          padding: '16px 20px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+            </svg>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, color: '#f59e0b' }}>Market Data Temporarily Unavailable</p>
+              <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-secondary)' }}>We're having trouble connecting to our market data provider. Please try again later.</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -392,7 +403,39 @@ export function Market() {
 
       {/* Market Cards */}
       <div className="grid grid-cols-2 md:grid-cols-1" style={{ gap: 20, marginBottom: 32 }}>
+        {selectedCategory === 'crypto' && cryptoTickers.length === 0 && !busy && (
+          <div style={{ 
+            gridColumn: '1 / -1', 
+            textAlign: 'center', 
+            padding: '40px 20px',
+            background: 'var(--bg-subtle)',
+            borderRadius: 12,
+            border: '1px dashed var(--border-color)'
+          }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" style={{ marginBottom: 16 }}>
+              <circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4"/><path d="M12 16V8"/>
+            </svg>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', fontWeight: 500 }}>No market data available</p>
+            <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--text-muted)' }}>Please check your connection and try refreshing.</p>
+          </div>
+        )}
         {selectedCategory === 'crypto' && cryptoTickers.map((t) => renderTickerCard(t, true))}
+        {selectedCategory === 'fiat' && fiatTickers.length === 0 && !busy && (
+          <div style={{ 
+            gridColumn: '1 / -1', 
+            textAlign: 'center', 
+            padding: '40px 20px',
+            background: 'var(--bg-subtle)',
+            borderRadius: 12,
+            border: '1px dashed var(--border-color)'
+          }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" style={{ marginBottom: 16 }}>
+              <circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4"/><path d="M12 16V8"/>
+            </svg>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', fontWeight: 500 }}>No market data available</p>
+            <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--text-muted)' }}>Please check your connection and try refreshing.</p>
+          </div>
+        )}
         {selectedCategory === 'fiat' && fiatTickers.map((t) => renderTickerCard(t, false))}
       </div>
 
