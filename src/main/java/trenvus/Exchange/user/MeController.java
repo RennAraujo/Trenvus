@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,19 +28,23 @@ import trenvus.Exchange.auth.RefreshTokenRepository;
 @RequestMapping("/me")
 @Validated
 public class MeController {
+	private static final Logger logger = LoggerFactory.getLogger(MeController.class);
+	
 	private final UserRepository users;
 	private final WalletRepository wallets;
 	private final TransactionRepository transactions;
 	private final RefreshTokenRepository refreshTokens;
 	private final PasswordEncoder passwordEncoder;
+	private final ConfirmationService confirmationService;
 	private static final long AVATAR_MAX_BYTES = 1_000_000;
 
-	public MeController(UserRepository users, WalletRepository wallets, TransactionRepository transactions, RefreshTokenRepository refreshTokens, PasswordEncoder passwordEncoder) {
+	public MeController(UserRepository users, WalletRepository wallets, TransactionRepository transactions, RefreshTokenRepository refreshTokens, PasswordEncoder passwordEncoder, ConfirmationService confirmationService) {
 		this.users = users;
 		this.wallets = wallets;
 		this.transactions = transactions;
 		this.refreshTokens = refreshTokens;
 		this.passwordEncoder = passwordEncoder;
+		this.confirmationService = confirmationService;
 	}
 
 	@GetMapping
@@ -106,9 +112,8 @@ public class MeController {
 		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
 	}
 
-	@PostMapping("/delete")
-	@Transactional
-	public ResponseEntity<Void> deleteAccount(@Valid @RequestBody DeleteAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
+	@PostMapping("/delete-request")
+	public ResponseEntity<DeleteRequestResponse> requestAccountDeletion(@Valid @RequestBody DeleteAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
 		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -121,6 +126,24 @@ public class MeController {
 		if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
 			throw new IllegalArgumentException("Password is incorrect");
 		}
+
+		// Envia email de confirmação
+		try {
+			logger.info("Sending deletion confirmation email to: {}", user.getEmail());
+			confirmationService.createDeletionConfirmation(userId, user.getEmail());
+			logger.info("Deletion confirmation email sent successfully");
+			return ResponseEntity.ok(new DeleteRequestResponse("success", "Email de confirmação enviado. Verifique sua caixa de entrada."));
+		} catch (Exception e) {
+			logger.error("Failed to send deletion confirmation email: {}", e.getMessage());
+			return ResponseEntity.badRequest().body(new DeleteRequestResponse("error", "Falha ao enviar email de confirmação: " + e.getMessage()));
+		}
+	}
+
+	@PostMapping("/delete")
+	@Transactional
+	public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal Jwt jwt) {
+		Long userId = Long.valueOf(jwt.getSubject());
+		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		// Deleta todos os refresh tokens do usuário
 		var userRefreshTokens = refreshTokens.findByUserId(userId);
@@ -155,6 +178,8 @@ public class MeController {
 	public record ChangePasswordRequest(@NotBlank String currentPassword, @NotBlank @Size(min = 4) String newPassword) {}
 
 	public record DeleteAccountRequest(@NotBlank String email, @NotBlank String password) {}
+
+	public record DeleteRequestResponse(String status, String message) {}
 
 	public record MeResponse(String email, String nickname, String phone, String avatarDataUrl) {}
 }

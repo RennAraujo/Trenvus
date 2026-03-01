@@ -8,6 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import trenvus.Exchange.user.ConfirmationService;
 import trenvus.Exchange.user.UserEntity;
 import trenvus.Exchange.user.UserRepository;
 import trenvus.Exchange.wallet.WalletService;
@@ -22,6 +23,7 @@ public class AuthService {
 	private final AuthenticationManager authenticationManager;
 	private final TokenService tokenService;
 	private final WalletService walletService;
+	private final ConfirmationService confirmationService;
 
 	public AuthService(
 			UserRepository users,
@@ -29,7 +31,8 @@ public class AuthService {
 			PasswordEncoder passwordEncoder,
 			AuthenticationManager authenticationManager,
 			TokenService tokenService,
-			WalletService walletService
+			WalletService walletService,
+			ConfirmationService confirmationService
 	) {
 		this.users = users;
 		this.refreshTokens = refreshTokens;
@@ -37,6 +40,7 @@ public class AuthService {
 		this.authenticationManager = authenticationManager;
 		this.tokenService = tokenService;
 		this.walletService = walletService;
+		this.confirmationService = confirmationService;
 	}
 
 	@Transactional
@@ -60,6 +64,16 @@ public class AuthService {
 		
 		user = users.save(user);
 		walletService.ensureUserWallets(user.getId());
+
+		// Send confirmation email
+		try {
+			logger.info("Sending registration confirmation email to: {}", email);
+			confirmationService.createRegistrationConfirmation(user.getId(), email);
+			logger.info("Registration confirmation email sent successfully to: {}", email);
+		} catch (Exception e) {
+			logger.error("Failed to send registration confirmation email to {}: {}", email, e.getMessage());
+			// Don't fail registration if email fails, but log it
+		}
 
 		logger.info("User registered successfully: {}", email);
 		return issueTokens(user, Instant.now());
