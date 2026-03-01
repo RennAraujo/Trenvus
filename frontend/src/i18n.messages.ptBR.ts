@@ -364,4 +364,15 @@ export const messagesPtBR: Record<string, string> = {
   'admin.users.statement.title': 'Extrato da Conta',
   'admin.users.statement.empty': 'Nenhuma transação encontrada',
   'admin.users.statement.export': 'Exportar',
+
+  'confirmRegistration.title': 'Confirmação de Email',
+  'confirmRegistration.confirming': 'Confirmando seu cadastro...',
+  'confirmRegistration.successTitle': 'Cadastro Confirmado!',
+  'confirmRegistration.errorTitle': 'Falha na Confirmação',
+  'confirmRegistration.goToLogin': 'Ir para Login',
+  'confirmRegistration.tryAgain': 'Tentar Novamente',
+  'confirmRegistration.needHelp': 'Precisa de ajuda?',
+  'confirmRegistration.contactSupport': 'Contatar Suporte',
+  'confirmRegistration.invalidToken': 'Token inválido ou ausente',
+  'confirmRegistration.error': 'Falha ao confirmar cadastro',
 }

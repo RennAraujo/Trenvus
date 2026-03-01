@@ -17,6 +17,7 @@ import { InvoicesSend } from './pages/InvoicesSend'
 import { InvoicesReceive } from './pages/InvoicesReceive'
 import { Account } from './pages/Account'
 import { MercadoPagoReturnHandler } from './components/MercadoPagoReturnHandler'
+import { ConfirmRegistration } from './pages/ConfirmRegistration'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/security" element={<Security />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/confirm-registration" element={<ConfirmRegistration />} />
           <Route path="/mercadopago/return" element={<MercadoPagoReturnHandler />} />
           <Route
             path="/app"

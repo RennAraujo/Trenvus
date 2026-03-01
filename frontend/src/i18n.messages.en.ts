@@ -364,4 +364,15 @@ export const messagesEn: Record<string, string> = {
   'admin.users.statement.title': 'Account Statement',
   'admin.users.statement.empty': 'No transactions found',
   'admin.users.statement.export': 'Export',
+
+  'confirmRegistration.title': 'Email Confirmation',
+  'confirmRegistration.confirming': 'Confirming your registration...',
+  'confirmRegistration.successTitle': 'Registration Confirmed!',
+  'confirmRegistration.errorTitle': 'Confirmation Failed',
+  'confirmRegistration.goToLogin': 'Go to Login',
+  'confirmRegistration.tryAgain': 'Try Again',
+  'confirmRegistration.needHelp': 'Need help?',
+  'confirmRegistration.contactSupport': 'Contact Support',
+  'confirmRegistration.invalidToken': 'Invalid or missing token',
+  'confirmRegistration.error': 'Failed to confirm registration',
 }
