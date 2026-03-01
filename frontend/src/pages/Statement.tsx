@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf'
 import { api, formatUsd, type PrivateStatementItem } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
+import { ExportPdfModal } from '../components/ExportPdfModal'
 
 // Icons
 const DownloadIcon = () => (
@@ -103,6 +104,11 @@ export function Statement() {
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState<PageSize>(20)
   const [hasNext, setHasNext] = useState(false)
+  
+  // PDF export modal state
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [pdfData, setPdfData] = useState<string | null>(null)
+  const [pdfFileName, setPdfFileName] = useState('statement.pdf')
 
   function typeLabel(type: string): string {
     if (type === 'DEPOSIT_USD') return t('statement.type.deposit')
@@ -335,7 +341,21 @@ export function Statement() {
       addFooter(i, totalPages)
     }
 
-    doc.save(`trenvus-statement-${now.toISOString().split('T')[0]}.pdf`)
+    // Store PDF data and open modal
+    const pdfOutput = doc.output('datauristring')
+    const fileName = `trenvus-statement-${now.toISOString().split('T')[0]}.pdf`
+    setPdfData(pdfOutput)
+    setPdfFileName(fileName)
+    setIsExportModalOpen(true)
+  }
+
+  function handleDownloadPdf() {
+    if (pdfData) {
+      const link = document.createElement('a')
+      link.href = pdfData
+      link.download = pdfFileName
+      link.click()
+    }
   }
 
   async function load() {
@@ -541,6 +561,15 @@ export function Statement() {
           {t('statement.feeNote')}
         </p>
       </div>
+
+      {/* Export PDF Modal */}
+      <ExportPdfModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onDownload={handleDownloadPdf}
+        pdfData={pdfData}
+        fileName={pdfFileName}
+      />
     </div>
   )
 }

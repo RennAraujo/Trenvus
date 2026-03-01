@@ -306,6 +306,13 @@ export const api = {
   getPrivateStatement: (accessToken: string, page: number, size: number) =>
     request<{ items: PrivateStatementItem[]; hasNext: boolean }>(`/transactions/private?page=${page}&size=${size}`, { accessToken }),
 
+  sendStatementByEmail: (accessToken: string, pdfBase64: string, fileName: string) =>
+    request<{ status: string; message: string }>('/transactions/send-statement-email', {
+      method: 'POST',
+      accessToken,
+      body: JSON.stringify({ pdfBase64, fileName }),
+    }),
+
   adminListUsers: (accessToken: string, query?: string, limit = 100) =>
     request<AdminUserSummary[]>(
       `/admin/users?limit=${encodeURIComponent(String(limit))}${query ? `&q=${encodeURIComponent(query)}` : ''}`,
