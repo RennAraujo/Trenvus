@@ -73,10 +73,7 @@ public class AuthController {
 		logger.info("Registration confirmation requested");
 		try {
 			var result = registrationService.confirmRegistration(token);
-			logger.info("Registration confirmed for: {}", result.email());
-			
-			// Faz login automaticamente após confirmação
-			var authResult = authService.login(result.email(), null); // O login vai falhar aqui, precisamos de outra abordagem
+			logger.info("Registration confirmed for: {}", result.getEmail());
 			
 			return ResponseEntity.ok(new ConfirmationResponse("success", "Registration confirmed successfully! You can now log in.", null, null, null));
 		} catch (IllegalArgumentException e) {
