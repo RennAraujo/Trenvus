@@ -52,13 +52,13 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{t('statement.exportOptions') || 'Export Statement'}</h3>
+          <h3>Exportar Extrato</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         
         <div className="modal-body">
           <p className="modal-description">
-            {t('statement.exportDescription') || 'Choose how you want to receive your statement:'}
+            Escolha como deseja receber seu extrato:
           </p>
           
           <div className="export-options">
@@ -75,8 +75,8 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
                 </svg>
               </div>
               <div className="export-option-text">
-                <strong>{t('statement.downloadPdf') || 'Download PDF'}</strong>
-                <span>{t('statement.saveToDevice') || 'Save to your device'}</span>
+                <strong>Baixar PDF</strong>
+                <span>Salvar no meu computador</span>
               </div>
             </button>
 
@@ -92,8 +92,8 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
                 </svg>
               </div>
               <div className="export-option-text">
-                <strong>{t('statement.sendByEmail') || 'Send by Email'}</strong>
-                <span>{t('statement.sendToYourEmail') || 'Send to your registered email'}</span>
+                <strong>Enviar por Email</strong>
+                <span>Enviar para meu email cadastrado</span>
               </div>
               {isSending && <span className="loading-spinner-small" />}
             </button>
