@@ -27,12 +27,12 @@ services:
       JWT_PUBLIC_KEY_B64: ${JWT_PUBLIC_KEY_B64:-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4lJy4Gq4dTkpF27GPDA332eiSfH3bOpt1VViwnOtidLxitBR8mRcN8q9OglzufGSCtplKDqWCEbWf+nb3vtRLASQHNIBC3mZumPgNKsIDbpDyRCAU8MExGj750iezyDV5Il2e13oHTilFikrhBFW5Tzt4vWfrA5jn5ZgEPRWX8nqUgRnnft/GjiMWRZjaQ2JjzUaBwHn0MclaEX2R91l6NnO52a8Dqy8yEmV436Qztg0FPm/EB1tr9onPfEPQfnsGVwqDI+t4crYAnPdC9T0muqFKmxtPFD9RD7KM87yX2BzPDMXu/dEqLkuKEriWZxEgpFHmC43qyd46O6mro9/uQIDAQAB}
       APP_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
       # SMTP Configuration
-      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-noreply@trenvus.com}
-      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USERNAME: testguide047@gmail.com
+      SMTP_PASSWORD: gyme rbuj myiv lify
+      SMTP_FROM: noreply@trenvus.com
+      APP_BASE_URL: http://localhost:3000
       # Test accounts
       TEST_ACCOUNT_ENABLED: "true"
       TEST_ACCOUNTS: "user1@test.com:123:ADMIN;user2@test.com:123:USER;user3@test.com:123:USER"
