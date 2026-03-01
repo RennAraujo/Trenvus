@@ -375,4 +375,15 @@ export const messagesPtBR: Record<string, string> = {
   'confirmRegistration.contactSupport': 'Contatar Suporte',
   'confirmRegistration.invalidToken': 'Token inválido ou ausente',
   'confirmRegistration.error': 'Falha ao confirmar cadastro',
+
+  'exportPdf.title': 'Exportar Extrato',
+  'exportPdf.description': 'Escolha como deseja receber seu extrato:',
+  'exportPdf.download': 'Baixar PDF',
+  'exportPdf.downloadDesc': 'Salvar no meu computador',
+  'exportPdf.sendEmail': 'Enviar por Email',
+  'exportPdf.sendEmailDesc': 'Enviar para meu email cadastrado',
+  'exportPdf.sending': 'Enviando...',
+  'exportPdf.success': 'PDF enviado com sucesso! Verifique sua caixa de entrada.',
+  'exportPdf.error': 'Não foi possível enviar o email. Tente novamente mais tarde.',
+  'exportPdf.networkError': 'Erro de conexão. Verifique sua internet e tente novamente.',
 }

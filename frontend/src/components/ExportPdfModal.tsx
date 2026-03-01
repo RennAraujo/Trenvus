@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useI18n } from '../i18n'
 import { api } from '../api'
 import { useAuth } from '../auth'
 
@@ -11,6 +12,7 @@ interface ExportPdfModalProps {
 }
 
 export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName }: ExportPdfModalProps) {
+  const { t } = useI18n()
   const auth = useAuth()
   const [isSending, setIsSending] = useState(false)
   const [sendStatus, setSendStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -33,14 +35,14 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
       
       if (response.status === 'success') {
         setSendStatus('success')
-        setSendMessage('PDF enviado com sucesso! Verifique sua caixa de entrada.')
+        setSendMessage(t('exportPdf.success'))
       } else {
         setSendStatus('error')
-        setSendMessage('Não foi possível enviar o email. Tente novamente mais tarde.')
+        setSendMessage(t('exportPdf.error'))
       }
     } catch (error: any) {
       setSendStatus('error')
-      setSendMessage('Erro de conexão. Verifique sua internet e tente novamente.')
+      setSendMessage(t('exportPdf.networkError'))
     } finally {
       setIsSending(false)
     }
@@ -50,13 +52,13 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Exportar Extrato</h3>
+          <h3>{t('exportPdf.title')}</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         
         <div className="modal-body">
           <p className="modal-description">
-            Escolha como deseja receber seu extrato:
+            {t('exportPdf.description')}
           </p>
           
           <div className="export-options">
@@ -73,8 +75,8 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
                 </svg>
               </div>
               <div className="export-option-text">
-                <strong>Baixar PDF</strong>
-                <span>Salvar no meu computador</span>
+                <strong>{t('exportPdf.download')}</strong>
+                <span>{t('exportPdf.downloadDesc')}</span>
               </div>
             </button>
 
@@ -90,8 +92,8 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
                 </svg>
               </div>
               <div className="export-option-text">
-                <strong>Enviar por Email</strong>
-                <span>Enviar para meu email cadastrado</span>
+                <strong>{t('exportPdf.sendEmail')}</strong>
+                <span>{t('exportPdf.sendEmailDesc')}</span>
               </div>
               {isSending && <span className="loading-spinner-small" />}
             </button>

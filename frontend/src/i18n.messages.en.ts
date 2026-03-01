@@ -375,4 +375,15 @@ export const messagesEn: Record<string, string> = {
   'confirmRegistration.contactSupport': 'Contact Support',
   'confirmRegistration.invalidToken': 'Invalid or missing token',
   'confirmRegistration.error': 'Failed to confirm registration',
+
+  'exportPdf.title': 'Export Statement',
+  'exportPdf.description': 'Choose how you want to receive your statement:',
+  'exportPdf.download': 'Download PDF',
+  'exportPdf.downloadDesc': 'Save to your computer',
+  'exportPdf.sendEmail': 'Send by Email',
+  'exportPdf.sendEmailDesc': 'Send to my registered email',
+  'exportPdf.sending': 'Sending...',
+  'exportPdf.success': 'PDF sent successfully! Check your inbox.',
+  'exportPdf.error': 'Could not send email. Please try again later.',
+  'exportPdf.networkError': 'Connection error. Check your internet and try again.',
 }
