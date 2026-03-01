@@ -57,6 +57,28 @@ stdout
 .env.*
 !.env.example
 
+### Docker ###
+docker-compose.override.yml
+
+### Database ###
+*.db
+*.sqlite
+*.sqlite3
+
+### Email Testing ###
+mailpit-data/
+
+### Backup Files ###
+*.backup
+*.bak
+*.swp
+*~
+
+### Local Development ###
+local.properties
+application-local.properties
+application-dev.properties
+
 ### Logs ###
 logs/
 *.log
