@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { api } from '../api'
-import { useTranslation } from 'react-i18next'
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react'
 
 export function ConfirmRegistration() {
-  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -16,7 +13,7 @@ export function ConfirmRegistration() {
   useEffect(() => {
     if (!token) {
       setStatus('error')
-      setMessage(t('confirmRegistration.invalidToken', 'Invalid or missing token'))
+      setMessage('Invalid or missing token')
       return
     }
 
@@ -25,21 +22,25 @@ export function ConfirmRegistration() {
 
   const confirmRegistration = async (token: string) => {
     try {
-      const response = await api.get(`/auth/confirm-registration?token=${token}`)
-      
-      if (response.data.status === 'success') {
+      const response = await fetch(`/api/auth/confirm-registration?token=${encodeURIComponent(token)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.status === 'success') {
         setStatus('success')
-        setMessage(response.data.message)
+        setMessage(data.message || 'Registration confirmed successfully! You can now log in.')
       } else {
         setStatus('error')
-        setMessage(response.data.message || t('confirmRegistration.error', 'Failed to confirm registration'))
+        setMessage(data.message || 'Failed to confirm registration')
       }
-    } catch (error: any) {
+    } catch (error) {
       setStatus('error')
-      setMessage(
-        error.response?.data?.message || 
-        t('confirmRegistration.error', 'Failed to confirm registration')
-      )
+      setMessage('Network error. Please try again.')
     }
   }
 
@@ -51,7 +52,7 @@ export function ConfirmRegistration() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-[#7C3AED] to-[#EA1D2C] bg-clip-text text-transparent">
             TRENVUS
           </h1>
-          <p className="text-gray-400 mt-2">{t('confirmRegistration.title', 'Email Confirmation')}</p>
+          <p className="text-gray-400 mt-2">Email Confirmation</p>
         </div>
 
         {/* Card */}
@@ -59,7 +60,7 @@ export function ConfirmRegistration() {
           {status === 'loading' && (
             <div className="text-center py-8">
               <Loader2 className="w-16 h-16 text-[#7C3AED] animate-spin mx-auto mb-4" />
-              <p className="text-white text-lg">{t('confirmRegistration.confirming', 'Confirming your registration...')}</p>
+              <p className="text-white text-lg">Confirming your registration...</p>
             </div>
           )}
 
@@ -69,14 +70,14 @@ export function ConfirmRegistration() {
                 <CheckCircle className="w-12 h-12 text-green-500" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">
-                {t('confirmRegistration.successTitle', 'Registration Confirmed!')}
+                Registration Confirmed!
               </h2>
               <p className="text-gray-400 mb-6">{message}</p>
               <button
                 onClick={() => navigate('/login')}
                 className="w-full bg-gradient-to-r from-[#7C3AED] to-[#EA1D2C] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
-                {t('confirmRegistration.goToLogin', 'Go to Login')}
+                Go to Login
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -88,7 +89,7 @@ export function ConfirmRegistration() {
                 <XCircle className="w-12 h-12 text-red-500" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">
-                {t('confirmRegistration.errorTitle', 'Confirmation Failed')}
+                Confirmation Failed
               </h2>
               <p className="text-gray-400 mb-6">{message}</p>
               <div className="flex gap-3">
@@ -96,13 +97,13 @@ export function ConfirmRegistration() {
                   onClick={() => navigate('/register')}
                   className="flex-1 bg-white/10 text-white font-semibold py-3 px-6 rounded-lg hover:bg-white/20 transition-colors"
                 >
-                  {t('confirmRegistration.tryAgain', 'Try Again')}
+                  Try Again
                 </button>
                 <button
                   onClick={() => navigate('/login')}
                   className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#EA1D2C] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity"
                 >
-                  {t('confirmRegistration.goToLogin', 'Go to Login')}
+                  Go to Login
                 </button>
               </div>
             </div>
@@ -111,9 +112,9 @@ export function ConfirmRegistration() {
 
         {/* Footer */}
         <p className="text-center text-gray-500 text-sm mt-8">
-          {t('confirmRegistration.needHelp', 'Need help?')}{' '}
+          Need help?{' '}
           <a href="mailto:suporte@trenvus.com" className="text-[#7C3AED] hover:underline">
-            {t('confirmRegistration.contactSupport', 'Contact Support')}
+            Contact Support
           </a>
         </p>
       </div>
