@@ -40,23 +40,32 @@ public class StatementEmailController {
             // Decode base64 PDF
             byte[] pdfBytes = Base64.getDecoder().decode(request.pdfBase64());
             
+            // Determine language (default to pt-BR)
+            String language = request.language() != null ? request.language() : "pt-BR";
+            
             // Send email with PDF attachment
             emailService.sendStatementPdf(
                     user.getEmail(),
                     user.getNickname() != null ? user.getNickname() : user.getEmail(),
                     pdfBytes,
-                    request.fileName()
+                    request.fileName(),
+                    language
             );
 
-            logger.info("Statement PDF sent by email to: {}", user.getEmail());
-            return ResponseEntity.ok(new SendStatementResponse("success", "Statement sent to your email"));
+            logger.info("Statement PDF sent by email to: {} in language: {}", user.getEmail(), language);
+            return ResponseEntity.ok(new SendStatementResponse("success", 
+                    language.equals("en") ? "Statement sent to your email" : "Extrato enviado para seu email"));
         } catch (Exception e) {
             logger.error("Failed to send statement by email: {}", e.getMessage());
+            String language = request.language() != null ? request.language() : "pt-BR";
+            String errorMsg = language.equals("en") 
+                    ? "Failed to send email: " + e.getMessage()
+                    : "Falha ao enviar email: " + e.getMessage();
             return ResponseEntity.badRequest()
-                    .body(new SendStatementResponse("error", "Failed to send email: " + e.getMessage()));
+                    .body(new SendStatementResponse("error", errorMsg));
         }
     }
 
-    public record SendStatementRequest(String pdfBase64, String fileName) {}
+    public record SendStatementRequest(String pdfBase64, String fileName, String language) {}
     public record SendStatementResponse(String status, String message) {}
 }

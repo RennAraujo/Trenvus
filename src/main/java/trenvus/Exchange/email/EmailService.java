@@ -43,13 +43,14 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
-    public void sendStatementPdf(String toEmail, String userName, byte[] pdfBytes, String fileName) throws MessagingException, UnsupportedEncodingException {
-        String subject = "Seu Extrato Trenvus - " + fileName;
-        String htmlContent = buildStatementEmail(userName);
+    public void sendStatementPdf(String toEmail, String userName, byte[] pdfBytes, String fileName, String language) throws MessagingException, UnsupportedEncodingException {
+        boolean isEnglish = "en".equals(language);
+        String subject = isEnglish ? "Your Trenvus Statement - " + fileName : "Seu Extrato Trenvus - " + fileName;
+        String htmlContent = isEnglish ? buildStatementEmailEnglish(userName) : buildStatementEmail(userName);
         
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setFrom(fromEmail, "Trenvus - Extrato");
+        helper.setFrom(fromEmail, isEnglish ? "Trenvus - Statement" : "Trenvus - Extrato");
         helper.setTo(toEmail);
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
@@ -252,6 +253,59 @@ public class EmailService {
         sb.append("<div class=\"footer\">\n");
         sb.append("<p>2024 Trenvus. Todos os direitos reservados.</p>\n");
         sb.append("<p style=\"margin-top: 10px;\">Este e um e-mail automatico, por favor nao responda.</p>\n");
+        sb.append("</div>\n");
+        sb.append("</div>\n");
+        sb.append("</body>\n");
+        sb.append("</html>");
+        return sb.toString();
+    }
+
+    private String buildStatementEmailEnglish(String userName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!DOCTYPE html>\n");
+        sb.append("<html lang=\"en\">\n");
+        sb.append("<head>\n");
+        sb.append("<meta charset=\"UTF-8\">\n");
+        sb.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+        sb.append("<title>Your Trenvus Statement</title>\n");
+        sb.append("<style>\n");
+        sb.append("* { margin: 0; padding: 0; box-sizing: border-box; }\n");
+        sb.append("body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; color: #333; }\n");
+        sb.append(".container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }\n");
+        sb.append(".header { background: linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%); padding: 40px 20px; text-align: center; }\n");
+        sb.append(".logo { font-size: 32px; font-weight: bold; color: #ffffff; letter-spacing: 2px; }\n");
+        sb.append(".content { padding: 40px 30px; }\n");
+        sb.append(".title { font-size: 24px; color: #1a1a2e; margin-bottom: 20px; font-weight: 600; }\n");
+        sb.append(".text { font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 20px; }\n");
+        sb.append(".info-box { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0; }\n");
+        sb.append(".info-box p { margin: 5px 0; }\n");
+        sb.append(".footer { background-color: #1a1a2e; color: #888; padding: 30px; text-align: center; font-size: 14px; }\n");
+        sb.append(".divider { height: 1px; background-color: #e9ecef; margin: 30px 0; }\n");
+        sb.append("</style>\n");
+        sb.append("</head>\n");
+        sb.append("<body>\n");
+        sb.append("<div class=\"container\">\n");
+        sb.append("<div class=\"header\">\n");
+        sb.append("<div class=\"logo\">TRENVUS</div>\n");
+        sb.append("</div>\n");
+        sb.append("<div class=\"content\">\n");
+        sb.append("<h1 class=\"title\">Your Statement</h1>\n");
+        sb.append("<p class=\"text\">Hello, ").append(userName != null ? userName : "Customer").append("!</p>\n");
+        sb.append("<p class=\"text\">Please find attached the requested statement from your Trenvus account.</p>\n");
+        sb.append("<div class=\"info-box\">\n");
+        sb.append("<p><strong>Important:</strong></p>\n");
+        sb.append("<p>This document contains confidential information about your transactions.</p>\n");
+        sb.append("<p>Please keep it in a safe place and do not share it with third parties.</p>\n");
+        sb.append("</div>\n");
+        sb.append("<div class=\"divider\"></div>\n");
+        sb.append("<p class=\"text\" style=\"font-size: 14px; color: #666;\">\n");
+        sb.append("<strong>Need help?</strong><br>\n");
+        sb.append("Contact our support team at <a href=\"mailto:suporte@trenvus.com\" style=\"color: #7C3AED;\">suporte@trenvus.com</a>\n");
+        sb.append("</p>\n");
+        sb.append("</div>\n");
+        sb.append("<div class=\"footer\">\n");
+        sb.append("<p>2024 Trenvus. All rights reserved.</p>\n");
+        sb.append("<p style=\"margin-top: 10px;\">This is an automated email, please do not reply.</p>\n");
         sb.append("</div>\n");
         sb.append("</div>\n");
         sb.append("</body>\n");

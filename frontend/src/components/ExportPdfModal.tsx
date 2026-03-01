@@ -31,7 +31,9 @@ export function ExportPdfModal({ isOpen, onClose, onDownload, pdfData, fileName 
       const token = await auth.getValidAccessToken()
       // Remove data:application/pdf;base64, prefix
       const base64Data = pdfData.split(',')[1]
-      const response = await api.sendStatementByEmail(token, base64Data, fileName)
+      // Get current language from localStorage or default to pt-BR
+      const language = localStorage.getItem('exchange.locale') || 'pt-BR'
+      const response = await api.sendStatementByEmail(token, base64Data, fileName, language)
       
       if (response.status === 'success') {
         setSendStatus('success')
