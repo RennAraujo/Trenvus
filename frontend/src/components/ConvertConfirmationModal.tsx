@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useI18n } from '../i18n'
 
 interface ConvertConfirmationModalProps {
@@ -23,15 +22,12 @@ export function ConvertConfirmationModal({
   isLoading
 }: ConvertConfirmationModalProps) {
   const { t } = useI18n()
-  const [confirmText, setConfirmText] = useState('')
 
   if (!isOpen) return null
 
   const isUsdToTrv = direction === 'USD_TO_TRV'
   const fromCurrency = isUsdToTrv ? 'USD' : 'TRV'
   const toCurrency = isUsdToTrv ? 'TRV' : 'USD'
-  const requiredText = t('convert.confirmText')
-  const isConfirmed = confirmText.toLowerCase() === requiredText.toLowerCase()
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -84,35 +80,22 @@ export function ConvertConfirmationModal({
               </div>
             </div>
           </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 14, marginBottom: 8, display: 'block' }}>
-              {t('convert.typeToConfirm')} <strong>"{requiredText}"</strong>:
-            </label>
-            <input
-              type="text"
-              className="input"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder={requiredText}
-              style={{ width: '100%' }}
-              disabled={isLoading}
-            />
-          </div>
         </div>
 
-        <div className="modal-footer">
+        <div className="modal-footer" style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
           <button
             className="btn btn-secondary"
             onClick={onClose}
             disabled={isLoading}
+            style={{ minWidth: 100 }}
           >
             {t('actions.cancel')}
           </button>
           <button
             className="btn btn-primary"
             onClick={onConfirm}
-            disabled={!isConfirmed || isLoading}
+            disabled={isLoading}
+            style={{ minWidth: 100 }}
           >
             {isLoading ? (
               <span className="animate-pulse">{t('actions.processing')}</span>
