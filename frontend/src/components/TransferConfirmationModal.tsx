@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useI18n } from '../i18n'
 
 interface TransferConfirmationModalProps {
@@ -19,12 +18,8 @@ export function TransferConfirmationModal({
   isLoading
 }: TransferConfirmationModalProps) {
   const { t } = useI18n()
-  const [confirmText, setConfirmText] = useState('')
 
   if (!isOpen) return null
-
-  const requiredText = t('transfer.confirmText')
-  const isConfirmed = confirmText.toLowerCase() === requiredText.toLowerCase()
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -68,35 +63,22 @@ export function TransferConfirmationModal({
               </div>
             </div>
           </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 14, marginBottom: 8, display: 'block' }}>
-              {t('transfer.typeToConfirm')} <strong>"{requiredText}"</strong>:
-            </label>
-            <input
-              type="text"
-              className="input"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder={requiredText}
-              style={{ width: '100%' }}
-              disabled={isLoading}
-            />
-          </div>
         </div>
 
-        <div className="modal-footer">
+        <div className="modal-footer" style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
           <button
             className="btn btn-secondary"
             onClick={onClose}
             disabled={isLoading}
+            style={{ minWidth: 100 }}
           >
             {t('actions.cancel')}
           </button>
           <button
             className="btn btn-primary"
             onClick={onConfirm}
-            disabled={!isConfirmed || isLoading}
+            disabled={isLoading}
+            style={{ minWidth: 100, background: 'var(--color-danger)' }}
           >
             {isLoading ? (
               <span className="animate-pulse">{t('actions.processing')}</span>
