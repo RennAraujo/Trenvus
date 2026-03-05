@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +36,7 @@ public class AdminUserController {
 	}
 
 	@GetMapping("/users")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> listUsers(
 			@RequestParam(required = false) String q,
 			@RequestParam(defaultValue = "100") @Min(1) int limit
@@ -43,17 +45,20 @@ public class AdminUserController {
 	}
 
 	@GetMapping("/users/{userId}")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getUser(@PathVariable Long userId) {
 		return ResponseEntity.ok(adminUsers.getUser(userId));
 	}
 
 	@GetMapping("/users/{userId}/wallet")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<WalletResponse> getWallet(@PathVariable Long userId) {
 		var snapshot = adminUsers.getUserWallet(userId);
 		return ResponseEntity.ok(new WalletResponse(snapshot.usdCents(), snapshot.trvCents()));
 	}
 
 	@GetMapping("/users/{userId}/statement")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<StatementResponse> getUserStatement(
 			@PathVariable Long userId,
 			@RequestParam(defaultValue = "0") @Min(0) int page,
@@ -82,6 +87,7 @@ public class AdminUserController {
 	}
 
 	@GetMapping("/users/{userId}/fees")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<AdminUserService.FeeIncomeResponse> getFeeIncome(
 			@PathVariable Long userId,
 			@RequestParam(defaultValue = "50") @Min(1) int size
@@ -90,12 +96,14 @@ public class AdminUserController {
 	}
 
 	@PutMapping("/users/{userId}/wallet")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<WalletResponse> setWallet(@PathVariable Long userId, @Valid @RequestBody SetWalletRequest request) {
 		var snapshot = adminUsers.setUserBalances(userId, request.usd(), request.trv());
 		return ResponseEntity.ok(new WalletResponse(snapshot.usdCents(), snapshot.trvCents()));
 	}
 
 	@PutMapping("/users/{userId}/role")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> setRole(@PathVariable Long userId, @Valid @RequestBody SetRoleRequest request) {
 		UserRole role;
 		try {
