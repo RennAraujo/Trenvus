@@ -30,13 +30,13 @@ function saveTokens(payload: AuthResponse): AuthState {
     accessExpiresAt: payload.accessExpiresAt,
     refreshToken: payload.refreshToken,
   }
-  localStorage.setItem('trenvus.auth', JSON.stringify(state))
+  sessionStorage.setItem('trenvus.auth', JSON.stringify(state))
   return state
 }
 
 function loadTokens(): AuthState {
   try {
-    const raw = localStorage.getItem('trenvus.auth')
+    const raw = sessionStorage.getItem('trenvus.auth')
     if (!raw) return { accessToken: null, accessExpiresAt: null, refreshToken: null }
     const parsed = JSON.parse(raw) as AuthState
     return {
@@ -50,7 +50,7 @@ function loadTokens(): AuthState {
 }
 
 function clearTokens() {
-  localStorage.removeItem('trenvus.auth')
+  sessionStorage.removeItem('trenvus.auth')
 }
 
 function decodeBase64Url(input: string): string {
