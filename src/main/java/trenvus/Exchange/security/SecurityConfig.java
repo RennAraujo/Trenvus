@@ -36,6 +36,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import trenvus.Exchange.auth.TokenBlacklistService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Instant;
@@ -117,8 +119,9 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public JwtDecoder jwtDecoder(JwtKeyMaterial keys) {
-		return NimbusJwtDecoder.withPublicKey(keys.getPublicKey()).build();
+	public JwtDecoder jwtDecoder(JwtKeyMaterial keys, TokenBlacklistService blacklistService) {
+		JwtDecoder delegate = NimbusJwtDecoder.withPublicKey(keys.getPublicKey()).build();
+		return new BlacklistAwareJwtDecoder(delegate, blacklistService);
 	}
 
 	@Bean

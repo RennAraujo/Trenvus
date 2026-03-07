@@ -42,13 +42,20 @@ public class TokenService {
 	public AccessTokenResult createAccessToken(UserEntity user, Instant now) {
 		var role = user.getRole() == null ? "USER" : user.getRole().name();
 		var roles = List.of(role);
-		logger.info("Creating token for user {} with roles: {}", user.getId(), roles);
+		
+		// Generate unique JWT ID (jti) for token revocation
+		var jtiBytes = new byte[16];
+		secureRandom.nextBytes(jtiBytes);
+		var jti = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(jtiBytes);
+		
+		logger.info("Creating token for user {} with roles: {}, jti: {}", user.getId(), roles, jti);
 		
 		var expiresAt = now.plusSeconds(accessTtlSeconds);
 		var claimsBuilder = JwtClaimsSet.builder()
 				.issuer(issuer)
 				.issuedAt(now)
 				.expiresAt(expiresAt)
+				.id(jti)
 				.subject(String.valueOf(user.getId()))
 				.claim("email", user.getEmail())
 				.claim("roles", roles);
@@ -59,11 +66,11 @@ public class TokenService {
 		}
 		
 		var claims = claimsBuilder.build();
-		logger.info("JWT claims built - subject: {}, roles claim: {}", claims.getSubject(), claims.getClaim("roles"));
+		logger.info("JWT claims built - subject: {}, roles claim: {}, jti: {}", claims.getSubject(), claims.getClaim("roles"), claims.getId());
 
 		var header = JwsHeader.with(SignatureAlgorithm.RS256).build();
 		var tokenValue = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
-		return new AccessTokenResult(tokenValue, expiresAt);
+		return new AccessTokenResult(tokenValue, jti, expiresAt);
 	}
 
 	public RefreshTokenResult createRefreshToken(Instant now) {
@@ -85,6 +92,6 @@ public class TokenService {
 		}
 	}
 
-	public record AccessTokenResult(String token, Instant expiresAt) {}
+	public record AccessTokenResult(String token, String jti, Instant expiresAt) {}
 	public record RefreshTokenResult(String token, String tokenHash, Instant expiresAt) {}
 }
