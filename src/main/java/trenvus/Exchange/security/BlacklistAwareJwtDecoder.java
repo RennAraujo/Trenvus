@@ -2,6 +2,7 @@ package trenvus.Exchange.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.*;
 import trenvus.Exchange.auth.TokenBlacklistService;
 
