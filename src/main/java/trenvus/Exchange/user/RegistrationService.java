@@ -47,6 +47,18 @@ public class RegistrationService {
             throw new IllegalArgumentException("Email already registered");
         }
 
+        // Verifica se nickname já existe (se fornecido)
+        if (nickname != null && !nickname.isBlank()) {
+            String trimmedNickname = nickname.trim();
+            if (userRepository.existsByNickname(trimmedNickname)) {
+                throw new IllegalArgumentException("Nickname already taken");
+            }
+            // Verifica também em registros pendentes
+            if (pendingRepository.existsByNickname(trimmedNickname)) {
+                throw new IllegalArgumentException("Nickname already taken");
+            }
+        }
+
         // Remove qualquer registro pendente anterior
         pendingRepository.findByEmail(email).ifPresent(pending -> {
             logger.info("Removing previous pending registration for: {}", email);

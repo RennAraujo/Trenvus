@@ -11,5 +11,9 @@ public interface PendingRegistrationRepository extends JpaRepository<PendingRegi
     
     Optional<PendingRegistration> findByEmail(String email);
     
+    Optional<PendingRegistration> findByNickname(String nickname);
+    
+    boolean existsByNickname(String nickname);
+    
     void deleteByEmail(String email);
 }
