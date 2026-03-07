@@ -65,7 +65,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode(password)).thenReturn("encoded_password");
         when(users.save(any(UserEntity.class))).thenReturn(testUser);
         when(tokenService.createAccessToken(any(UserEntity.class), any(Instant.class)))
-                .thenReturn(new TokenService.AccessTokenResult("access_token", Instant.now().plusSeconds(900)));
+                .thenReturn(new TokenService.AccessTokenResult("access_token", "jti_token", Instant.now().plusSeconds(900)));
         when(tokenService.createRefreshToken(any(Instant.class)))
                 .thenReturn(new TokenService.RefreshTokenResult("refresh_token", "token_hash", Instant.now().plusSeconds(2592000)));
 
@@ -99,7 +99,7 @@ class AuthServiceTest {
         String password = "password123";
 
         when(users.findByEmail(email)).thenReturn(Optional.of(testUser));
-        when(tokenService.createAccessToken(any(), any())).thenReturn(new TokenService.AccessTokenResult("access_token", Instant.now()));
+        when(tokenService.createAccessToken(any(), any())).thenReturn(new TokenService.AccessTokenResult("access_token", "jti_token", Instant.now()));
         when(tokenService.createRefreshToken(any())).thenReturn(new TokenService.RefreshTokenResult("refresh_token", "hash", Instant.now()));
 
         // When
