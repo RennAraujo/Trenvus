@@ -337,6 +337,7 @@ export const messagesEn: Record<string, string> = {
   'errors.loginAdminDisabled': 'Admin login is disabled on the backend. Set ADMIN_EMAIL/ADMIN_PASSWORD and restart the API.',
   'errors.loginTestAccount': 'Test account login failed',
   'errors.register': 'Email already registered',
+  'errors.nicknameTaken': 'Nickname already taken',
   'errors.loadUsers': 'Failed to load users',
   'errors.loadWallet': 'Failed to load wallet',
   'errors.saveWallet': 'Failed to save wallet',

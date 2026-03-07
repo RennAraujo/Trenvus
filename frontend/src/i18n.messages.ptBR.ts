@@ -337,6 +337,7 @@ export const messagesPtBR: Record<string, string> = {
   'errors.loginAdminDisabled': 'Login admin desabilitado no backend. Configure ADMIN_EMAIL/ADMIN_PASSWORD e reinicie a API.',
   'errors.loginTestAccount': 'Falha ao entrar com conta de teste',
   'errors.register': 'E-mail já cadastrado',
+  'errors.nicknameTaken': 'Apelido já está em uso',
   'errors.loadUsers': 'Falha ao carregar usuários',
   'errors.loadWallet': 'Falha ao carregar carteira',
   'errors.saveWallet': 'Falha ao salvar carteira',
