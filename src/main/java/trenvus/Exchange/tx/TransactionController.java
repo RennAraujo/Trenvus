@@ -84,15 +84,20 @@ public class TransactionController {
 		if (tx.getType() == TransactionType.ADMIN_ADJUST_WALLET) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
+			var notes = tx.getNotes();
 			var values = new java.util.ArrayList<ValueLine>();
 			if (usd != 0) values.add(new ValueLine("USD", usd, false));
 			if (trv != 0) values.add(new ValueLine("TRV", trv, false));
-			return new PrivateStatementItem(id, tec, type, createdAt, values);
+			return new PrivateStatementItem(id, tec, type, createdAt, values, notes);
 		}
-		return new PrivateStatementItem(id, tec, type, createdAt, List.of());
+		return new PrivateStatementItem(id, tec, type, createdAt, List.of(), null);
 	}
 
-	public record PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values) {}
+	public record PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values, String notes) {
+		public PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values) {
+			this(id, tec, type, createdAt, values, null);
+		}
+	}
 
 	public record ValueLine(String currency, long cents, boolean fee) {}
 

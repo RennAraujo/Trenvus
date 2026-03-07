@@ -39,6 +39,9 @@ public class TransactionEntity {
 	@Column(name = "source_user_id")
 	private Long sourceUserId;
 
+	@Column(name = "notes", length = 500)
+	private String notes;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt = Instant.now();
 
@@ -100,6 +103,14 @@ public class TransactionEntity {
 
 	public void setSourceUserId(Long sourceUserId) {
 		this.sourceUserId = sourceUserId;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
 	}
 
 	public Instant getCreatedAt() {

@@ -108,7 +108,7 @@ public class AdminUserController {
 	@PutMapping("/users/{userId}/wallet")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<WalletResponse> setWallet(@PathVariable Long userId, @Valid @RequestBody SetWalletRequest request) {
-		var snapshot = adminUsers.setUserBalances(userId, request.usd(), request.trv());
+		var snapshot = adminUsers.setUserBalances(userId, request.usd(), request.trv(), request.notes());
 		return ResponseEntity.ok(new WalletResponse(snapshot.usdCents(), snapshot.trvCents()));
 	}
 
@@ -124,7 +124,7 @@ public class AdminUserController {
 		return ResponseEntity.ok(adminUsers.setUserRole(userId, role));
 	}
 
-	public record SetWalletRequest(@NotBlank String usd, @NotBlank String trv) {}
+	public record SetWalletRequest(@NotBlank String usd, @NotBlank String trv, String notes) {}
 
 	public record WalletResponse(long usdCents, long trvCents) {}
 

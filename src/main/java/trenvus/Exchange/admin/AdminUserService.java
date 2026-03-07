@@ -83,7 +83,7 @@ public class AdminUserService {
 	}
 
 	@Transactional
-	public WalletService.WalletSnapshot setUserBalances(Long userId, String usd, String trv) {
+	public WalletService.WalletSnapshot setUserBalances(Long userId, String usd, String trv, String notes) {
 		long usdCents = parseCentsAllowZero(usd);
 		long trvCents = parseCentsAllowZero(trv);
 
@@ -104,6 +104,9 @@ public class AdminUserService {
 		tx.setType(TransactionType.ADMIN_ADJUST_WALLET);
 		tx.setUsdAmountCents(deltaUsd);
 		tx.setTrvAmountCents(deltaTrv);
+		if (notes != null && !notes.isBlank()) {
+			tx.setNotes(notes.trim());
+		}
 		transactions.save(tx);
 
 		return walletService.getSnapshot(userId);
