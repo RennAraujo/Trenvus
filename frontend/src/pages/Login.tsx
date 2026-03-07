@@ -29,6 +29,12 @@ const ShieldCheckIcon = () => (
   </svg>
 )
 
+const LogoutIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
+  </svg>
+)
+
 export function Login() {
   const auth = useAuth()
   const navigate = useNavigate()
@@ -164,6 +170,27 @@ export function Login() {
                 <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
               </svg>
               {error}
+            </div>
+          )}
+
+          {auth.isAuthenticated && (
+            <div className="alert alert-info" style={{ marginBottom: 24, textAlign: 'center' }}>
+              <p style={{ marginBottom: 12 }}>
+                {t('login.alreadyLoggedIn')} <strong>{auth.userEmail || auth.userNickname}</strong>
+              </p>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <Link className="btn btn-primary" to="/app">
+                  {t('login.goToDashboard')}
+                </Link>
+                <button 
+                  className="btn btn-ghost" 
+                  onClick={auth.logout}
+                  style={{ color: 'var(--color-danger)' }}
+                >
+                  <LogoutIcon />
+                  {t('actions.logout')}
+                </button>
+              </div>
             </div>
           )}
 

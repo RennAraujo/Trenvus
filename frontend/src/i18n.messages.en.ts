@@ -232,6 +232,8 @@ export const messagesEn: Record<string, string> = {
   'login.subtitle': 'Access your dashboard to deposit USD and convert to TRV.',
   'login.loading': 'Logging in...',
   'login.noAccount': "Don't have an account?",
+  'login.alreadyLoggedIn': 'You are already logged in as',
+  'login.goToDashboard': 'Go to Dashboard',
 
   'register.title': 'Create account',
   'register.subtitle': 'Create your account to see balances, private statements, and follow the market.',

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../auth'
 import { LanguageSwitcher, useI18n } from '../i18n'
 import brandLogo from '../assets/brand-mark.png'
 
@@ -33,8 +34,15 @@ const ArrowRightIcon = () => (
   </svg>
 )
 
+const LogoutIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
+  </svg>
+)
+
 export function Landing() {
   const { t } = useI18n()
+  const auth = useAuth()
 
   return (
     <div className="app-shell">
@@ -53,12 +61,30 @@ export function Landing() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link className="btn btn-ghost btn-sm hidden sm:flex" to="/login">
-              {t('actions.login')}
-            </Link>
-            <Link className="btn btn-primary" to="/register">
-              {t('landing.cta.startNow')}
-            </Link>
+            {auth.isAuthenticated ? (
+              <>
+                <Link className="btn btn-primary btn-sm" to="/app">
+                  Dashboard
+                </Link>
+                <button 
+                  className="btn btn-ghost btn-sm hidden sm:flex" 
+                  onClick={auth.logout}
+                  style={{ color: 'var(--color-danger)' }}
+                >
+                  <LogoutIcon />
+                  {t('actions.logout')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link className="btn btn-ghost btn-sm hidden sm:flex" to="/login">
+                  {t('actions.login')}
+                </Link>
+                <Link className="btn btn-primary" to="/register">
+                  {t('landing.cta.startNow')}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>

@@ -232,6 +232,8 @@ export const messagesPtBR: Record<string, string> = {
   'login.subtitle': 'Acesse seu dashboard para depositar USD e converter para TRV.',
   'login.loading': 'Entrando...',
   'login.noAccount': 'Não tem conta?',
+  'login.alreadyLoggedIn': 'Você já está logado como',
+  'login.goToDashboard': 'Ir para o Dashboard',
 
   'register.title': 'Criar conta',
   'register.subtitle': 'Crie sua conta para ver saldo, extrato privado e acompanhar o mercado.',
