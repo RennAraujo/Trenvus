@@ -44,18 +44,18 @@ public class RegistrationService {
         
         // Verifica se email já existe
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email already registered");
+            throw new IllegalArgumentException("EMAIL_ALREADY_REGISTERED");
         }
 
         // Verifica se nickname já existe (se fornecido)
         if (nickname != null && !nickname.isBlank()) {
             String trimmedNickname = nickname.trim();
             if (userRepository.existsByNickname(trimmedNickname)) {
-                throw new IllegalArgumentException("Nickname already taken");
+                throw new IllegalArgumentException("NICKNAME_TAKEN");
             }
             // Verifica também em registros pendentes
             if (pendingRepository.existsByNickname(trimmedNickname)) {
-                throw new IllegalArgumentException("Nickname already taken");
+                throw new IllegalArgumentException("NICKNAME_TAKEN");
             }
         }
 

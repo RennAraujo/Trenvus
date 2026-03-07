@@ -69,7 +69,14 @@ export function Register() {
       await auth.register(email, password, nickname, phone)
       navigate('/app', { replace: true })
     } catch (err: any) {
-      setError(err?.message || t('errors.register'))
+      const errorCode = err?.message || 'REGISTER_FAILED'
+      // Tradução de códigos de erro do backend
+      const errorTranslations: Record<string, string> = {
+        'EMAIL_ALREADY_REGISTERED': t('errors.register'),
+        'NICKNAME_TAKEN': t('errors.nicknameTaken'),
+        'REGISTER_FAILED': t('errors.register')
+      }
+      setError(errorTranslations[errorCode] || errorCode)
     } finally {
       setBusy(false)
     }
