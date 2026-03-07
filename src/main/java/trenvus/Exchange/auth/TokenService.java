@@ -6,6 +6,8 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -17,6 +19,8 @@ import trenvus.Exchange.user.UserEntity;
 
 @Service
 public class TokenService {
+	private static final Logger logger = LoggerFactory.getLogger(TokenService.class);
+	
 	private final JwtEncoder jwtEncoder;
 	private final SecureRandom secureRandom = new SecureRandom();
 	private final String issuer;
@@ -36,6 +40,10 @@ public class TokenService {
 	}
 
 	public AccessTokenResult createAccessToken(UserEntity user, Instant now) {
+		var role = user.getRole() == null ? "USER" : user.getRole().name();
+		var roles = List.of(role);
+		logger.info("Creating token for user {} with roles: {}", user.getId(), roles);
+		
 		var expiresAt = now.plusSeconds(accessTtlSeconds);
 		var claimsBuilder = JwtClaimsSet.builder()
 				.issuer(issuer)
@@ -43,7 +51,7 @@ public class TokenService {
 				.expiresAt(expiresAt)
 				.subject(String.valueOf(user.getId()))
 				.claim("email", user.getEmail())
-				.claim("roles", List.of((user.getRole() == null ? "USER" : user.getRole().name())));
+				.claim("roles", roles);
 		
 		// Only add nickname if it's not null
 		if (user.getNickname() != null && !user.getNickname().isBlank()) {
@@ -51,6 +59,7 @@ public class TokenService {
 		}
 		
 		var claims = claimsBuilder.build();
+		logger.info("JWT claims built - subject: {}, roles claim: {}", claims.getSubject(), claims.getClaim("roles"));
 
 		var header = JwsHeader.with(SignatureAlgorithm.RS256).build();
 		var tokenValue = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();

@@ -120,7 +120,11 @@ public class SecurityConfig {
 		authorities.setAuthorityPrefix("ROLE_");
 
 		var converter = new JwtAuthenticationConverter();
-		converter.setJwtGrantedAuthoritiesConverter(authorities);
+		converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+			var grantedAuthorities = authorities.convert(jwt);
+			logger.info("JWT authorities extracted: {} from claim 'roles'", grantedAuthorities);
+			return grantedAuthorities;
+		});
 		return converter;
 	}
 

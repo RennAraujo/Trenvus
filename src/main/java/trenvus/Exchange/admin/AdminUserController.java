@@ -3,9 +3,13 @@ package trenvus.Exchange.admin;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +31,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/admin")
 @Validated
 public class AdminUserController {
+	private static final Logger logger = LoggerFactory.getLogger(AdminUserController.class);
+	
 	private final AdminUserService adminUsers;
 	private final TransactionRepository transactions;
 
@@ -38,9 +44,13 @@ public class AdminUserController {
 	@GetMapping("/users")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> listUsers(
+			@AuthenticationPrincipal Jwt jwt,
 			@RequestParam(required = false) String q,
 			@RequestParam(defaultValue = "100") @Min(1) int limit
 	) {
+		logger.info("listUsers called by userId: {}, authorities: {}", 
+			jwt != null ? jwt.getSubject() : "null",
+			jwt != null ? jwt.getClaim("roles") : "null");
 		return ResponseEntity.ok(adminUsers.listUsers(q, limit));
 	}
 
