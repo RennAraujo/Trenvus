@@ -75,7 +75,10 @@ public class SecurityConfig {
 					logger.info("authorizeHttpRequests configured successfully");
 				})
 				.oauth2ResourceServer(oauth2 -> {
-					oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()));
+					oauth2.jwt(jwt -> {
+					jwt.decoder(jwtDecoder(keys, tokenBlacklistService));
+					jwt.jwtAuthenticationConverter(jwtAuthenticationConverter());
+				});
 					oauth2.bearerTokenResolver(request -> {
 						// Para endpoints públicos, não exigir token
 						String path = request.getRequestURI();

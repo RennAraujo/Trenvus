@@ -26,12 +26,15 @@ public class BlacklistAwareJwtDecoder implements JwtDecoder {
         
         // Check if token has been revoked
         String jti = jwt.getId();
+        logger.debug("Checking token - jti: {}, sub: {}", jti, jwt.getSubject());
+        
         if (jti != null && blacklistService.isTokenRevoked(jti)) {
-            logger.warn("Attempt to use revoked token - jti: {}, sub: {}", jti, jwt.getSubject());
+            logger.warn("BLOCKED revoked token - jti: {}, sub: {}", jti, jwt.getSubject());
             throw new JwtValidationException("Token has been revoked", 
                 java.util.Collections.singletonList(new OAuth2Error("token_revoked", "This token has been revoked", null)));
         }
         
+        logger.debug("Token accepted - jti: {}", jti);
         return jwt;
     }
 }

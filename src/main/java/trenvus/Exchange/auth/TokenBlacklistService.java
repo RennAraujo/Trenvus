@@ -24,8 +24,10 @@ public class TokenBlacklistService {
             return;
         }
         
+        logger.info("Attempting to revoke token - jti: {}, userId: {}", jti, userId);
+        
         if (revokedTokenRepository.existsByTokenJti(jti)) {
-            logger.debug("Token {} already revoked", jti);
+            logger.info("Token {} already revoked", jti);
             return;
         }
         
@@ -36,7 +38,7 @@ public class TokenBlacklistService {
         revokedToken.setExpiresAt(expiresAt);
         
         revokedTokenRepository.save(revokedToken);
-        logger.info("Token revoked - jti: {}, userId: {}", jti, userId);
+        logger.info("Token revoked successfully - jti: {}, userId: {}", jti, userId);
     }
     
     @Transactional(readOnly = true)
