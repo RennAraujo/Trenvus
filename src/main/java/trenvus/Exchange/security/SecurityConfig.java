@@ -49,7 +49,7 @@ public class SecurityConfig {
 	private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 	
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtKeyMaterial keys, TokenBlacklistService tokenBlacklistService) throws Exception {
 		logger.info("Configuring SecurityFilterChain");
 		return http
 				.csrf(csrf -> csrf.disable())
@@ -76,9 +76,9 @@ public class SecurityConfig {
 				})
 				.oauth2ResourceServer(oauth2 -> {
 					oauth2.jwt(jwt -> {
-					jwt.decoder(jwtDecoder(keys, tokenBlacklistService));
-					jwt.jwtAuthenticationConverter(jwtAuthenticationConverter());
-				});
+						jwt.decoder(jwtDecoder(keys, tokenBlacklistService));
+						jwt.jwtAuthenticationConverter(jwtAuthenticationConverter());
+					});
 					oauth2.bearerTokenResolver(request -> {
 						// Para endpoints públicos, não exigir token
 						String path = request.getRequestURI();
