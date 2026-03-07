@@ -157,6 +157,8 @@ export const messagesEn: Record<string, string> = {
 
   'transfer.title': 'Transfer',
   'transfer.subtitle': 'Transfer TRV between users.',
+  'transfer.transferFee': 'Transfer Fee',
+  'transfer.freeTransfers': 'Free transfers',
   'transfer.toEmail': "Recipient email or nickname",
   'transfer.amountTrv': 'Amount (TRV)',
   'transfer.totalLine': 'Total debited: {total} TRV',

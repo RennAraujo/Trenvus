@@ -157,6 +157,8 @@ export const messagesPtBR: Record<string, string> = {
 
   'transfer.title': 'Transferência',
   'transfer.subtitle': 'Transfira TRV entre usuários.',
+  'transfer.transferFee': 'Taxa de Transferência',
+  'transfer.freeTransfers': 'Transferências gratuitas',
   'transfer.toEmail': 'E-mail ou apelido (nickname) do destinatário',
   'transfer.amountTrv': 'Valor (TRV)',
   'transfer.totalLine': 'Total debitado: {total} TRV',

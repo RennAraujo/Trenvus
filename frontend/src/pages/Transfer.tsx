@@ -158,8 +158,8 @@ export function Transfer() {
         <div className="balance-card">
           <div className="balance-card-content">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div className="balance-label">TRV Balance</div>
-              <span className="badge badge-secondary">Available</span>
+              <div className="balance-label">{t('dashboard.trvBalance')}</div>
+              <span className="badge badge-secondary">{t('dashboard.available')}</span>
             </div>
             <div className="balance-value tabular-nums" style={{ marginTop: 8 }}>
               {formatUsd(totals.trv)}
@@ -169,9 +169,9 @@ export function Transfer() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">Transfer Fee</div>
+          <div className="stat-label">{t('transfer.transferFee')}</div>
           <div className="stat-value">0%</div>
-          <div className="stat-change stat-change-positive">{t('transfer.free')} transfers</div>
+          <div className="stat-change stat-change-positive">{t('transfer.freeTransfers')}</div>
         </div>
       </div>
 
