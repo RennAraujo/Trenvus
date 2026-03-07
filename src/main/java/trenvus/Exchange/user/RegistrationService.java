@@ -127,6 +127,40 @@ public class RegistrationService {
         return user;
     }
 
+    public java.util.Optional<PendingRegistration> findPendingByEmail(String email) {
+        return pendingRepository.findByEmail(email);
+    }
+
+    @Transactional
+    public void removePending(String email) {
+        pendingRepository.findByEmail(email).ifPresent(pendingRepository::delete);
+    }
+
+    @Transactional
+    public void resendConfirmationEmail(String email) {
+        var pending = pendingRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("No pending registration found for this email"));
+
+        if (pending.isExpired()) {
+            pendingRepository.delete(pending);
+            throw new IllegalArgumentException("Token has expired. Please register again.");
+        }
+
+        // Gera novo token
+        pending.setToken(generateSecureToken());
+        pending.setExpiresAt(Instant.now().plus(TOKEN_EXPIRY));
+        pendingRepository.save(pending);
+
+        // Reenvia email
+        try {
+            emailService.sendRegistrationConfirmation(email, pending.getToken());
+            logger.info("Confirmation email resent to: {}", email);
+        } catch (Exception e) {
+            logger.error("Failed to resend confirmation email to {}: {}", email, e.getMessage());
+            throw new RuntimeException("Failed to send confirmation email", e);
+        }
+    }
+
     private String generateSecureToken() {
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);

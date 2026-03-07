@@ -87,6 +87,25 @@ public class AuthController {
 
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+		// Verifica se existe um registro pendente para este email
+		try {
+			var pendingOpt = registrationService.findPendingByEmail(request.email());
+			if (pendingOpt.isPresent()) {
+				var pending = pendingOpt.get();
+				if (pending.isExpired()) {
+					// Remove o registro expirado
+					registrationService.removePending(pending.getEmail());
+				} else {
+					// Retorna erro específico para conta em verificação
+					logger.warn("Login attempt for unverified email: {}", request.email());
+					return ResponseEntity.status(HttpStatus.FORBIDDEN)
+							.body(new AuthResponse(null, null, null, "Bearer", "PENDING_VERIFICATION", pending.getEmail()));
+				}
+			}
+		} catch (Exception e) {
+			logger.debug("Error checking pending registration: {}", e.getMessage());
+		}
+		
 		var result = authService.login(request.email(), request.password());
 		return ResponseEntity.ok(AuthResponse.from(result));
 	}
@@ -148,6 +167,21 @@ public class AuthController {
 		return ResponseEntity.ok(AuthResponse.from(result));
 	}
 
+	@PostMapping("/resend-confirmation")
+	public ResponseEntity<RegistrationResponse> resendConfirmation(@Valid @RequestBody ResendConfirmationRequest request) {
+		logger.info("Resend confirmation requested for: {}", request.email());
+		try {
+			registrationService.resendConfirmationEmail(request.email());
+			return ResponseEntity.ok(new RegistrationResponse("success", "Verification email resent. Please check your inbox."));
+		} catch (IllegalArgumentException e) {
+			logger.warn("Resend confirmation failed: {}", e.getMessage());
+			return ResponseEntity.badRequest().body(new RegistrationResponse("error", e.getMessage()));
+		} catch (Exception e) {
+			logger.error("Resend confirmation failed: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new RegistrationResponse("error", "Failed to resend confirmation email"));
+		}
+	}
+
 	public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password, String nickname, String phone) {}
 
 	public record RegistrationResponse(String status, String message) {}
@@ -162,9 +196,15 @@ public class AuthController {
 
 	public record LogoutRequest(@NotBlank String refreshToken) {}
 
-	public record AuthResponse(String accessToken, Instant accessExpiresAt, String refreshToken, String tokenType) {
+	public record ResendConfirmationRequest(@NotBlank @Email String email) {}
+
+	public record AuthResponse(String accessToken, Instant accessExpiresAt, String refreshToken, String tokenType, String status, String pendingEmail) {
 		static AuthResponse from(AuthService.AuthResult result) {
-			return new AuthResponse(result.accessToken(), result.accessExpiresAt(), result.refreshToken(), "Bearer");
+			return new AuthResponse(result.accessToken(), result.accessExpiresAt(), result.refreshToken(), "Bearer", "SUCCESS", null);
+		}
+		
+		static AuthResponse pendingVerification(String email) {
+			return new AuthResponse(null, null, null, "Bearer", "PENDING_VERIFICATION", email);
 		}
 	}
 }
