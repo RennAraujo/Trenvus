@@ -268,6 +268,8 @@ export const api = {
     request<AuthResponse>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
   logout: (refreshToken: string) =>
     request<void>('/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
+  revokeToken: (accessToken: string) =>
+    request<void>('/auth/revoke', { method: 'POST', accessToken }),
 
   getWallet: (accessToken: string) => request<WalletResponse>('/wallet', { accessToken }),
   depositUsd: (accessToken: string, amountUsd: string) =>

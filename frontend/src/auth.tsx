@@ -141,15 +141,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setFromResponse])
 
   const logout = useCallback(async () => {
+    const access = state.accessToken
     const refresh = state.refreshToken
     try {
+      // Revoga o access token primeiro (se existir)
+      if (access) {
+        try {
+          await api.revokeToken(access)
+        } catch (e) {
+          // Ignora erro - token pode já estar expirado
+        }
+      }
+      // Depois revoga o refresh token
       if (refresh) await api.logout(refresh)
     } finally {
       clearTokens()
       setState({ accessToken: null, accessExpiresAt: null, refreshToken: null })
       setProfile({ avatarDataUrl: null })
     }
-  }, [state.refreshToken])
+  }, [state.accessToken, state.refreshToken])
 
   const getValidAccessToken = useCallback(async () => {
     const access = state.accessToken
