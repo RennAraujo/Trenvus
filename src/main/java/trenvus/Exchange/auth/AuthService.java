@@ -23,13 +23,16 @@ public class AuthService {
 	private final TokenService tokenService;
 	private final WalletService walletService;
 
+	private final TokenBlacklistService tokenBlacklistService;
+
 	public AuthService(
 			UserRepository users,
 			RefreshTokenRepository refreshTokens,
 			PasswordEncoder passwordEncoder,
 			AuthenticationManager authenticationManager,
 			TokenService tokenService,
-			WalletService walletService
+			WalletService walletService,
+			TokenBlacklistService tokenBlacklistService
 	) {
 		this.users = users;
 		this.refreshTokens = refreshTokens;
@@ -37,6 +40,7 @@ public class AuthService {
 		this.authenticationManager = authenticationManager;
 		this.tokenService = tokenService;
 		this.walletService = walletService;
+		this.tokenBlacklistService = tokenBlacklistService;
 	}
 
 	@Transactional
