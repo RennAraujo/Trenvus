@@ -391,11 +391,9 @@ export const messagesEn: Record<string, string> = {
   'exportPdf.success': 'PDF sent successfully! Check your inbox.',
   'exportPdf.error': 'Could not send email. Please try again later.',
   'exportPdf.networkError': 'Connection error. Check your internet and try again.',
-}
 
   // Voucher
   'nav.voucher': 'My Voucher',
-
   'voucher.title': 'My Voucher',
   'voucher.subtitle': 'Share your profile with an exclusive QR Code.',
   'voucher.noVoucher': "You don't have a voucher yet",
@@ -418,3 +416,4 @@ export const messagesEn: Record<string, string> = {
   'voucher.invalidTitle': 'Invalid Voucher',
   'voucher.invalidDesc': 'This voucher does not exist, has expired, or has been deactivated.',
   'voucher.copied': 'Link copied!',
+}
