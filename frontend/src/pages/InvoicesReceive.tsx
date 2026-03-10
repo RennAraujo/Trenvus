@@ -1,40 +1,55 @@
-import { useEffect, useRef, useState } from 'react'
-// QR Code removed for now - using placeholder
-const QRCodePlaceholder = () => (
-  <div style={{ 
-    width: 200, 
-    height: 200, 
-    background: 'var(--bg-elevated)', 
-    borderRadius: 8,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: '2px dashed var(--border-default)'
-  }}>
-    <span className="text-muted">QR</span>
-  </div>
-)
-import { api, formatUsd, type WalletResponse } from '../api'
+import { useEffect, useState } from 'react'
+import { QRCodeSVG } from 'qrcode.react'
+import { api, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
 // Icons
-const WalletIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+const UserIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+)
+
+const PlusIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14"/>
+    <path d="M12 5v14"/>
+  </svg>
+)
+
+const ListIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 6h13"/>
+    <path d="M8 12h13"/>
+    <path d="M8 18h13"/>
+    <path d="M3 6h.01"/>
+    <path d="M3 12h.01"/>
+    <path d="M3 18h.01"/>
   </svg>
 )
 
 const CameraIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>
+    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+    <circle cx="12" cy="13" r="3"/>
   </svg>
 )
 
-const DollarIcon = () => (
+const CalendarIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+    <line x1="16" x2="16" y1="2" y2="6"/>
+    <line x1="8" x2="8" y1="2" y2="6"/>
+    <line x1="3" x2="21" y1="10" y2="10"/>
+  </svg>
+)
+
+const ClockIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
   </svg>
 )
 
@@ -44,35 +59,65 @@ const CheckIcon = () => (
   </svg>
 )
 
-const XIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+const EditIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
   </svg>
 )
 
-const ScanLineIcon = () => (
+const DownloadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="4" x2="20" y1="12" y2="12"/>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" x2="12" y1="15" y2="3"/>
   </svg>
 )
 
+const CloseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 12 12"/>
+  </svg>
+)
+
+const ShareIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+  </svg>
+)
+
+interface InvoiceItem {
+  id: string
+  description: string
+  quantity: number
+  amount: string
+}
 
 export function InvoicesReceive() {
   const auth = useAuth()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   
-  const [amount, setAmount] = useState('50.00')
-  const [currency, setCurrency] = useState<'USD' | 'TRV'>('USD')
-  const [description, setDescription] = useState('')
+  // Form state
+  const [invoiceNumber, setInvoiceNumber] = useState('INV-001')
+  const [customer, setCustomer] = useState('')
+  const [items, setItems] = useState<InvoiceItem[]>([{ id: '1', description: '', quantity: 1, amount: '' }])
+  const [currency] = useState<'USD' | 'TRV'>('USD')
+  const [issuedDate, setIssuedDate] = useState(new Date().toISOString().split('T')[0])
+  const [dueDate, setDueDate] = useState(() => {
+    const date = new Date()
+    date.setDate(date.getDate() + 30)
+    return date.toISOString().split('T')[0]
+  })
+  
+  // UI state
+  const [step, setStep] = useState<'form' | 'review' | 'qr' | 'success'>('form')
   const [qrPayload, setQrPayload] = useState<string | null>(null)
-  const [scanning, setScanning] = useState(false)
-  const [scanProgress, setScanProgress] = useState(0)
-  const [detectedPayer, setDetectedPayer] = useState<string | null>(null)
-  const [processing, setProcessing] = useState(false)
-  const [result, setResult] = useState<{ success: boolean; message: string; wallet?: WalletResponse } | null>(null)
-  const [wallet, setWallet] = useState<WalletResponse | null>(null)
-
-  const scanIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [_wallet, setWallet] = useState<WalletResponse | null>(null)
+  const [copied, setCopied] = useState(false)
 
   async function loadWallet() {
     try {
@@ -86,507 +131,921 @@ export function InvoicesReceive() {
 
   useEffect(() => {
     loadWallet()
-  }, [result])
+  }, [])
+
+  // Generate invoice number on mount
+  useEffect(() => {
+    const random = Math.floor(Math.random() * 900) + 100
+    setInvoiceNumber(`INV-${random}`)
+  }, [])
+
+  const calculateTotal = () => {
+    return items.reduce((sum, item) => {
+      const amount = parseFloat(item.amount) || 0
+      return sum + (amount * item.quantity)
+    }, 0)
+  }
+
+  const addItem = () => {
+    setItems([...items, { id: Date.now().toString(), description: '', quantity: 1, amount: '' }])
+  }
+
+  const removeItem = (id: string) => {
+    if (items.length > 1) {
+      setItems(items.filter(item => item.id !== id))
+    }
+  }
+
+  const updateItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
+    setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item))
+  }
 
   async function generateQr() {
+    const total = calculateTotal()
+    const description = items.map(i => i.description).filter(Boolean).join(', ') || 'Invoice payment'
+    
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, amount, currency, description || 'Payment')
+      const response = await api.generateInvoice(token, total.toFixed(2), currency, description)
       setQrPayload(response.qrPayload)
-      setResult(null)
+      setStep('qr')
     } catch (err: any) {
       console.error('Failed to generate QR', err)
     }
   }
 
-  function startScanning() {
-    // Validate amount first
-    const numAmount = parseFloat(amount)
-    if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      return
-    }
-
-    // Generate QR first if not already done
-    if (!qrPayload) {
-      generateQr()
-    }
-
-    setScanning(true)
-    setScanProgress(0)
-    setDetectedPayer(null)
-    setResult(null)
-
-    // Simulate scanning for a payer
-    let progress = 0
-    scanIntervalRef.current = setInterval(() => {
-      progress += Math.random() * 10
-      if (progress >= 100) {
-        progress = 100
-        setDetectedPayer('payer@example.com')
-        setScanning(false)
-        if (scanIntervalRef.current) {
-          clearInterval(scanIntervalRef.current)
-        }
-      }
-      setScanProgress(progress)
-    }, 200)
-  }
-
-  function stopScanning() {
-    setScanning(false)
-    setScanProgress(0)
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
+  function copyLink() {
+    if (qrPayload) {
+      const baseUrl = window.location.origin
+      const link = `${baseUrl}/pay?invoice=${encodeURIComponent(qrPayload)}`
+      navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
-  async function processPayment() {
-    if (!qrPayload || !detectedPayer) return
-
-    setProcessing(true)
-    try {
-      const token = await auth.getValidAccessToken()
-      // Use simulatePayInvoice for demo - this simulates a payer without needing a second account
-      const result = await api.simulatePayInvoice(token, qrPayload, amount, currency)
-      setResult({
-        success: true,
-        message: `Successfully received ${amount} ${currency} from ${result.simulatedPayerEmail}`,
-        wallet: { usdCents: currency === 'USD' ? result.newBalanceCents : (wallet?.usdCents || 0), trvCents: currency === 'TRV' ? result.newBalanceCents : (wallet?.trvCents || 0) }
+  function shareInvoice() {
+    if (navigator.share) {
+      navigator.share({
+        title: `Invoice ${invoiceNumber}`,
+        text: `Payment request for ${calculateTotal().toFixed(2)} ${currency}`,
+        url: `${window.location.origin}/pay?invoice=${encodeURIComponent(qrPayload || '')}`
       })
-      // Reload wallet to get updated balance
-      await loadWallet()
-      setDetectedPayer(null)
-    } catch (err: any) {
-      setResult({
-        success: false,
-        message: err?.message || 'Payment processing failed'
-      })
-    } finally {
-      setProcessing(false)
+    } else {
+      copyLink()
     }
-  }
-
-  function cancelPayment() {
-    setDetectedPayer(null)
-    setResult(null)
   }
 
   function reset() {
+    setStep('form')
     setQrPayload(null)
-    setDetectedPayer(null)
-    setResult(null)
-    setAmount('50.00')
-    setCurrency('USD')
-    setDescription('')
+    setCustomer('')
+    setItems([{ id: '1', description: '', quantity: 1, amount: '' }])
+    const random = Math.floor(Math.random() * 900) + 100
+    setInvoiceNumber(`INV-${random}`)
   }
 
-  useEffect(() => {
-    return () => {
-      if (scanIntervalRef.current) {
-        clearInterval(scanIntervalRef.current)
-      }
-    }
-  }, [])
+  // Format date for display
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString(locale === 'pt-BR' ? 'pt-BR' : 'en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
 
+  // Currency flag
+  const CurrencyFlag = () => (
+    <span style={{ fontSize: 20 }}>
+      {currency === 'USD' ? '🇺🇸' : '🔷'}
+    </span>
+  )
+
+  if (step === 'qr' && qrPayload) {
+    const total = calculateTotal()
+    return (
+      <div className="animate-fade-in">
+        {/* Header */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: 24 
+        }}>
+          <button 
+            onClick={() => setStep('review')}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              border: 'none',
+              background: 'var(--bg-elevated)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <CloseIcon />
+          </button>
+          <div style={{
+            padding: '8px 16px',
+            background: 'var(--bg-elevated)',
+            borderRadius: 20,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontWeight: 500
+          }}>
+            <CurrencyFlag />
+            {currency}
+          </div>
+        </div>
+
+        {/* Invoice Title */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <h1 style={{ 
+            fontSize: 18, 
+            fontWeight: 700, 
+            marginBottom: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8
+          }}>
+            {invoiceNumber}
+            <button style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              border: 'none',
+              background: 'var(--bg-elevated)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <EditIcon />
+            </button>
+          </h1>
+        </div>
+
+        {/* QR Code */}
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 24
+        }}>
+          <div style={{
+            background: 'white',
+            padding: 24,
+            borderRadius: 24,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+          }}>
+            <QRCodeSVG 
+              value={qrPayload}
+              size={280}
+              level="H"
+              bgColor="#ffffff"
+              fgColor="#000000"
+            />
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ 
+              fontSize: 14, 
+              color: 'var(--text-secondary)',
+              marginBottom: 8
+            }}>
+              {t('invoice.scanToPay') || 'Scan to pay'}
+            </p>
+            <div style={{
+              fontSize: 36,
+              fontWeight: 700,
+              fontFamily: 'var(--font-mono)'
+            }}>
+              {total.toFixed(2)} {currency}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{ 
+            display: 'flex', 
+            gap: 12,
+            width: '100%',
+            maxWidth: 400
+          }}>
+            <button
+              onClick={copyLink}
+              style={{
+                flex: 1,
+                padding: '14px 24px',
+                borderRadius: 12,
+                border: '1px solid var(--border-default)',
+                background: 'var(--bg-elevated)',
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8
+              }}
+            >
+              {copied ? <CheckIcon /> : <DownloadIcon />}
+              {copied ? (t('actions.copied') || 'Copied!') : (t('invoice.copyLink') || 'Copy link')}
+            </button>
+            
+            <button
+              onClick={shareInvoice}
+              style={{
+                flex: 1,
+                padding: '14px 24px',
+                borderRadius: 12,
+                border: 'none',
+                background: 'var(--color-primary)',
+                color: 'white',
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8
+              }}
+            >
+              <ShareIcon />
+              {t('invoice.share') || 'Share'}
+            </button>
+          </div>
+
+          <button
+            onClick={reset}
+            style={{
+              padding: '12px 24px',
+              borderRadius: 12,
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              fontSize: 14,
+              cursor: 'pointer',
+              marginTop: 16
+            }}
+          >
+            {t('invoice.createNew') || 'Create new invoice'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (step === 'review') {
+    const total = calculateTotal()
+    return (
+      <div className="animate-fade-in">
+        {/* Header */}
+        <div style={{ marginBottom: 24 }}>
+          <button 
+            onClick={() => setStep('form')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              fontSize: 14,
+              cursor: 'pointer',
+              marginBottom: 16
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            {t('actions.back') || 'Back'}
+          </button>
+          
+          <h1 style={{ fontSize: 28, fontWeight: 700 }}>
+            {invoiceNumber}
+            <button style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              border: 'none',
+              background: 'var(--bg-elevated)',
+              cursor: 'pointer',
+              marginLeft: 8
+            }}>
+              <EditIcon />
+            </button>
+          </h1>
+        </div>
+
+        {/* Currency Selector */}
+        <div style={{ 
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginBottom: 24 
+        }}>
+          <div style={{
+            padding: '8px 16px',
+            background: 'var(--bg-elevated)',
+            borderRadius: 20,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontWeight: 500
+          }}>
+            <CurrencyFlag />
+            {currency}
+          </div>
+        </div>
+
+        {/* Customer Card */}
+        <div style={{
+          border: '2px dashed var(--border-default)',
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 16,
+          cursor: 'pointer'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: 'var(--bg-elevated)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {customer ? (
+                <span style={{ fontSize: 18, fontWeight: 600 }}>{customer.charAt(0).toUpperCase()}</span>
+              ) : (
+                <UserIcon />
+              )}
+            </div>
+            
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                {customer || (t('invoice.customer') || 'Customer')}
+              </div>
+              <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                {customer 
+                  ? (t('invoice.customerAdded') || 'Customer added') 
+                  : (t('invoice.whoInvoiceFor') || 'Who the invoice is for')}
+              </div>
+            </div>
+            
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m9 18 6-6-6-6"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Items Card */}
+        <div style={{
+          border: '2px dashed var(--border-default)',
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 24,
+          cursor: 'pointer'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: 'var(--bg-elevated)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
+              <ListIcon />
+              <div style={{
+                position: 'absolute',
+                bottom: -2,
+                right: -2,
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                background: 'var(--color-success)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <PlusIcon />
+              </div>
+            </div>
+            
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                {t('invoice.items') || 'Items'}
+              </div>
+              <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                {items.some(i => i.description) 
+                  ? `${items.filter(i => i.description).length} items` 
+                  : (t('invoice.whatYouSold') || 'What you sold')}
+              </div>
+            </div>
+            
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m9 18 6-6-6-6"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Payment Methods */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          padding: '16px 0',
+          borderBottom: '1px solid var(--border-default)'
+        }}>
+          <CameraIcon />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600 }}>{t('invoice.paymentMethods') || 'Payment methods'}</div>
+            <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+              {t('invoice.payWithTrv') || 'Pay with TRV via QR code'}
+            </div>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </div>
+
+        {/* Dates */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          padding: '16px 0',
+          borderBottom: '1px solid var(--border-default)'
+        }}>
+          <CalendarIcon />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600 }}>{t('invoice.issued') || 'Issued'}</div>
+            <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{formatDate(issuedDate)}</div>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          padding: '16px 0',
+          marginBottom: 24
+        }}>
+          <ClockIcon />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600 }}>{t('invoice.due') || 'Due'}</div>
+            <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{formatDate(dueDate)}</div>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </div>
+
+        {/* Total */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: 24,
+          padding: 16,
+          background: 'var(--bg-elevated)',
+          borderRadius: 12
+        }}>
+          <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 4 }}>
+            {t('invoice.amountDueBy', { date: formatDate(dueDate) }) || `Amount due by ${formatDate(dueDate)}`}
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-success)' }}>
+            {total.toFixed(2)} {currency}
+          </div>
+        </div>
+
+        {/* Review Button */}
+        <button
+          onClick={generateQr}
+          disabled={total <= 0}
+          style={{
+            width: '100%',
+            padding: '16px 24px',
+            borderRadius: 12,
+            border: 'none',
+            background: total > 0 ? 'var(--color-primary)' : 'var(--bg-elevated)',
+            color: total > 0 ? 'white' : 'var(--text-muted)',
+            fontSize: 16,
+            fontWeight: 600,
+            cursor: total > 0 ? 'pointer' : 'not-allowed'
+          }}
+        >
+          {t('invoice.generateQr') || 'Generate QR Code'}
+        </button>
+      </div>
+    )
+  }
+
+  // Form Step
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">{t('invoices.receive.title')}</h1>
-          <p className="page-subtitle">Generate QR code to receive payments instantly</p>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        marginBottom: 24 
+      }}>
+        <button 
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            border: 'none',
+            background: 'var(--bg-elevated)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <CloseIcon />
+        </button>
+        
+        <div style={{
+          padding: '8px 16px',
+          background: 'var(--bg-elevated)',
+          borderRadius: 20,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontWeight: 500,
+          cursor: 'pointer'
+        }}
+        >
+          <CurrencyFlag />
+          {currency}
         </div>
       </div>
 
-      {/* Wallet Balance */}
-      <div className="grid grid-cols-2 md:grid-cols-1" style={{ gap: 16, marginBottom: 24 }}>
-        <div className="stat-card">
-          <div className="stat-label">USD Balance</div>
-          <div className="stat-value tabular-nums">{wallet ? formatUsd(wallet.usdCents) : '—'}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">TRV Balance</div>
-          <div className="stat-value tabular-nums">{wallet ? formatUsd(wallet.trvCents) : '—'}</div>
-        </div>
+      {/* Invoice Number */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {invoiceNumber}
+          <button style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            border: 'none',
+            background: 'var(--bg-elevated)',
+            cursor: 'pointer'
+          }}>
+            <EditIcon />
+          </button>
+        </h1>
       </div>
 
-      {/* Amount Configuration */}
-      {!qrPayload && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <div className="card-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: 10, 
-                background: 'var(--color-primary-alpha-10)',
-                color: 'var(--color-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <DollarIcon />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Payment Amount</h3>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>Enter the amount you want to receive</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card-body">
-            <div style={{ display: 'grid', gap: 20 }}>
-              <div className="field">
-                <label className="field-label">Amount *</label>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
-                    <DollarIcon />
-                  </span>
-                  <input 
-                    className="input font-mono" 
-                    value={amount} 
-                    onChange={(e) => setAmount(e.target.value)} 
-                    inputMode="decimal"
-                    placeholder="0.00"
-                    style={{ paddingLeft: 44, fontSize: 20, fontWeight: 600 }}
-                  />
-                </div>
-              </div>
-
-              <div className="field">
-                <label className="field-label">Currency</label>
-                <div className="toggle-group">
-                  <button
-                    type="button"
-                    className={`toggle-button ${currency === 'USD' ? 'active' : ''}`}
-                    onClick={() => setCurrency('USD')}
-                  >
-                    USD
-                  </button>
-                  <button
-                    type="button"
-                    className={`toggle-button ${currency === 'TRV' ? 'active' : ''}`}
-                    onClick={() => setCurrency('TRV')}
-                  >
-                    TRV
-                  </button>
-                </div>
-              </div>
-
-              <div className="field">
-                <label className="field-label">Description (Optional)</label>
-                <input 
-                  className="input" 
-                  value={description} 
-                  onChange={(e) => setDescription(e.target.value)} 
-                  placeholder="What is this payment for?"
-                />
-              </div>
-
-              <button 
-                className="btn btn-primary btn-lg" 
-                onClick={generateQr}
-                disabled={!amount || parseFloat(amount) <= 0}
-              >
-                <WalletIcon />
-                Generate QR Code
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* QR Code Display */}
-      {qrPayload && !detectedPayer && !result && (
-        <div className="card" style={{ marginBottom: 24, borderColor: 'var(--color-primary)', boxShadow: 'var(--shadow-glow-sm)' }}>
-          <div className="card-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: 10, 
-                background: 'var(--color-success-alpha-10)',
-                color: 'var(--color-success)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <CheckIcon />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>QR Code Generated</h3>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>Scan to pay {amount} {currency}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card-body">
-            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ 
-                display: 'inline-flex', 
-                padding: 24, 
-                background: 'white', 
-                borderRadius: 16,
-                marginBottom: 16
-              }}>
-                <QRCodePlaceholder />
-              </div>
-              
-              <div className="font-mono" style={{ fontSize: 28, fontWeight: 700, color: 'var(--color-primary)', marginBottom: 8 }}>
-                {amount} {currency}
-              </div>
-              {description && (
-                <div className="text-secondary" style={{ marginBottom: 8 }}>{description}</div>
-              )}
-              <div className="text-xs text-muted">Scan this QR code to complete payment</div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              {!scanning ? (
-                <button className="btn btn-success btn-lg" onClick={startScanning}>
-                  <CameraIcon />
-                  Start Scanner
-                </button>
-              ) : (
-                <button className="btn btn-danger" onClick={stopScanning}>
-                  <XIcon />
-                  Cancel
-                </button>
-              )}
-              
-              <button className="btn btn-secondary" onClick={reset}>
-                <XIcon />
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Scanner Simulation */}
-      {qrPayload && scanning && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <div className="card-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: 10, 
-                background: 'var(--color-warning-alpha-10)',
-                color: 'var(--color-warning)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <CameraIcon />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Waiting for Payer</h3>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>Simulating someone scanning your QR code</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card-body">
-            <div style={{ 
-              position: 'relative',
-              width: '100%',
-              maxWidth: 400,
-              height: 250,
-              margin: '0 auto 24px',
-              background: 'var(--bg-subtle)',
-              borderRadius: 16,
-              border: '2px solid var(--border-default)',
-              overflow: 'hidden'
-            }}>
-              {/* Scanning Animation */}
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(180deg, transparent 0%, rgba(168,85,247,0.1) 50%, transparent 100%)',
-                animation: 'scan 2s linear infinite'
-              }} />
-              <style>{`
-                @keyframes scan {
-                  0% { transform: translateY(-100%); }
-                  100% { transform: translateY(100%); }
-                }
-              `}</style>
-              
-              {/* Corner Markers */}
-              <div style={{ position: 'absolute', top: 20, left: 20, width: 40, height: 40, borderTop: '3px solid var(--color-primary)', borderLeft: '3px solid var(--color-primary)' }} />
-              <div style={{ position: 'absolute', top: 20, right: 20, width: 40, height: 40, borderTop: '3px solid var(--color-primary)', borderRight: '3px solid var(--color-primary)' }} />
-              <div style={{ position: 'absolute', bottom: 20, left: 20, width: 40, height: 40, borderBottom: '3px solid var(--color-primary)', borderLeft: '3px solid var(--color-primary)' }} />
-              <div style={{ position: 'absolute', bottom: 20, right: 20, width: 40, height: 40, borderBottom: '3px solid var(--color-primary)', borderRight: '3px solid var(--color-primary)' }} />
-
-              {/* Progress */}
-              <div style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 4,
-                background: 'var(--bg-elevated)'
-              }}>
-                <div style={{
-                  width: `${scanProgress}%`,
-                  height: '100%',
-                  background: 'var(--color-primary)',
-                  transition: 'width 0.1s linear'
-                }} />
-              </div>
-
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                textAlign: 'center'
-              }}>
-                <ScanLineIcon />
-                <p className="text-sm text-secondary mt-2">Waiting for payer scan...</p>
-                <p className="text-xs text-muted mt-1">{Math.round(scanProgress)}%</p>
-              </div>
-            </div>
-
-            <div className="alert alert-info" style={{ margin: 0 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>
-              </svg>
-              Simulating a payer scanning your QR code for {amount} {currency}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Payer Detected */}
-      {detectedPayer && (
-        <div className="card" style={{ marginBottom: 24, borderColor: 'var(--color-success)', boxShadow: 'var(--shadow-glow-sm)' }}>
-          <div className="card-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: 10, 
-                background: 'var(--color-success-alpha-10)',
-                color: 'var(--color-success)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <CheckIcon />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Payment Detected!</h3>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>{detectedPayer} wants to pay you</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card-body">
-            <div className="text-xs font-semibold text-tertiary" style={{ textTransform: 'uppercase', letterSpacing: 0.05, marginBottom: 12 }}>
-              Payment Details
-            </div>
-            
-            <div style={{ 
+      {/* Customer */}
+      <div style={{
+        border: '2px dashed var(--border-default)',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 16
+      }}>
+        <label style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 16,
+          cursor: 'pointer'
+        }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: 'var(--bg-elevated)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            flexShrink: 0
+          }}>
+            <UserIcon />
+            <div style={{
+              position: 'absolute',
+              bottom: -2,
+              right: -2,
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              background: 'var(--color-success)',
               display: 'flex',
               alignItems: 'center',
-              gap: 16,
-              padding: 20,
-              background: 'var(--bg-subtle)',
-              borderRadius: 12,
-              marginBottom: 20
+              justifyContent: 'center'
             }}>
-              <div className="font-mono" style={{ fontSize: 32, fontWeight: 700, color: 'var(--color-success)' }}>
-                +{amount} {currency}
-              </div>
+              <PlusIcon />
             </div>
+          </div>
+          
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>
+              {t('invoice.customer') || 'Customer'}
+            </div>
+            <input
+              type="text"
+              value={customer}
+              onChange={(e) => setCustomer(e.target.value)}
+              placeholder={t('invoice.whoInvoiceFor') || 'Who the invoice is for'}
+              style={{
+                width: '100%',
+                border: 'none',
+                background: 'transparent',
+                fontSize: 14,
+                color: 'var(--text-secondary)',
+                outline: 'none'
+              }}
+            />
+          </div>
+          
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </label>
+      </div>
 
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button 
-                className="btn btn-success btn-lg" 
-                onClick={processPayment}
-                disabled={processing}
-              >
-                {processing ? (
-                  <span className="animate-pulse">Processing...</span>
-                ) : (
-                  <>
-                    <CheckIcon />
-                    Confirm & Receive
-                  </>
-                )}
-              </button>
-              <button className="btn btn-secondary" onClick={cancelPayment} disabled={processing}>
-                <XIcon />
-                Reject
-              </button>
+      {/* Items */}
+      <div style={{
+        border: '2px dashed var(--border-default)',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 24
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: 'var(--bg-elevated)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            flexShrink: 0
+          }}>
+            <ListIcon />
+            <div style={{
+              position: 'absolute',
+              bottom: -2,
+              right: -2,
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              background: 'var(--color-success)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <PlusIcon />
+            </div>
+          </div>
+          
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600 }}>
+              {t('invoice.items') || 'Items'}
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+              {t('invoice.whatYouSold') || 'What you sold'}
             </div>
           </div>
         </div>
-      )}
 
-      {/* Result */}
-      {result && (
-        <div className={`card ${result.success ? 'alert-success' : 'alert-error'}`} style={{ 
-          background: result.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-          borderColor: result.success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
-          marginBottom: 24
-        }}>
-          <div className="card-body">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ 
-                width: 48, 
-                height: 48, 
-                borderRadius: 24, 
-                background: result.success ? 'var(--color-success-alpha-10)' : 'var(--color-danger-alpha-10)',
-                color: result.success ? 'var(--color-success)' : 'var(--color-danger)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                {result.success ? <CheckIcon /> : <XIcon />}
-              </div>
-              <div>
-                <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
-                  {result.success ? 'Payment Received!' : 'Payment Failed'}
-                </h3>
-                <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  {result.message}
-                </p>
-              </div>
-            </div>
-
-            {result.success && result.wallet && (
-              <div style={{ 
-                marginTop: 20, 
-                padding: 16, 
-                background: 'var(--bg-elevated)', 
+        {items.map((item, index) => (
+          <div key={item.id} style={{ 
+            display: 'grid', 
+            gap: 12,
+            marginBottom: 16,
+            paddingBottom: 16,
+            borderBottom: index < items.length - 1 ? '1px solid var(--border-default)' : 'none'
+          }}>
+            <input
+              type="text"
+              value={item.description}
+              onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+              placeholder={t('invoice.itemDescription') || 'Item description'}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
                 borderRadius: 12,
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 16
-              }}>
-                <div>
-                  <div className="text-xs text-tertiary">Updated USD Balance</div>
-                  <div className="font-mono font-semibold">{formatUsd(result.wallet.usdCents)} USD</div>
-                </div>
-                <div>
-                  <div className="text-xs text-tertiary">Updated TRV Balance</div>
-                  <div className="font-mono font-semibold">{formatUsd(result.wallet.trvCents)} TRV</div>
-                </div>
+                border: '1px solid var(--border-default)',
+                background: 'var(--bg-elevated)',
+                fontSize: 15
+              }}
+            />
+            
+            <div style={{ display: 'flex', gap: 12 }}>
+              <input
+                type="number"
+                value={item.quantity}
+                onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
+                placeholder="Qty"
+                min="1"
+                style={{
+                  width: 80,
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  border: '1px solid var(--border-default)',
+                  background: 'var(--bg-elevated)',
+                  fontSize: 15
+                }}
+              />
+              
+              <div style={{ flex: 1, position: 'relative' }}>
+                <span style={{
+                  position: 'absolute',
+                  left: 16,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--text-muted)'
+                }}>
+                  {currency === 'USD' ? '$' : '₮'}
+                </span>
+                <input
+                  type="text"
+                  value={item.amount}
+                  onChange={(e) => updateItem(item.id, 'amount', e.target.value)}
+                  placeholder="0.00"
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px 12px 32px',
+                    borderRadius: 12,
+                    border: '1px solid var(--border-default)',
+                    background: 'var(--bg-elevated)',
+                    fontSize: 15,
+                    fontFamily: 'var(--font-mono)'
+                  }}
+                />
               </div>
-            )}
-
-            <div style={{ marginTop: 20, textAlign: 'center' }}>
-              <button className="btn btn-primary" onClick={reset}>
-                <WalletIcon />
-                Create New Invoice
-              </button>
+              
+              {items.length > 1 && (
+                <button
+                  onClick={() => removeItem(item.id)}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    border: 'none',
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--color-danger)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <CloseIcon />
+                </button>
+              )}
             </div>
           </div>
+        ))}
+
+        <button
+          onClick={addItem}
+          style={{
+            width: '100%',
+            padding: '12px',
+            borderRadius: 12,
+            border: '1px dashed var(--border-default)',
+            background: 'transparent',
+            color: 'var(--text-secondary)',
+            fontSize: 14,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8
+          }}
+        >
+          <PlusIcon />
+          {t('invoice.addItem') || 'Add item'}
+        </button>
+      </div>
+
+      {/* Payment Methods */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        padding: '16px 0',
+        borderBottom: '1px solid var(--border-default)'
+      }}>
+        <CameraIcon />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600 }}>{t('invoice.paymentMethods') || 'Payment methods'}</div>
+          <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+            {t('invoice.payWithTrv') || 'Pay with TRV via QR code'}
+          </div>
         </div>
-      )}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </div>
+
+      {/* Dates */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        padding: '16px 0',
+        borderBottom: '1px solid var(--border-default)'
+      }}>
+        <CalendarIcon />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600 }}>{t('invoice.issued') || 'Issued'}</div>
+          <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{formatDate(issuedDate)}</div>
+        </div>
+        <input
+          type="date"
+          value={issuedDate}
+          onChange={(e) => setIssuedDate(e.target.value)}
+          style={{
+            position: 'absolute',
+            opacity: 0,
+            width: 1,
+            height: 1
+          }}
+        />
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </div>
+
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        padding: '16px 0',
+        marginBottom: 24
+      }}>
+        <ClockIcon />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600 }}>{t('invoice.due') || 'Due'}</div>
+          <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{formatDate(dueDate)}</div>
+        </div>
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          style={{
+            position: 'absolute',
+            opacity: 0,
+            width: 1,
+            height: 1
+          }}
+        />
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </div>
+
+      {/* Total & Review */}
+      <div style={{
+        textAlign: 'center',
+        marginBottom: 16,
+        padding: 16,
+        background: 'var(--bg-elevated)',
+        borderRadius: 12
+      }}>
+        <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 4 }}>
+          {t('invoice.amountDueBy', { date: formatDate(dueDate) }) || `Amount due by ${formatDate(dueDate)}`}
+        </div>
+        <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--color-success)' }}>
+          {calculateTotal().toFixed(2)} {currency}
+        </div>
+      </div>
+
+      {/* Review Button */}
+      <button
+        onClick={() => setStep('review')}
+        disabled={calculateTotal() <= 0}
+        style={{
+          width: '100%',
+          padding: '16px 24px',
+          borderRadius: 12,
+          border: 'none',
+          background: calculateTotal() > 0 ? 'var(--color-primary)' : 'var(--bg-elevated)',
+          color: calculateTotal() > 0 ? 'white' : 'var(--text-muted)',
+          fontSize: 16,
+          fontWeight: 600,
+          cursor: calculateTotal() > 0 ? 'pointer' : 'not-allowed'
+        }}
+      >
+        {t('invoice.review') || 'Review'}
+      </button>
     </div>
   )
 }
