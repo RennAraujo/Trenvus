@@ -138,16 +138,19 @@ export function VoucherCard() {
               pointerEvents: 'none',
             }}/>
 
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              {/* Logo - apenas texto */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
+            <div style={{ position: 'relative', zIndex: 1, padding: '32px 24px' }}>
+              {/* Logo - centralizado acima do QR code */}
+              <div style={{ 
+                textAlign: 'center',
+                marginBottom: 32,
+              }}>
                 <span style={{ 
-                  fontSize: 24, 
+                  fontSize: 28, 
                   fontWeight: 800,
                   background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  letterSpacing: '0.1em',
+                  letterSpacing: '0.15em',
                 }}>
                   TRENVUS
                 </span>
@@ -162,13 +165,13 @@ export function VoucherCard() {
               }}>
                 <div style={{
                   background: 'white',
-                  padding: 16,
-                  borderRadius: 16,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                  padding: 20,
+                  borderRadius: 20,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                 }}>
                   <QRCodeSVG 
                     value={voucherUrl}
-                    size={200}
+                    size={220}
                     level="M"
                     includeMargin={false}
                   />
@@ -176,21 +179,24 @@ export function VoucherCard() {
 
                 <div style={{ textAlign: 'center' }}>
                   <p style={{ 
-                    fontSize: 12, 
-                    color: 'rgba(255,255,255,0.6)',
-                    marginBottom: 8,
+                    fontSize: 13, 
+                    color: 'rgba(255,255,255,0.7)',
+                    marginBottom: 12,
                     textTransform: 'uppercase',
-                    letterSpacing: 1,
+                    letterSpacing: 2,
+                    fontWeight: 500,
                   }}>
                     {t('voucher.scanToView')}
                   </p>
                   <code style={{
-                    fontSize: 14,
+                    fontSize: 13,
                     color: 'white',
-                    background: 'rgba(124, 58, 237, 0.2)',
-                    padding: '8px 16px',
-                    borderRadius: 8,
+                    background: 'rgba(124, 58, 237, 0.25)',
+                    padding: '10px 20px',
+                    borderRadius: 10,
                     wordBreak: 'break-all',
+                    display: 'inline-block',
+                    fontFamily: 'monospace',
                   }}>
                     {voucher.code}
                   </code>
@@ -201,6 +207,7 @@ export function VoucherCard() {
                   gap: 12,
                   flexWrap: 'wrap',
                   justifyContent: 'center',
+                  marginTop: 8,
                 }}>
                   <button 
                     className="btn btn-primary"
@@ -227,7 +234,7 @@ export function VoucherCard() {
                   textAlign: 'center',
                   fontSize: 12,
                   color: 'rgba(255,255,255,0.5)',
-                  marginTop: 24,
+                  marginTop: 28,
                 }}>
                   {t('voucher.expiresAt')}: {new Date(voucher.expiresAt).toLocaleDateString()}
                 </p>
