@@ -88,7 +88,7 @@ export function VoucherCard() {
           <div style={{ 
             width: 80, 
             height: 80, 
-            borderRadius: 24,
+            borderRadius: 20,
             background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
             display: 'flex',
             alignItems: 'center',
@@ -96,7 +96,9 @@ export function VoucherCard() {
             margin: '0 auto 24px',
           }}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M9 21V9"/>
             </svg>
           </div>
           <h3 style={{ marginBottom: 12 }}>{t('voucher.noVoucher')}</h3>
@@ -123,6 +125,7 @@ export function VoucherCard() {
             style={{
               background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
               border: '1px solid rgba(124, 58, 237, 0.3)',
+              position: 'relative',
               overflow: 'hidden',
             }}
           >
@@ -137,6 +140,7 @@ export function VoucherCard() {
               pointerEvents: 'none',
             }}/>
 
+            <div style={{ position: 'relative', zIndex: 1, padding: '32px 24px' }}>
               {/* Logo - centralizado acima do QR code */}
               <div style={{ 
                 textAlign: 'center',
@@ -168,6 +172,7 @@ export function VoucherCard() {
                   borderRadius: 28,
                   boxShadow: '0 12px 40px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255,255,255,0.1)',
                   border: '2px solid rgba(124, 58, 237, 0.5)',
+                  position: 'relative',
                 }}>
                   {/* Glow effect */}
                   <div style={{
@@ -203,7 +208,6 @@ export function VoucherCard() {
                         excavate: true,
                       }}
                     />
-                    
                   </div>
                 </div>
 
