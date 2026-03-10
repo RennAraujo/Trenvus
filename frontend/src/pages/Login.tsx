@@ -59,7 +59,10 @@ export function Login() {
           console.log(`[Login] Test login attempt ${attempt + 1}/5`)
           await auth.loginTestAccount(id)
           console.log(`[Login] Test login successful, navigating...`)
-          navigate('/app', { replace: true })
+          // Verifica se há redirect guardado
+          const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
+          sessionStorage.removeItem('redirectAfterLogin')
+          navigate(redirectUrl || '/app', { replace: true })
           return
         } catch (err: any) {
           console.error(`[Login] Test login attempt ${attempt + 1} failed:`, err)
@@ -89,7 +92,10 @@ export function Login() {
     try {
       await auth.loginAdmin()
       console.log('[Login] Admin login successful, navigating...')
-      navigate('/app/admin/users', { replace: true })
+      // Verifica se há redirect guardado
+      const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
+      sessionStorage.removeItem('redirectAfterLogin')
+      navigate(redirectUrl || '/app/admin/users', { replace: true })
     } catch (err: any) {
       console.error('[Login] Admin login failed:', err)
       const status = typeof err?.status === 'number' ? (err.status as number) : null
@@ -118,7 +124,10 @@ export function Login() {
     setBusy(true)
     try {
       await auth.login(email, password)
-      navigate('/app', { replace: true })
+      // Verifica se há redirect guardado
+      const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
+      sessionStorage.removeItem('redirectAfterLogin')
+      navigate(redirectUrl || '/app', { replace: true })
     } catch (err: any) {
       setError(err?.message || t('errors.login'))
     } finally {

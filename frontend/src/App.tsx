@@ -22,6 +22,8 @@ import { ConfirmRegistration } from './pages/ConfirmRegistration'
 import { VoucherCard } from './pages/VoucherCard'
 import { VoucherView } from './pages/VoucherView'
 
+import { PayInvoice } from './pages/PayInvoice'
+
 export default function App() {
   return (
     <AuthProvider>
@@ -34,6 +36,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/confirm-registration" element={<ConfirmRegistration />} />
           <Route path="/mercadopago/return" element={<MercadoPagoReturnHandler />} />
+          <Route path="/pay" element={<PayInvoice />} />
           <Route path="/voucher/view/:code" element={<VoucherView />} />
           <Route
             path="/app"
