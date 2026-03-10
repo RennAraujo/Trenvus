@@ -129,25 +129,14 @@ export function VoucherCard() {
               overflow: 'hidden',
             }}
           >
-            {/* Glow effect */}
-            <div style={{
-              position: 'absolute',
-              top: -100,
-              right: -100,
-              width: 300,
-              height: 300,
-              background: 'radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, transparent 70%)',
-              pointerEvents: 'none',
-            }}/>
-
             <div style={{ position: 'relative', zIndex: 1, padding: '32px 24px' }}>
-              {/* Logo - centralizado acima do QR code */}
+              {/* Logo TRENVUS */}
               <div style={{ 
                 textAlign: 'center',
-                marginBottom: 32,
+                marginBottom: 28,
               }}>
                 <span style={{ 
-                  fontSize: 28, 
+                  fontSize: 32, 
                   fontWeight: 800,
                   background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
                   WebkitBackgroundClip: 'text',
@@ -158,56 +147,49 @@ export function VoucherCard() {
                 </span>
               </div>
 
-              {/* QR Code */}
+              {/* QR Code Container */}
               <div style={{ 
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 24,
+                gap: 20,
               }}>
-                {/* QR Code Container com design premium */}
+                {/* Container branco do QR - estilo Binance */}
                 <div style={{
-                  background: 'linear-gradient(145deg, rgba(124, 58, 237, 0.2) 0%, rgba(234, 29, 44, 0.1) 100%)',
-                  padding: 28,
-                  borderRadius: 28,
-                  boxShadow: '0 12px 40px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255,255,255,0.1)',
-                  border: '2px solid rgba(124, 58, 237, 0.5)',
-                  position: 'relative',
+                  background: 'white',
+                  padding: 20,
+                  borderRadius: 24,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                 }}>
-                  {/* Glow effect */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 160,
-                    height: 160,
-                    background: 'radial-gradient(circle, rgba(124, 58, 237, 0.5) 0%, transparent 70%)',
-                    pointerEvents: 'none',
-                    filter: 'blur(20px)',
-                  }}/>
-                  
-                  {/* QR Code branco com logo */}
-                  <div style={{
-                    background: 'white',
-                    padding: 24,
-                    borderRadius: 24,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                  }}>
+                  {/* QR Code com logo integrada */}
+                  <div style={{ position: 'relative', lineHeight: 0 }}>
                     <QRCodeSVG 
                       value={voucherUrl}
-                      size={220}
+                      size={300}
                       level="H"
-                      includeMargin={true}
+                      includeMargin={false}
                       bgColor="#ffffff"
-                      fgColor="#1a1a2e"
+                      fgColor="#000000"
                       imageSettings={{
                         src: '/logo-qr.png',
-                        height: 45,
-                        width: 45,
+                        height: 70,
+                        width: 70,
                         excavate: true,
                       }}
                     />
+                    
+                    {/* Círculo branco de fundo estilo Binance */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 80,
+                      height: 80,
+                      background: 'white',
+                      borderRadius: '50%',
+                      zIndex: -1,
+                    }}/>
                   </div>
                 </div>
 
