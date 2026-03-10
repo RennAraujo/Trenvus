@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api, formatUsd, type VoucherResponse } from '../api'
+import { api, type VoucherResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 import brandLogo from '../assets/brand-mark.png'
