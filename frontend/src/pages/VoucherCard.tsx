@@ -176,7 +176,7 @@ export function VoucherCard() {
                     level="H"
                     includeMargin={false}
                     imageSettings={{
-                      src: '/brand-mark.png',
+                      src: '/logo-qr.png',
                       x: undefined,
                       y: undefined,
                       height: 50,
