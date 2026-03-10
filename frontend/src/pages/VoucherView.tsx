@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { api, formatUsd, type VoucherProfileResponse } from '../api'
 import { useI18n } from '../i18n'
-import brandLogo from '../assets/brand-mark.png'
 
 // Icons
 const VerifiedIcon = () => (
@@ -146,21 +145,21 @@ export function VoucherView() {
             pointerEvents: 'none',
           }}/>
 
-          {/* Header with logo */}
+          {/* Header with logo - apenas texto */}
           <div style={{ 
             padding: '24px 24px 0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img src={brandLogo} alt="TRENVUS" style={{ height: 28 }} />
+            <div style={{ display: 'flex', alignItems: 'center' }}>
               <span style={{ 
-                fontSize: 16, 
-                fontWeight: 700,
+                fontSize: 20, 
+                fontWeight: 800,
                 background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                letterSpacing: '0.1em',
               }}>
                 TRENVUS
               </span>

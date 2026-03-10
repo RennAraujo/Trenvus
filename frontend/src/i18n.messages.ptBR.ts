@@ -13,6 +13,8 @@ export const messagesPtBR: Record<string, string> = {
   'nav.account': 'Minha conta',
 
   'actions.logout': 'Sair',
+  'actions.back': 'Voltar',
+  'actions.backToHome': 'Voltar para Início',
   'actions.login': 'Entrar',
   'actions.register': 'Criar conta',
   'actions.createNow': 'Criar agora',

@@ -13,6 +13,8 @@ export const messagesEn: Record<string, string> = {
   'nav.account': 'My account',
 
   'actions.logout': 'Logout',
+  'actions.back': 'Back',
+  'actions.backToHome': 'Back to Home',
   'actions.login': 'Login',
   'actions.register': 'Create account',
   'actions.createNow': 'Create now',

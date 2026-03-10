@@ -2,46 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, type VoucherResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
-import brandLogo from '../assets/brand-mark.png'
-
-// QRCode library mock - we'll generate a simple SVG QR code
-function generateQRCodeSVG(data: string, size = 200): string {
-  // Simple QR code representation (in production, use a library like qrcode.react)
-  const cells = 25
-  const cellSize = size / cells
-  let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`
-  svg += `<rect width="${size}" height="${size}" fill="white"/>`
-  
-  // Generate pattern based on data hash
-  const hash = data.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  
-  for (let row = 0; row < cells; row++) {
-    for (let col = 0; col < cells; col++) {
-      // Position markers (corners)
-      const isPositionMarker = 
-        (row < 7 && col < 7) || 
-        (row < 7 && col >= cells - 7) || 
-        (row >= cells - 7 && col < 7)
-      
-      if (isPositionMarker) {
-        // Draw position marker pattern
-        if ((row === 0 || row === 6 || col === 0 || col === 6) ||
-            (row >= 2 && row <= 4 && col >= 2 && col <= 4)) {
-          svg += `<rect x="${col * cellSize}" y="${row * cellSize}" width="${cellSize}" height="${cellSize}" fill="#1a1a2e"/>`
-        }
-      } else {
-        // Random data pattern based on hash
-        const shouldFill = ((hash + row * 13 + col * 7) % 2) === 1
-        if (shouldFill) {
-          svg += `<rect x="${col * cellSize}" y="${row * cellSize}" width="${cellSize}" height="${cellSize}" fill="#1a1a2e"/>`
-        }
-      }
-    }
-  }
-  
-  svg += '</svg>'
-  return svg
-}
+import { QRCodeSVG } from 'qrcode.react'
 
 export function VoucherCard() {
   const auth = useAuth()
@@ -107,7 +68,6 @@ export function VoucherCard() {
 
   const baseUrl = window.location.origin
   const voucherUrl = voucher ? `${baseUrl}/voucher/view/${voucher.code}` : ''
-  const qrSvg = voucher ? generateQRCodeSVG(voucherUrl) : ''
 
   return (
     <div className="animate-fade-in">
@@ -179,15 +139,15 @@ export function VoucherCard() {
             }}/>
 
             <div style={{ position: 'relative', zIndex: 1 }}>
-              {/* Logo */}
+              {/* Logo - apenas texto */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
-                <img src={brandLogo} alt="TRENVUS" style={{ height: 32 }} />
                 <span style={{ 
-                  fontSize: 20, 
-                  fontWeight: 700,
+                  fontSize: 24, 
+                  fontWeight: 800,
                   background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
+                  letterSpacing: '0.1em',
                 }}>
                   TRENVUS
                 </span>
@@ -206,9 +166,11 @@ export function VoucherCard() {
                   borderRadius: 16,
                   boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
                 }}>
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: qrSvg }}
-                    style={{ width: 200, height: 200 }}
+                  <QRCodeSVG 
+                    value={voucherUrl}
+                    size={200}
+                    level="M"
+                    includeMargin={false}
                   />
                 </div>
 
