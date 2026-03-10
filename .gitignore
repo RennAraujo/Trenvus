@@ -121,6 +121,29 @@ frontend/coverage/
 .agents/skills/**/.DS_Store
 .agents/skills/**/*.log
 
+### Security - Never Commit Sensitive Data ###
+# JWT and crypto
+*.jwt
+jwt-secret*
+token*
+
+# Cloud provider credentials
+.aws/
+.gcp/
+.azure/
+*.tfstate
+*.tfvars
+
+# Kubernetes secrets
+*secret*.yaml
+*secret*.yml
+!secret.example.yaml
+
+# Mobile/Expo
+*.keystore
+*.jks
+!debug.keystore
+
 ### Misc ###
 *.skill
 logs.txt
@@ -128,3 +151,8 @@ logs.txt
 *.dumpstream
 .cursor/
 .ai/
+
+# Temporary files during development
+*.tmp
+*.temp
+.cache/
