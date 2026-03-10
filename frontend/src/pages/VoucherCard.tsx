@@ -163,27 +163,65 @@ export function VoucherCard() {
                 alignItems: 'center',
                 gap: 24,
               }}>
+                {/* QR Code Container com design premium */}
                 <div style={{
-                  background: 'white',
-                  padding: 20,
-                  borderRadius: 20,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                  background: 'linear-gradient(145deg, rgba(124, 58, 237, 0.2) 0%, rgba(234, 29, 44, 0.1) 100%)',
+                  padding: 28,
+                  borderRadius: 28,
+                  boxShadow: '0 12px 40px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255,255,255,0.1)',
+                  border: '2px solid rgba(124, 58, 237, 0.5)',
                   position: 'relative',
                 }}>
-                  <QRCodeSVG 
-                    value={voucherUrl}
-                    size={220}
-                    level="H"
-                    includeMargin={false}
-                    imageSettings={{
-                      src: '/logo-qr.png',
-                      x: undefined,
-                      y: undefined,
-                      height: 50,
-                      width: 50,
-                      excavate: true,
-                    }}
-                  />
+                  {/* Glow effect */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 160,
+                    height: 160,
+                    background: 'radial-gradient(circle, rgba(124, 58, 237, 0.5) 0%, transparent 70%)',
+                    pointerEvents: 'none',
+                    filter: 'blur(20px)',
+                  }}/>
+                  
+                  {/* QR Code branco com logo */}
+                  <div style={{
+                    background: 'white',
+                    padding: 20,
+                    borderRadius: 20,
+                    position: 'relative',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                  }}>
+                    <QRCodeSVG 
+                      value={voucherUrl}
+                      size={200}
+                      level="H"
+                      includeMargin={false}
+                      bgColor="#ffffff"
+                      fgColor="#1a1a2e"
+                      imageSettings={{
+                        src: '/logo-qr.png',
+                        height: 55,
+                        width: 55,
+                        excavate: true,
+                      }}
+                    />
+                    
+                    {/* Badge gradiente atrás do logo */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 65,
+                      height: 65,
+                      background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
+                      borderRadius: '50%',
+                      zIndex: -1,
+                      boxShadow: '0 4px 15px rgba(124, 58, 237, 0.6)',
+                    }}/>
+                  </div>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
