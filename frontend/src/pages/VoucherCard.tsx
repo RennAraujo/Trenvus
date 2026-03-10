@@ -67,7 +67,7 @@ export function VoucherCard() {
   }
 
   const baseUrl = window.location.origin
-  const voucherUrl = voucher ? `${baseUrl}/voucher/view/${voucher.code}` : ''
+  const voucherUrl = voucher ? `${baseUrl}/voucher/view/${encodeURIComponent(voucher.code)}` : ''
 
   return (
     <div className="animate-fade-in">
