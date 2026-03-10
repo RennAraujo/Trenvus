@@ -189,6 +189,8 @@ export function VoucherCard() {
                       background: 'white',
                       borderRadius: '50%',
                       zIndex: -1,
+                      border: '3px solid black',
+                      boxShadow: '0 0 0 2px white, 0 0 0 5px black',
                     }}/>
                   </div>
                 </div>
