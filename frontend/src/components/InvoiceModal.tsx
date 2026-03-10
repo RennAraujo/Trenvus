@@ -438,7 +438,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
                   fontWeight: 500,
                   marginBottom: 8,
                   color: 'var(--text-secondary)'
-                }}
+                }}>
                 {t('invoice.dueDate') || 'Due date'}
                 </label>
                 
