@@ -439,8 +439,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
                   marginBottom: 8,
                   color: 'var(--text-secondary)'
                 }}
-003e
-                  {t('invoice.dueDate') || 'Due date'}
+                {t('invoice.dueDate') || 'Due date'}
                 </label>
                 
                 <div style={{
@@ -482,7 +481,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
                 ? 'not-allowed' 
                 : 'pointer'
             }}
-003e
+            >
             {loading 
               ? (t('actions.processing') || 'Processing...') 
               : (isInvoice 
