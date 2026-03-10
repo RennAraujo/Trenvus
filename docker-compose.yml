@@ -13,55 +13,96 @@ services:
     networks:
       - exchange-network
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-exchange}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
 
   backend:
     build: .
     container_name: exchange-backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
+      # Database
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-exchange}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      JWT_PRIVATE_KEY_B64: ${JWT_PRIVATE_KEY_B64}
-      JWT_PUBLIC_KEY_B64: ${JWT_PUBLIC_KEY_B64}
-      APP_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://195.200.7.31:3000,http://195.200.7.31:5173"
-      # SMTP Configuration
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: 587
-      SMTP_USERNAME: testguide047@gmail.com
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM: noreply@trenvus.com
-      APP_BASE_URL: ${APP_BASE_URL}
-      API_BASE_URL: ${API_BASE_URL}
+      # JWT Keys
+      JWT_PRIVATE_KEY_B64: ${JWT_PRIVATE_KEY_B64:-}
+      JWT_PUBLIC_KEY_B64: ${JWT_PUBLIC_KEY_B64:-}
+      JWT_ISSUER: ${JWT_ISSUER:-Trenvus}
+      JWT_ACCESS_TTL_SECONDS: ${JWT_ACCESS_TTL_SECONDS:-900}
+      JWT_REFRESH_TTL_SECONDS: ${JWT_REFRESH_TTL_SECONDS:-2592000}
+      # CORS
+      APP_CORS_ORIGINS: ${APP_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173}
+      # SMTP
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@trenvus.com}
+      # URLs
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      API_BASE_URL: ${API_BASE_URL:-http://localhost:8080}
       # Mercado Pago
-      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
-      MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY}
-      MERCADOPAGO_RETURN_URL: ${MERCADOPAGO_RETURN_URL:-http://localhost:5173/mercadopago/return}
-      # Test accounts (from .env)
-      TEST_ACCOUNT_ENABLED: "${TEST_ACCOUNT_ENABLED:-true}"
-      TEST_ACCOUNTS: "${TEST_ACCOUNTS}"
-      # Admin account (from .env)
-      ADMIN_ACCOUNT_ENABLED: "${ADMIN_ACCOUNT_ENABLED:-true}"
-      ADMIN_LOGIN_ENABLED: "${ADMIN_LOGIN_ENABLED:-true}"
-      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@trenvus.com}"
-      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin123}"
+      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN:-}
+      MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY:-}
+      MERCADOPAGO_RETURN_URL: ${MERCADOPAGO_RETURN_URL:-http://localhost:3000/mercadopago/return}
+      # Test Accounts
+      TEST_ACCOUNT_ENABLED: ${TEST_ACCOUNT_ENABLED:-true}
+      TEST_ACCOUNTS: ${TEST_ACCOUNTS:-user1@test.com:test123:USER;user2@test.com:test123:USER;user3@test.com:test123:USER}
+      # Admin
+      ADMIN_ACCOUNT_ENABLED: ${ADMIN_ACCOUNT_ENABLED:-true}
+      ADMIN_LOGIN_ENABLED: ${ADMIN_LOGIN_ENABLED:-true}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@trenvus.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      # JVM Options
+      JAVA_OPTS: "-Xmx512m -Xms256m -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
     ports:
       - "8080:8080"
     networks:
       - exchange-network
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
 
   frontend:
     build: ./frontend
     container_name: exchange-frontend
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     ports:
       - "3000:80"
     networks:
       - exchange-network
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
 
 volumes:
   pgdata:
