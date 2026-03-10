@@ -168,12 +168,21 @@ export function VoucherCard() {
                   padding: 20,
                   borderRadius: 20,
                   boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                  position: 'relative',
                 }}>
                   <QRCodeSVG 
                     value={voucherUrl}
                     size={220}
-                    level="M"
+                    level="H"
                     includeMargin={false}
+                    imageSettings={{
+                      src: '/brand-mark.png',
+                      x: undefined,
+                      y: undefined,
+                      height: 50,
+                      width: 50,
+                      excavate: true,
+                    }}
                   />
                 </div>
 
