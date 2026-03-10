@@ -1,21 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { QRCodeSVG } from 'qrcode.react'
 import { api, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
-import { useI18n } from '../i18n'
 
 // Icons
 const CameraIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
     <circle cx="12" cy="13" r="3"/>
-  </svg>
-)
-
-const DollarIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" x2="12" y1="2" y2="22"/>
-    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
   </svg>
 )
 
@@ -29,23 +20,6 @@ const XIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 6 6 18"/>
     <path d="m6 6 12 12"/>
-  </svg>
-)
-
-const ScanLineIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
-    <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
-    <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
-    <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
-    <line x1="4" x2="20" y1="12" y2="12"/>
-  </svg>
-)
-
-const SendIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m22 2-7 20-4-9-9-4Z"/>
-    <path d="M22 2 11 13"/>
   </svg>
 )
 
@@ -78,7 +52,6 @@ interface DetectedInvoice {
 
 export function InvoicesSend() {
   const auth = useAuth()
-  const { t } = useI18n()
   
   const [step, setStep] = useState<'form' | 'scanning' | 'confirmation' | 'success' | 'error'>('form')
   const [amount, setAmount] = useState('')
@@ -88,7 +61,6 @@ export function InvoicesSend() {
   const [processing, setProcessing] = useState(false)
   const [result, setResult] = useState<{ success: boolean; message: string; wallet?: WalletResponse } | null>(null)
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   const scanIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -107,7 +79,6 @@ export function InvoicesSend() {
   }, [result])
 
   function startScanning() {
-    setError(null)
     setStep('scanning')
     setScanProgress(0)
     setDetectedInvoice(null)
@@ -479,10 +450,11 @@ export function InvoicesSend() {
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              textAlign: 'center'
+              textAlign: 'center',
+              color: '#7C3AED'
             }}>
-              <CameraIcon style={{ color: '#7C3AED', marginBottom: 12 }} />
-              <p style={{ color: 'var(--text-secondary)' }}>Scanning QR Code...</p>
+              <CameraIcon />
+              <p style={{ color: 'var(--text-secondary)', marginTop: 12 }}>Scanning QR Code...</p>
             </div>
 
             {/* Progress */}
