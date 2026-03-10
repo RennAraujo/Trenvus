@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import { api } from './api'
-import { useAuth } from './auth'
-import { useI18n } from './i18n'
+import { api } from '../api'
+import { useAuth } from '../auth'
+import { useI18n } from '../i18n'
 
 // Icons
 const CloseIcon = () => (
