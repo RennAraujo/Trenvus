@@ -392,7 +392,6 @@ export const messagesPtBR: Record<string, string> = {
   'exportPdf.error': 'Não foi possível enviar o email. Tente novamente mais tarde.',
   'exportPdf.networkError': 'Erro de conexão. Verifique sua internet e tente novamente.',
 
-  // Voucher
   'nav.voucher': 'Meu Voucher',
   'voucher.title': 'Meu Voucher',
   'voucher.subtitle': 'Compartilhe seu perfil com um QR Code exclusivo.',
