@@ -13,6 +13,8 @@ export const messagesPtBR: Record<string, string> = {
   'nav.account': 'Minha conta',
 
   'actions.logout': 'Sair',
+  'actions.back': 'Voltar',
+  'actions.backToHome': 'Voltar para Início',
   'actions.login': 'Entrar',
   'actions.register': 'Criar conta',
   'actions.createNow': 'Criar agora',
@@ -391,11 +393,8 @@ export const messagesPtBR: Record<string, string> = {
   'exportPdf.success': 'PDF enviado com sucesso! Verifique sua caixa de entrada.',
   'exportPdf.error': 'Não foi possível enviar o email. Tente novamente mais tarde.',
   'exportPdf.networkError': 'Erro de conexão. Verifique sua internet e tente novamente.',
-}
 
-  // Voucher
   'nav.voucher': 'Meu Voucher',
-
   'voucher.title': 'Meu Voucher',
   'voucher.subtitle': 'Compartilhe seu perfil com um QR Code exclusivo.',
   'voucher.noVoucher': 'Você ainda não tem um voucher',
@@ -418,3 +417,4 @@ export const messagesPtBR: Record<string, string> = {
   'voucher.invalidTitle': 'Voucher Inválido',
   'voucher.invalidDesc': 'Este voucher não existe, expirou ou foi desativado.',
   'voucher.copied': 'Link copiado!',
+}

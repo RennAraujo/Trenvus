@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { api, formatUsd, type VoucherProfileResponse } from '../api'
 import { useI18n } from '../i18n'
-import brandLogo from '../assets/brand-mark.png'
 
 // Icons
 const VerifiedIcon = () => (
@@ -14,12 +13,6 @@ const VerifiedIcon = () => (
 const WalletIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
-  </svg>
-)
-
-const UserIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
   </svg>
 )
 
@@ -45,7 +38,7 @@ export function VoucherView() {
 
     async function loadProfile() {
       try {
-        const data = await api.getVoucherProfile(code)
+        const data = await api.getVoucherProfile(code!)
         setProfile(data)
       } catch (err: any) {
         setError(err?.message || 'Voucher not found or expired')
@@ -152,21 +145,26 @@ export function VoucherView() {
             pointerEvents: 'none',
           }}/>
 
-          {/* Header with logo */}
+          {/* Header with logo - texto e imagem */}
           <div style={{ 
             padding: '24px 24px 0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img src={brandLogo} alt="TRENVUS" style={{ height: 28 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <img 
+                src="/logo-qr.png" 
+                alt="TRENVUS" 
+                style={{ height: 28, width: 28, objectFit: 'contain' }}
+              />
               <span style={{ 
-                fontSize: 16, 
-                fontWeight: 700,
+                fontSize: 20, 
+                fontWeight: 800,
                 background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                letterSpacing: '0.1em',
               }}>
                 TRENVUS
               </span>

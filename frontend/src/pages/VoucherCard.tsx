@@ -1,47 +1,8 @@
 import { useEffect, useState } from 'react'
-import { api, formatUsd, type VoucherResponse } from '../api'
+import { api, type VoucherResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
-import brandLogo from '../assets/brand-mark.png'
-
-// QRCode library mock - we'll generate a simple SVG QR code
-function generateQRCodeSVG(data: string, size = 200): string {
-  // Simple QR code representation (in production, use a library like qrcode.react)
-  const cells = 25
-  const cellSize = size / cells
-  let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`
-  svg += `<rect width="${size}" height="${size}" fill="white"/>`
-  
-  // Generate pattern based on data hash
-  const hash = data.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  
-  for (let row = 0; row < cells; row++) {
-    for (let col = 0; col < cells; col++) {
-      // Position markers (corners)
-      const isPositionMarker = 
-        (row < 7 && col < 7) || 
-        (row < 7 && col >= cells - 7) || 
-        (row >= cells - 7 && col < 7)
-      
-      if (isPositionMarker) {
-        // Draw position marker pattern
-        if ((row === 0 || row === 6 || col === 0 || col === 6) ||
-            (row >= 2 && row <= 4 && col >= 2 && col <= 4)) {
-          svg += `<rect x="${col * cellSize}" y="${row * cellSize}" width="${cellSize}" height="${cellSize}" fill="#1a1a2e"/>`
-        }
-      } else {
-        // Random data pattern based on hash
-        const shouldFill = ((hash + row * 13 + col * 7) % 2) === 1
-        if (shouldFill) {
-          svg += `<rect x="${col * cellSize}" y="${row * cellSize}" width="${cellSize}" height="${cellSize}" fill="#1a1a2e"/>`
-        }
-      }
-    }
-  }
-  
-  svg += '</svg>'
-  return svg
-}
+import { QRCodeSVG } from 'qrcode.react'
 
 export function VoucherCard() {
   const auth = useAuth()
@@ -107,7 +68,6 @@ export function VoucherCard() {
 
   const baseUrl = window.location.origin
   const voucherUrl = voucher ? `${baseUrl}/voucher/view/${voucher.code}` : ''
-  const qrSvg = voucher ? generateQRCodeSVG(voucherUrl) : ''
 
   return (
     <div className="animate-fade-in">
@@ -136,7 +96,9 @@ export function VoucherCard() {
             margin: '0 auto 24px',
           }}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M9 21V9"/>
             </svg>
           </div>
           <h3 style={{ marginBottom: 12 }}>{t('voucher.noVoucher')}</h3>
@@ -167,68 +129,91 @@ export function VoucherCard() {
               overflow: 'hidden',
             }}
           >
-            {/* Glow effect */}
-            <div style={{
-              position: 'absolute',
-              top: -100,
-              right: -100,
-              width: 300,
-              height: 300,
-              background: 'radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, transparent 70%)',
-              pointerEvents: 'none',
-            }}/>
-
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              {/* Logo */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
-                <img src={brandLogo} alt="TRENVUS" style={{ height: 32 }} />
+            <div style={{ position: 'relative', zIndex: 1, padding: '32px 24px' }}>
+              {/* Logo TRENVUS */}
+              <div style={{ 
+                textAlign: 'center',
+                marginBottom: 28,
+              }}>
                 <span style={{ 
-                  fontSize: 20, 
-                  fontWeight: 700,
+                  fontSize: 32, 
+                  fontWeight: 800,
                   background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
+                  letterSpacing: '0.15em',
                 }}>
                   TRENVUS
                 </span>
               </div>
 
-              {/* QR Code */}
+              {/* QR Code Container */}
               <div style={{ 
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 24,
+                gap: 20,
               }}>
+                {/* Container branco do QR - estilo Binance */}
                 <div style={{
                   background: 'white',
-                  padding: 16,
-                  borderRadius: 16,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                  padding: 20,
+                  borderRadius: 24,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                 }}>
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: qrSvg }}
-                    style={{ width: 200, height: 200 }}
-                  />
+                  {/* QR Code com logo integrada */}
+                  <div style={{ position: 'relative', lineHeight: 0 }}>
+                    <QRCodeSVG 
+                      value={voucherUrl}
+                      size={300}
+                      level="H"
+                      includeMargin={false}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      imageSettings={{
+                        src: '/logo-qr.png',
+                        height: 64,
+                        width: 64,
+                        excavate: false,
+                      }}
+                    />
+                    
+                    {/* Círculo branco de fundo estilo Binance - bem justo */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 66,
+                      height: 66,
+                      background: 'white',
+                      borderRadius: '50%',
+                      zIndex: -1,
+                      border: '2px solid black',
+                    }}/>
+                  </div>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
                   <p style={{ 
-                    fontSize: 12, 
-                    color: 'rgba(255,255,255,0.6)',
-                    marginBottom: 8,
+                    fontSize: 13, 
+                    color: 'rgba(255,255,255,0.7)',
+                    marginBottom: 12,
                     textTransform: 'uppercase',
-                    letterSpacing: 1,
+                    letterSpacing: 2,
+                    fontWeight: 500,
                   }}>
                     {t('voucher.scanToView')}
                   </p>
                   <code style={{
-                    fontSize: 14,
+                    fontSize: 13,
                     color: 'white',
-                    background: 'rgba(124, 58, 237, 0.2)',
-                    padding: '8px 16px',
-                    borderRadius: 8,
+                    background: 'rgba(124, 58, 237, 0.25)',
+                    padding: '10px 20px',
+                    borderRadius: 10,
                     wordBreak: 'break-all',
+                    display: 'inline-block',
+                    fontFamily: 'monospace',
                   }}>
                     {voucher.code}
                   </code>
@@ -239,6 +224,7 @@ export function VoucherCard() {
                   gap: 12,
                   flexWrap: 'wrap',
                   justifyContent: 'center',
+                  marginTop: 8,
                 }}>
                   <button 
                     className="btn btn-primary"
@@ -265,7 +251,7 @@ export function VoucherCard() {
                   textAlign: 'center',
                   fontSize: 12,
                   color: 'rgba(255,255,255,0.5)',
-                  marginTop: 24,
+                  marginTop: 28,
                 }}>
                   {t('voucher.expiresAt')}: {new Date(voucher.expiresAt).toLocaleDateString()}
                 </p>

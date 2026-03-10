@@ -85,15 +85,27 @@ public class VoucherService {
 
     @Transactional(readOnly = true)
     public VoucherProfileResponse getVoucherProfile(String code) {
+        logger.info("Looking up voucher with code: {}", code);
+        
         VoucherEntity voucher = voucherRepository.findByCode(code)
                 .filter(VoucherEntity::isActive)
                 .filter(v -> !v.isExpired())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired voucher"));
+                .orElseThrow(() -> {
+                    logger.warn("Voucher not found, inactive, or expired for code: {}", code);
+                    return new IllegalArgumentException("Invalid or expired voucher");
+                });
 
+        logger.info("Voucher found for userId: {}", voucher.getUserId());
+        
         UserEntity user = userRepository.findById(voucher.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> {
+                    logger.error("User not found for voucher userId: {}", voucher.getUserId());
+                    return new IllegalArgumentException("User not found");
+                });
 
         var wallet = walletService.getSnapshot(user.getId());
+        
+        logger.info("Voucher profile retrieved for user: {} (verified: {})", user.getId(), user.isVerified());
 
         return new VoucherProfileResponse(
                 user.getId(),
