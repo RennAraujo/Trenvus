@@ -1,41 +1,55 @@
-# Exchange Platform - Guia para Agentes de IA
+# Trenvus Exchange - Guia para Agentes de IA
 
-> Este documento contém informações precisas e atualizadas sobre a arquitetura, stack tecnológica e convenções do projeto Exchange Platform. Leia este arquivo antes de fazer qualquer modificação no código.
+> Este documento contém informações precisas e atualizadas sobre a arquitetura, stack tecnológica e convenções do projeto Trenvus Exchange. Leia este arquivo antes de fazer qualquer modificação no código.
 
 ---
 
 ## Visão Geral do Projeto
 
-O **Exchange Platform** é uma plataforma de câmbio digital que permite:
-- Gestão de carteiras digitais (USD e TRV - Trenvus)
-- Conversão de moedas (USD ↔ TRV) com taxa de 1%
-- Transferências TRV entre usuários (por email ou apelido/nickname)
-- QR Code payments (gerar e pagar invoices)
-- Dados de mercado em tempo real (integração OKX)
-- Painel administrativo para gestão de usuários e ajuste de saldos
+O **Trenvus Exchange** é uma aplicação de exchange de criptomoedas com suporte a múltiplas moedas, carteiras digitais e sistema de pagamentos integrado.
 
-O projeto é dividido em dois módulos principais:
+### Funcionalidades Principais
+
+- **Carteiras Digitais**: Gestão de saldos em USD e TRV (Trenvus Coin)
+- **Conversão de Moedas**: USD ↔ TRV com taxa de 1% e cotação 1:1
+- **Transferências**: Envio de TRV entre usuários (por email ou apelido/nickname)
+- **Pagamentos QR Code**: Geração e pagamento de invoices via QR Code
+- **Dados de Mercado**: Cotações em tempo real (integração OKX via proxy Coinext)
+- **Painel Administrativo**: Gestão de usuários, ajuste de saldos e visualização de taxas
+- **Integração Mercado Pago**: Pagamentos em BRL
+- **Verificação de Email**: Fluxo completo de registro com confirmação por email
+
+### Arquitetura
+
+O projeto segue uma arquitetura de duas camadas:
+
 - **Backend**: API REST em Java 17 + Spring Boot 3.4.2
 - **Frontend**: SPA em React 18 + TypeScript + Vite
+- **Infraestrutura**: Docker Compose com PostgreSQL, Nginx como reverse proxy
 
 ---
 
 ## Stack Tecnológica
 
 ### Backend
+
 | Tecnologia | Versão | Propósito |
 |------------|--------|-----------|
 | Java | 17 | Linguagem principal |
 | Spring Boot | 3.4.2 | Framework web |
 | Spring Security | 6.x | Autenticação JWT (RS256) |
 | Spring Data JPA | - | Persistência de dados |
+| Spring Validation | - | Validação de inputs |
+| Spring Mail | - | Envio de emails |
 | PostgreSQL | 16 | Banco de dados principal |
 | Flyway | 10.x | Migrações de banco de dados |
 | H2 | 2.x | Banco de dados para testes |
 | SpringDoc OpenAPI | 2.8.9 | Documentação Swagger/OpenAPI |
+| Mercado Pago SDK | 2.1.29 | Integração de pagamentos |
 | Maven | 3.9+ | Build e dependências |
 
 ### Frontend
+
 | Tecnologia | Versão | Propósito |
 |------------|--------|-----------|
 | React | 18.2.x | Framework UI |
@@ -47,11 +61,12 @@ O projeto é dividido em dois módulos principais:
 | ESLint | 8.57.x | Linting |
 
 ### Infraestrutura
+
 | Tecnologia | Propósito |
 |------------|-----------|
 | Docker | Containerização |
 | Docker Compose | Orquestração local |
-| Nginx | Reverse proxy e serving do frontend |
+| Nginx | Reverse proxy, serving do frontend e proxy para Coinext API |
 | Maven | Build e dependências do backend |
 | npm | Gerenciamento de pacotes do frontend |
 
@@ -72,47 +87,136 @@ O projeto é dividido em dois módulos principais:
 │   ├── main/java/trenvus/Exchange/
 │   │   ├── ExchangeApplication.java      # Ponto de entrada Spring Boot
 │   │   ├── admin/                        # Endpoints e serviços administrativos
+│   │   │   ├── AdminUserController.java
+│   │   │   └── AdminUserService.java
 │   │   ├── auth/                         # Autenticação, JWT, tokens, contas de teste
-│   │   ├── config/                       # Configurações (Swagger, etc)
+│   │   │   ├── AuthController.java
+│   │   │   ├── AuthService.java
+│   │   │   ├── TokenService.java
+│   │   │   ├── TokenBlacklistService.java
+│   │   │   ├── RefreshTokenEntity.java
+│   │   │   ├── RefreshTokenRepository.java
+│   │   │   ├── RevokedTokenEntity.java
+│   │   │   ├── RevokedTokenRepository.java
+│   │   │   ├── TestAccountBootstrap.java
+│   │   │   ├── TestAccountsConfig.java
+│   │   │   ├── AdminAccountBootstrap.java
+│   │   │   └── AdminAccountConfig.java
+│   │   ├── config/                       # Configurações (Swagger, Email, Database)
+│   │   │   ├── SwaggerConfig.java
+│   │   │   ├── EmailConfig.java
+│   │   │   ├── GlobalExceptionHandler.java
+│   │   │   └── DatabaseHealthCheck.java
+│   │   ├── email/                        # Serviço de envio de emails
+│   │   │   └── EmailService.java
 │   │   ├── exchange/                     # Lógica de conversão USD ↔ TRV
+│   │   │   ├── ExchangeController.java
+│   │   │   └── ExchangeService.java
 │   │   ├── invoice/                      # QR Code payments
+│   │   │   ├── InvoiceController.java
+│   │   │   └── InvoiceService.java
 │   │   ├── market/                       # Dados de mercado (integração OKX)
+│   │   │   ├── MarketController.java
+│   │   │   └── MarketDataService.java
+│   │   ├── mercadopago/                  # Integração Mercado Pago
+│   │   │   ├── MercadoPagoConfiguration.java
+│   │   │   ├── MercadoPagoController.java
+│   │   │   ├── MercadoPagoPaymentController.java
+│   │   │   └── MercadoPagoService.java
 │   │   ├── money/                        # Value objects para dinheiro
+│   │   │   └── MoneyCents.java
 │   │   ├── security/                     # Configuração de segurança JWT
+│   │   │   ├── SecurityConfig.java
+│   │   │   ├── JwtKeyMaterial.java
+│   │   │   ├── BlacklistAwareJwtDecoder.java
+│   │   │   └── SecurityUserDetailsService.java
 │   │   ├── transfer/                     # Transferências entre usuários
-│   │   ├── tx/                           # Transações (entidade, repositório)
+│   │   │   ├── TransferController.java
+│   │   │   └── TransferService.java
+│   │   ├── tx/                           # Transações (entidade, repositório, email)
+│   │   │   ├── TransactionController.java
+│   │   │   ├── TransactionEntity.java
+│   │   │   ├── TransactionRepository.java
+│   │   │   ├── TransactionType.java
+│   │   │   └── StatementEmailController.java
 │   │   ├── user/                         # Usuários (entidade, repositório, /me)
-│   │   ├── wallet/                       # Carteiras (entidade, serviço)
-│   │   └── web/                          # Handlers de exceções globais
+│   │   │   ├── MeController.java
+│   │   │   ├── UserEntity.java
+│   │   │   ├── UserRepository.java
+│   │   │   ├── UserRole.java
+│   │   │   ├── RegistrationService.java
+│   │   │   ├── ConfirmationService.java
+│   │   │   ├── ConfirmationToken.java
+│   │   │   ├── ConfirmationTokenRepository.java
+│   │   │   ├── PendingRegistration.java
+│   │   │   └── PendingRegistrationRepository.java
+│   │   └── wallet/                       # Carteiras (entidade, serviço)
+│   │       ├── WalletController.java
+│   │       ├── WalletEntity.java
+│   │       ├── WalletRepository.java
+│   │       ├── WalletService.java
+│   │       └── Currency.java
 │   ├── main/resources/
 │   │   ├── application.properties        # Configuração da aplicação
 │   │   ├── static/                       # Arquivos estáticos
-│   │   └── db/migration/                 # Scripts Flyway (V1__init.sql, etc)
+│   │   └── db/migration/                 # Scripts Flyway
+│   │       ├── V1__init.sql
+│   │       ├── V2__refresh_tokens.sql
+│   │       ├── V3__user_roles.sql
+│   │       ├── V4__rename_vps_to_trv.sql
+│   │       ├── V5__fee_source_user.sql
+│   │       ├── V6__user_profile_fields.sql
+│   │       ├── V7__user_avatar.sql
+│   │       ├── V8__create_confirmation_tokens.sql
+│   │       ├── V8__email_verification_tokens.sql
+│   │       ├── V9__create_pending_registrations.sql
+│   │       ├── V10__create_revoked_tokens.sql
+│   │       ├── V11__add_notes_to_transactions.sql
+│   │       └── V12__add_unique_nickname_constraint.sql
 │   └── test/java/                        # Testes unitários e de integração
 │       └── trenvus/Exchange/
-│           ├── exchange/                 # Testes de conversão
-│           ├── money/                    # Testes de cálculo monetário
-│           └── transfer/                 # Testes de transferência
+│           ├── ExchangeApplicationTests.java       # Teste de contexto Spring
+│           ├── auth/
+│           │   ├── AuthIntegrationTest.java
+│           │   └── AuthServiceTest.java
+│           ├── exchange/
+│           │   ├── ExchangeServiceTests.java       # Testes de conversão
+│           │   └── FeeRecipientTests.java          # Testes de taxas
+│           ├── money/
+│           │   └── MoneyCentsTests.java            # Testes de cálculo monetário
+│           └── transfer/
+│               └── TransferServiceTests.java       # Testes de transferência
 │
 └── frontend/
     ├── package.json            # Dependências npm
     ├── Dockerfile              # Dockerfile do frontend (multi-stage com Nginx)
-    ├── nginx.conf              # Configuração Nginx (proxy para API)
+    ├── nginx.conf              # Configuração Nginx (proxy para API e Coinext)
     ├── vite.config.ts          # Configuração Vite
     ├── tsconfig.json           # Configuração TypeScript
+    ├── eslint.config.js        # Configuração ESLint
     └── src/
         ├── api.ts              # Cliente HTTP e tipos da API
         ├── auth.tsx            # Contexto de autenticação React
-        ├── i18n*.ts            # Internacionalização (pt-BR, en)
         ├── phone.ts            # Validação de telefone
+        ├── i18n.tsx            # Configuração de internacionalização
+        ├── i18n.messages.ptBR.ts   # Mensagens em português
+        ├── i18n.messages.en.ts     # Mensagens em inglês
         ├── main.tsx            # Ponto de entrada
         ├── App.tsx             # Componente raiz com rotas
         ├── Shell.tsx           # Layout principal com navegação
         ├── ProtectedRoute.tsx  # Guarda de rotas autenticadas
         ├── AdminRoute.tsx      # Guarda de rotas de admin
+        ├── components/         # Componentes reutilizáveis
+        │   ├── ConvertConfirmationModal.tsx
+        │   ├── DeleteAccountModal.tsx
+        │   ├── ExportPdfModal.tsx
+        │   ├── MercadoPagoModal.tsx
+        │   ├── MercadoPagoReturnHandler.tsx
+        │   └── TransferConfirmationModal.tsx
         └── pages/              # Componentes de página
             ├── Account.tsx
             ├── AdminUsers.tsx
+            ├── ConfirmRegistration.tsx
             ├── Dashboard.tsx
             ├── InvoicesReceive.tsx
             ├── InvoicesSend.tsx
@@ -202,7 +306,7 @@ Após iniciar com Docker:
 
 | Tipo | Email | Senha | Role |
 |------|-------|-------|------|
-| Teste 1 | user1@test.com | 123 | ADMIN |
+| Teste 1 | user1@test.com | 123 | USER |
 | Teste 2 | user2@test.com | 123 | USER |
 | Teste 3 | user3@test.com | 123 | USER |
 | Admin | admin@trenvus.com | admin123 | ADMIN |
@@ -261,6 +365,9 @@ class ExchangeServiceTests {
 ```
 src/test/java/trenvus/Exchange/
 ├── ExchangeApplicationTests.java       # Teste de contexto Spring
+├── auth/
+│   ├── AuthIntegrationTest.java        # Testes de integração de auth
+│   └── AuthServiceTest.java            # Testes unitários de AuthService
 ├── exchange/
 │   ├── ExchangeServiceTests.java       # Testes de conversão
 │   └── FeeRecipientTests.java          # Testes de taxas
@@ -297,28 +404,59 @@ O projeto usa **Flyway** para migrações versionadas. Os scripts estão em `src
 ### Schema Principal
 
 **Tabela `users`**:
-- `id` (PK), `email` (unique), `password_hash`, `nickname`, `phone`, `avatar_data_url`, `role`, `created_at`
+- `id` (BIGSERIAL PK), `email` (VARCHAR 255 UNIQUE), `password_hash` (VARCHAR 255)
+- `nickname` (VARCHAR 64 UNIQUE), `phone` (VARCHAR 32), `avatar_data_url` (TEXT)
+- `role` (VARCHAR 16), `created_at` (TIMESTAMP)
 
 **Tabela `wallets`**:
-- `id` (PK), `user_id` (FK), `currency` (USD/TRV), `balance_cents`, `version` (optimistic locking)
+- `id` (BIGSERIAL PK), `user_id` (BIGINT FK), `currency` (VARCHAR 16)
+- `balance_cents` (BIGINT), `version` (BIGINT - optimistic locking)
+- Índice único: `ux_wallet_user_curr` em (user_id, currency)
 
 **Tabela `transactions`**:
-- `id` (PK), `user_id` (FK), `type`, `usd_amount_cents`, `trv_amount_cents`, `fee_usd_cents`, `idempotency_key`, `created_at`
+- `id` (BIGSERIAL PK), `user_id` (BIGINT FK), `type` (VARCHAR 32)
+- `usd_amount_cents` (BIGINT), `trv_amount_cents` (BIGINT), `fee_usd_cents` (BIGINT)
+- `idempotency_key` (VARCHAR 128), `created_at` (TIMESTAMP), `source_user_id` (BIGINT)
+- Índice único: `ux_tx_user_idempotency_key` em (user_id, idempotency_key)
 
 **Tabela `refresh_tokens`**:
-- `id` (PK), `user_id` (FK), `token_hash`, `expires_at`, `revoked_at`, `created_at`
+- `id` (BIGSERIAL PK), `user_id` (BIGINT FK), `token_hash` (VARCHAR 64)
+- `expires_at` (TIMESTAMP), `revoked_at` (TIMESTAMP), `created_at` (TIMESTAMP)
+- Índice único: `ux_refresh_hash` em (token_hash)
+
+**Tabela `revoked_tokens`**:
+- `id` (BIGSERIAL PK), `token_hash` (VARCHAR 64 UNIQUE)
+- `revoked_at` (TIMESTAMP), `expires_at` (TIMESTAMP)
+
+**Tabela `confirmation_tokens`**:
+- `id` (BIGSERIAL PK), `user_id` (BIGINT), `token` (VARCHAR 64 UNIQUE)
+- `email` (VARCHAR 255), `token_type` (VARCHAR 32)
+- `created_at` (TIMESTAMP), `expires_at` (TIMESTAMP), `used_at` (TIMESTAMP)
+- Índices: `idx_confirmation_token`, `idx_confirmation_user_type`
+
+**Tabela `pending_registrations`**:
+- `id` (BIGSERIAL PK), `email` (VARCHAR 255), `password_hash` (VARCHAR 255)
+- `nickname` (VARCHAR 64), `phone` (VARCHAR 32), `token` (VARCHAR 64 UNIQUE)
+- `created_at` (TIMESTAMP), `expires_at` (TIMESTAMP)
+- Índices: `idx_pending_registration_token`, `idx_pending_registration_email`
 
 ### Histórico de Migrações
 
-| Versão | Descrição |
-|--------|-----------|
-| V1 | Schema inicial (users, wallets, transactions) |
-| V2 | Tabela de refresh tokens |
-| V3 | Coluna role em users |
-| V4 | Renomeia VPS para TRV |
-| V5 | Campo fee_source_user |
-| V6 | Campos de perfil (nickname, phone) |
-| V7 | Campo avatar_data_url |
+| Versão | Arquivo | Descrição |
+|--------|---------|-----------|
+| V1 | V1__init.sql | Schema inicial (users, wallets, transactions) |
+| V2 | V2__refresh_tokens.sql | Tabela de refresh tokens |
+| V3 | V3__user_roles.sql | Coluna role em users |
+| V4 | V4__rename_vps_to_trv.sql | Renomeia VPS para TRV |
+| V5 | V5__fee_source_user.sql | Campo source_user_id em transactions |
+| V6 | V6__user_profile_fields.sql | Campos nickname e phone em users |
+| V7 | V7__user_avatar.sql | Campo avatar_data_url em users |
+| V8 | V8__create_confirmation_tokens.sql | Tabela de tokens de confirmação |
+| V8 | V8__email_verification_tokens.sql | Tabela de tokens de verificação de email |
+| V9 | V9__create_pending_registrations.sql | Tabela de registros pendentes |
+| V10 | V10__create_revoked_tokens.sql | Tabela de tokens revogados (blacklist) |
+| V11 | V11__add_notes_to_transactions.sql | Campo notes em transactions |
+| V12 | V12__add_unique_nickname_constraint.sql | Constraint UNIQUE em nickname |
 
 ---
 
@@ -329,11 +467,13 @@ O projeto usa **Flyway** para migrações versionadas. Os scripts estão em `src
 - **Algoritmo**: RS256 (par de chaves RSA)
 - **Tokens**: Access token (curta duração) + Refresh token (longa duração)
 - **Chaves**: Configuradas via variáveis `JWT_PRIVATE_KEY_B64` e `JWT_PUBLIC_KEY_B64` (Base64 encoded PEM)
+- **Blacklist**: Tokens revogados são armazenados na tabela `revoked_tokens`
 
 ### Rotas Públicas
 
-- `/auth/register`, `/auth/login`, `/auth/test-login`, `/auth/admin-login`
-- `/auth/refresh`, `/auth/logout`, `/auth/test-accounts-status`
+- `/auth/register`, `/auth/confirm-registration`, `/auth/login`, `/auth/test-login`, `/auth/admin-login`
+- `/auth/refresh`, `/auth/logout`, `/auth/test-accounts-status`, `/auth/resend-confirmation`
+- `/mercadopago/public-key`
 - `/swagger-ui/**`, `/v3/api-docs/**`, `/error`
 
 ### Autorização
@@ -352,6 +492,9 @@ Configurado via variável `APP_CORS_ORIGINS` (lista separada por vírgulas).
 3. **Optimistic Locking**: Campo `version` na tabela `wallets` previne race conditions
 4. **Idempotência**: Operações de conversão aceitam header `Idempotency-Key` para evitar duplicação
 5. **Refresh Tokens**: Armazenados como hash SHA-256, suportam revogação
+6. **Confirmação de Registro**: Tokens seguros de 32 bytes (Base64 URL-safe) com expiração de 24h
+7. **Token Blacklist**: Access tokens revogados são mantidos em blacklist até expirarem
+8. **Rate Limiting Implícito**: Retry automático no frontend para erros 502/503/504
 
 ---
 
@@ -361,9 +504,9 @@ Variáveis essenciais em `.env`:
 
 ```bash
 # Banco de dados
-POSTGRES_DB=trenvus
-POSTGRES_USER=trenvus
-POSTGRES_PASSWORD=...
+POSTGRES_DB=exchange
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
 
 # JWT (Base64 encoded PEM)
 JWT_PRIVATE_KEY_B64=...
@@ -374,7 +517,7 @@ APP_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 # Contas de teste (desenvolvimento)
 TEST_ACCOUNT_ENABLED=true
-TEST_ACCOUNTS="user1@test.com:123:ADMIN;user2@test.com:123:USER"
+TEST_ACCOUNTS="user1@test.com:123:USER;user2@test.com:123:USER;user3@test.com:123:USER"
 
 # Conta admin
 ADMIN_ACCOUNT_ENABLED=true
@@ -382,9 +525,19 @@ ADMIN_LOGIN_ENABLED=true
 ADMIN_EMAIL=admin@trenvus.com
 ADMIN_PASSWORD=admin123
 
-# Mercado
-MARKET_ASSETS=BTC-USDT,ETH-USDT,SOL-USDT
-MARKET_CACHE_TTL_SECONDS=30
+# Mercado Pago
+MERCADOPAGO_ACCESS_TOKEN=TEST-...
+MERCADOPAGO_PUBLIC_KEY=TEST-...
+MERCADOPAGO_RETURN_URL=http://localhost:5173/mercadopago/return
+
+# Email (SMTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=...
+SMTP_PASSWORD=...
+SMTP_FROM=noreply@trenvus.com
+APP_BASE_URL=http://localhost:3000
+API_BASE_URL=http://localhost:8080
 ```
 
 ### Gerando Chaves JWT
@@ -418,12 +571,15 @@ Exemplos: `dashboard.convert.title`, `errors.loadBalance`, `actions.save`
 ### Autenticação
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| POST | `/auth/register` | Criar conta |
+| POST | `/auth/register` | Iniciar registro (envia email de confirmação) |
+| GET | `/auth/confirm-registration` | Confirmar registro com token |
 | POST | `/auth/login` | Login |
 | POST | `/auth/test-login` | Login com conta de teste |
 | POST | `/auth/admin-login` | Login como admin |
 | POST | `/auth/refresh` | Renovar access token |
 | POST | `/auth/logout` | Logout |
+| POST | `/auth/revoke` | Revogar access token |
+| POST | `/auth/resend-confirmation` | Reenviar email de confirmação |
 
 ### Carteira
 | Método | Endpoint | Descrição |
@@ -449,7 +605,9 @@ Exemplos: `dashboard.convert.title`, `errors.loadBalance`, `actions.save`
 | PUT | `/me/phone` | Atualizar telefone |
 | PUT | `/me/password` | Alterar senha |
 | POST | `/me/avatar` | Upload de avatar |
+| POST | `/me/delete` | Deletar conta (com confirmação) |
 | GET | `/transactions/private` | Extrato |
+| POST | `/transactions/send-statement-email` | Enviar extrato por email |
 
 ### Admin
 | Método | Endpoint | Descrição |
@@ -459,11 +617,14 @@ Exemplos: `dashboard.convert.title`, `errors.loadBalance`, `actions.save`
 | PUT | `/admin/users/{id}/wallet` | Ajustar saldo |
 | PUT | `/admin/users/{id}/role` | Alterar role |
 | GET | `/admin/users/{id}/fees` | Taxas recebidas |
+| GET | `/admin/users/{id}/statement` | Extrato do usuário |
 
 ### Mercado
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | GET | `/market/tickers` | Preços |
+| GET | `/market/tickers/crypto` | Preços crypto |
+| GET | `/market/tickers/fiat` | Preços fiat |
 | GET | `/market/orderbook` | Livro de ofertas |
 | GET | `/market/candles` | Candlesticks |
 
@@ -473,6 +634,14 @@ Exemplos: `dashboard.convert.title`, `errors.loadBalance`, `actions.save`
 | POST | `/invoices/generate` | Gerar QR code |
 | POST | `/invoices/pay` | Pagar invoice |
 | POST | `/invoices/simulate-pay` | Simular pagamento |
+
+### Mercado Pago
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/mercadopago/public-key` | Chave pública do MP |
+| POST | `/mercadopago/create-preference` | Criar preferência de pagamento |
+| GET | `/mercadopago/payment/{id}` | Verificar status de pagamento |
+| POST | `/mercadopago/webhook` | Webhook para notificações |
 
 ---
 
@@ -486,6 +655,10 @@ Exemplos: `dashboard.convert.title`, `errors.loadBalance`, `actions.save`
 6. **Avatar**: Armazenado como data URL (base64), limite de 1MB
 7. **Taxa de conversão**: 1% por transação (mínimo de 1 centavo)
 8. **Taxa de transferência**: Zero (gratuito entre usuários)
+9. **Proxy Coinext**: O nginx configura proxy para `https://api.coinext.com.br:8443/` no path `/coinext/`
+10. **Email**: Se SMTP não configurado, emails são logados no console
+11. **Registro**: Novos usuários precisam confirmar email antes de acessar a conta
+12. **Token Revogação**: Access tokens podem ser revogados via `/auth/revoke` para logout imediato
 
 ---
 
@@ -503,6 +676,14 @@ Exemplos: `dashboard.convert.title`, `errors.loadBalance`, `actions.save`
 ### Problemas com JWT
 - Verifique se as chaves Base64 estão corretas (sem quebras de linha)
 - Confirme que está usando o par correto (private para assinar, public para verificar)
+
+### Problemas com Mercado Pago
+- Verifique se `MERCADOPAGO_ACCESS_TOKEN` e `MERCADOPAGO_PUBLIC_KEY` estão configurados
+- Em ambiente de teste, use as credenciais de TEST do Mercado Pago
+
+### Problemas com Email
+- Verifique se as variáveis SMTP estão configuradas no docker-compose.yml
+- Em desenvolvimento, emails são logados no console se SMTP não configurado
 
 ---
 

@@ -269,7 +269,7 @@ export const messagesPtBR: Record<string, string> = {
   'manifesto.cta.security': 'Ver nossa segurança',
   'manifesto.pill.direction': 'Direção',
   'manifesto.pill.next': 'Próximo passo',
-  'manifesto.section.interest.title': 'Indique seu principal interesse com a nossa comunidade TRENVUS:',
+  'manifesto.section.interest.title': 'Indique seu principal interesse com a nossa comunidade TRENVUS',
   'manifesto.section.interest.body':
     'Escolha o caminho que mais combina com seu objetivo. A partir disso, guiamos você pelas dinâmicas, pontos de entrada e oportunidades.',
   'manifesto.option.trv.pill': 'Dinâmica',
@@ -285,7 +285,7 @@ export const messagesPtBR: Record<string, string> = {
     'Promover nossas conexões P2P, B2B e B2C e as oportunidades do sistema de pontos de valor',
   'manifesto.option.connections.body':
     'Amplie redes e colaborações no mundo real, conectando pessoas e negócios por meio de um sistema de pontos de valor transparente.',
-  'manifesto.section.next.title': 'Transforme interesse em participação.',
+  'manifesto.section.next.title': 'Transforme interesse em participação',
   'manifesto.section.next.body':
     'Crie sua conta para acessar a plataforma, acompanhar o mercado e experimentar o produto com uma interface moderna e bases sólidas de segurança.',
 
