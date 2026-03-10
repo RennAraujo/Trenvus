@@ -4,6 +4,7 @@ import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 import { MercadoPagoModal } from '../components/MercadoPagoModal'
 import { ConvertConfirmationModal } from '../components/ConvertConfirmationModal'
+import { InvoiceModal } from '../components/InvoiceModal'
 
 type ConvertDirection = 'USD_TO_TRV' | 'TRV_TO_USD'
 
@@ -88,6 +89,7 @@ export function Dashboard() {
   const [activeTab, setActiveTab] = useState<'deposit' | 'convert'>('deposit')
   const [isMercadoPagoModalOpen, setIsMercadoPagoModalOpen] = useState(false)
   const [showConvertConfirmation, setShowConvertConfirmation] = useState(false)
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false)
   const depositInputRef = useRef<HTMLInputElement | null>(null)
   const convertInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -249,6 +251,152 @@ export function Dashboard() {
             <div style={{ flex: 1 }} />
             <div className="text-xs text-tertiary">{t('dashboard.nativeToken')}</div>
           </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 16
+        }}>
+          {/* Add */}
+          <button
+            onClick={() => setActiveTab('deposit')}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 8,
+              padding: '16px 8px',
+              borderRadius: 16,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'var(--color-success)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white'
+            }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+              {t('dashboard.add') || 'Add'}
+            </span>
+          </button>
+
+          {/* Convert */}
+          <button
+            onClick={() => setActiveTab('convert')}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 8,
+              padding: '16px 8px',
+              borderRadius: 16,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'var(--bg-elevated)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-secondary)'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M7 16V4M7 4L3 8M7 4l4 4"/>
+                <path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
+              </svg>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+              {t('dashboard.convert') || 'Convert'}
+            </span>
+          </button>
+
+          {/* Send */}
+          <button
+            onClick={() => window.location.href = '/app/transfer'}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 8,
+              padding: '16px 8px',
+              borderRadius: 16,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'var(--bg-elevated)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-secondary)'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m22 2-7 20-4-9-9-4Z"/>
+              </svg>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+              {t('dashboard.send') || 'Send'}
+            </span>
+          </button>
+
+          {/* Get Paid */}
+          <button
+            onClick={() => setIsInvoiceModalOpen(true)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 8,
+              padding: '16px 8px',
+              borderRadius: 16,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'var(--color-success)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 19V5M5 12l7-7 7 7"/>
+              </svg>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+              {t('dashboard.getPaid') || 'Get paid'}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -540,6 +688,13 @@ export function Dashboard() {
         fee={formatMoneyDigits((Number(displayCents) / 100).toString().split('.')[0]).formatted}
         receive={formatMoneyDigits((Number(displayCents) * 0.99).toString().split('.')[0]).formatted}
         isLoading={busy}
+      />
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        currency={convertDirection === 'USD_TO_TRV' ? 'USD' : 'TRV'}
       />
     </div>
   )
