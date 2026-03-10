@@ -172,20 +172,20 @@ export function VoucherCard() {
                       fgColor="#000000"
                       imageSettings={{
                         src: '/logo-qr.png',
-                        height: 70,
-                        width: 70,
+                        height: 68,
+                        width: 68,
                         excavate: true,
                       }}
                     />
                     
-                    {/* Círculo branco de fundo estilo Binance */}
+                    {/* Círculo branco de fundo estilo Binance - mais justo */}
                     <div style={{
                       position: 'absolute',
                       top: '50%',
                       left: '50%',
                       transform: 'translate(-50%, -50%)',
-                      width: 80,
-                      height: 80,
+                      width: 72,
+                      height: 72,
                       background: 'white',
                       borderRadius: '50%',
                       zIndex: -1,
