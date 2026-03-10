@@ -161,7 +161,6 @@ export function InvoicesSend() {
     setStep('form')
     setDetectedInvoice(null)
     setResult(null)
-    setError(null)
     setAmount('')
   }
 
