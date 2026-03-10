@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { QRCodeSVG } from 'qrcode.react'
 import { api, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 
