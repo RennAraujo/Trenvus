@@ -145,14 +145,19 @@ export function VoucherView() {
             pointerEvents: 'none',
           }}/>
 
-          {/* Header with logo - apenas texto */}
+          {/* Header with logo - texto e imagem */}
           <div style={{ 
             padding: '24px 24px 0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <img 
+                src="/logo-qr.png" 
+                alt="TRENVUS" 
+                style={{ height: 28, width: 28, objectFit: 'contain' }}
+              />
               <span style={{ 
                 fontSize: 20, 
                 fontWeight: 800,
