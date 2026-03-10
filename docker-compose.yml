@@ -34,9 +34,13 @@ services:
       SMTP_FROM: noreply@trenvus.com
       APP_BASE_URL: ${APP_BASE_URL}
       API_BASE_URL: ${API_BASE_URL}
+      # Mercado Pago
+      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
+      MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY}
+      MERCADOPAGO_RETURN_URL: ${MERCADOPAGO_RETURN_URL:-http://localhost:5173/mercadopago/return}
       # Test accounts (from .env)
       TEST_ACCOUNT_ENABLED: "${TEST_ACCOUNT_ENABLED:-true}"
-      TEST_ACCOUNTS: "${TEST_ACCOUNTS:-user1@test.com:123:USER;user2@test.com:123:USER;user3@test.com:123:USER}"
+      TEST_ACCOUNTS: "${TEST_ACCOUNTS}"
       # Admin account (from .env)
       ADMIN_ACCOUNT_ENABLED: "${ADMIN_ACCOUNT_ENABLED:-true}"
       ADMIN_LOGIN_ENABLED: "${ADMIN_LOGIN_ENABLED:-true}"
