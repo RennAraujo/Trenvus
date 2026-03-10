@@ -88,7 +88,7 @@ export function VoucherCard() {
           <div style={{ 
             width: 80, 
             height: 80, 
-            borderRadius: 20,
+            borderRadius: 24,
             background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
             display: 'flex',
             alignItems: 'center',
@@ -123,7 +123,6 @@ export function VoucherCard() {
             style={{
               background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
               border: '1px solid rgba(124, 58, 237, 0.3)',
-              position: 'relative',
               overflow: 'hidden',
             }}
           >
@@ -138,7 +137,6 @@ export function VoucherCard() {
               pointerEvents: 'none',
             }}/>
 
-            <div style={{ position: 'relative', zIndex: 1, padding: '32px 24px' }}>
               {/* Logo - centralizado acima do QR code */}
               <div style={{ 
                 textAlign: 'center',
@@ -170,7 +168,6 @@ export function VoucherCard() {
                   borderRadius: 28,
                   boxShadow: '0 12px 40px rgba(124, 58, 237, 0.25), inset 0 1px 0 rgba(255,255,255,0.1)',
                   border: '2px solid rgba(124, 58, 237, 0.5)',
-                  position: 'relative',
                 }}>
                   {/* Glow effect */}
                   <div style={{
@@ -188,39 +185,25 @@ export function VoucherCard() {
                   {/* QR Code branco com logo */}
                   <div style={{
                     background: 'white',
-                    padding: 20,
-                    borderRadius: 20,
-                    position: 'relative',
+                    padding: 24,
+                    borderRadius: 24,
                     boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                   }}>
                     <QRCodeSVG 
                       value={voucherUrl}
-                      size={200}
+                      size={220}
                       level="H"
-                      includeMargin={false}
+                      includeMargin={true}
                       bgColor="#ffffff"
                       fgColor="#1a1a2e"
                       imageSettings={{
                         src: '/logo-qr.png',
-                        height: 55,
-                        width: 55,
+                        height: 45,
+                        width: 45,
                         excavate: true,
                       }}
                     />
                     
-                    {/* Badge gradiente atrás do logo */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: 65,
-                      height: 65,
-                      background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
-                      borderRadius: '50%',
-                      zIndex: -1,
-                      boxShadow: '0 4px 15px rgba(124, 58, 237, 0.6)',
-                    }}/>
                   </div>
                 </div>
 
