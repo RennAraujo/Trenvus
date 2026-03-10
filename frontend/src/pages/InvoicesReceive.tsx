@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import { api, formatUsd, type WalletResponse } from '../api'
+import { api, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 
@@ -99,13 +99,13 @@ interface InvoiceItem {
 
 export function InvoicesReceive() {
   const auth = useAuth()
-  const { t, currentLanguage } = useI18n()
+  const { t, locale } = useI18n()
   
   // Form state
   const [invoiceNumber, setInvoiceNumber] = useState('INV-001')
   const [customer, setCustomer] = useState('')
   const [items, setItems] = useState<InvoiceItem[]>([{ id: '1', description: '', quantity: 1, amount: '' }])
-  const [currency, setCurrency] = useState<'USD' | 'TRV'>('USD')
+  const [currency] = useState<'USD' | 'TRV'>('USD')
   const [issuedDate, setIssuedDate] = useState(new Date().toISOString().split('T')[0])
   const [dueDate, setDueDate] = useState(() => {
     const date = new Date()
@@ -116,7 +116,7 @@ export function InvoicesReceive() {
   // UI state
   const [step, setStep] = useState<'form' | 'review' | 'qr' | 'success'>('form')
   const [qrPayload, setQrPayload] = useState<string | null>(null)
-  const [wallet, setWallet] = useState<WalletResponse | null>(null)
+  const [_wallet, setWallet] = useState<WalletResponse | null>(null)
   const [copied, setCopied] = useState(false)
 
   async function loadWallet() {
@@ -208,7 +208,7 @@ export function InvoicesReceive() {
   // Format date for display
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
-    return date.toLocaleDateString(currentLanguage === 'pt-BR' ? 'pt-BR' : 'en-US', {
+    return date.toLocaleDateString(locale === 'pt-BR' ? 'pt-BR' : 'en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
