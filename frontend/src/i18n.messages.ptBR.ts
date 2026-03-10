@@ -39,7 +39,7 @@ export const messagesPtBR: Record<string, string> = {
   'actions.apply': 'Aplicar',
   'actions.hide': 'Ocultar',
   'actions.clear': 'Limpar',
-  'actions.copied': 'Copiado!'
+  'actions.copied': 'Copiado!',
 
   'labels.email': 'E-mail',
   'labels.nickname': 'Apelido',
