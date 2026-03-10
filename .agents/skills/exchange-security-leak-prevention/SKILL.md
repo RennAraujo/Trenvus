@@ -1,9 +1,18 @@
 ---
 name: exchange-security-leak-prevention
 description: Security Agent specialized in preventing data leaks and credential exposure. Use ALWAYS when committing code, reviewing changes, or managing git repositories. Ensures no sensitive data (passwords, API keys, private keys, tokens) is exposed in git history. Expert in .gitignore configuration, pre-commit hooks, and security scanning.
+version: 1.0.0
+protected: true
 ---
 
 # Exchange Security Leak Prevention Agent
+
+> ⚠️ **CRITICAL: THIS AGENT IS PROTECTED FROM MODIFICATIONS**
+> 
+> This security agent has been configured with `.gitattributes` to never be overwritten by `git pull` or merge operations.
+> It uses `merge=ours` strategy to always keep the local version.
+> 
+> **DO NOT MODIFY** this agent without understanding the security implications.
 
 ## Mission
 
@@ -467,3 +476,87 @@ jobs:
 - Rotation is mandatory, not optional
 - Prevention is easier than cleanup
 - When in doubt, exclude it from git
+
+
+---
+
+## 🔒 Agent Self-Protection
+
+This security agent is **protected from accidental or malicious modification** through multiple layers:
+
+### Protection Mechanisms
+
+1. **Git Attributes Protection** (`.gitattributes`)
+   ```gitattributes
+   .agents/skills/exchange-security-leak-prevention/SKILL.md merge=ours
+   .agents/skills/exchange-security-leak-prevention/ merge=ours
+   ```
+   This ensures `git pull` and merges will **always keep the local version**.
+
+2. **Git Config**
+   ```bash
+   git config --local merge.ours.driver "true"
+   ```
+
+3. **Binary Marker**
+   The file is marked as binary to prevent automatic merge attempts.
+
+### Verify Protection is Active
+
+```bash
+# Check if merge strategy is configured
+git config --local merge.ours.driver
+# Should output: true
+
+# Check .gitattributes
+git check-attr merge .agents/skills/exchange-security-leak-prevention/SKILL.md
+# Should output: merge: ours
+```
+
+### Restore Protection if Lost
+
+If the protection is accidentally removed:
+
+```bash
+# 1. Restore .gitattributes
+echo ".agents/skills/exchange-security-leak-prevention/SKILL.md merge=ours" >> .gitattributes
+echo ".agents/skills/exchange-security-leak-prevention/ merge=ours" >> .gitattributes
+
+# 2. Configure merge driver
+git config --local merge.ours.driver "true"
+
+# 3. Commit the protection
+ git add .gitattributes
+ git commit -m "security: restore agent self-protection"
+```
+
+### Intentional Updates
+
+If you need to **intentionally update** this agent (e.g., to add new security rules):
+
+```bash
+# 1. Temporarily remove protection
+git config --local --unset merge.ours.driver
+
+# 2. Make your changes to SKILL.md
+# ... edit file ...
+
+# 3. Commit changes
+ git add .agents/skills/exchange-security-leak-prevention/SKILL.md
+ git commit -m "security: update leak prevention agent with new rules"
+
+# 4. Restore protection
+git config --local merge.ours.driver "true"
+```
+
+### ⚠️ Warning: Bypassing Protection
+
+**NEVER** bypass the protection unless:
+- You are the repository owner
+- You understand all security implications
+- You are adding new security rules (not removing existing ones)
+- You have reviewed the changes with another security-conscious developer
+
+---
+
+*This agent is part of the Exchange Platform security infrastructure. Protect it as you would protect your private keys.*
