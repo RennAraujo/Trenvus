@@ -66,6 +66,7 @@ public class SecurityConfig {
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/test-accounts-status")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/refresh")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/logout")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/voucher/profile/**")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui.html")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/swagger-ui/**")).permitAll()
