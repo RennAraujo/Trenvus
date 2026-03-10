@@ -57,6 +57,28 @@ stdout
 .env.*
 !.env.example
 
+### Cryptographic Keys (NEVER commit private keys) ###
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+private.*
+public.*
+!public.pem.example
+!public.key.example
+
+### Secrets Files ###
+secrets/
+secrets.*
+*secret*
+*.secret
+!secret.example
+*.credentials
+*credentials*
+
 ### Docker ###
 docker-compose.override.yml
 
