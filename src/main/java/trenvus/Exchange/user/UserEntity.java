@@ -39,6 +39,9 @@ public class UserEntity {
 	@Column(name = "avatar_data_url", length = 1024)
 	private String avatarDataUrl;
 
+	@Column(name = "verified", nullable = false)
+	private boolean verified = false;
+
 	public Long getId() {
 		return id;
 	}
@@ -97,5 +100,13 @@ public class UserEntity {
 
 	public void setAvatarDataUrl(String avatarDataUrl) {
 		this.avatarDataUrl = avatarDataUrl;
+	}
+
+	public boolean isVerified() {
+		return verified;
+	}
+
+	public void setVerified(boolean verified) {
+		this.verified = verified;
 	}
 }

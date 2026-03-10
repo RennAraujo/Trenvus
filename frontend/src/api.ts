@@ -33,6 +33,25 @@ export type InvoiceQrResponse = {
   recipientNickname: string
 }
 
+export type VoucherResponse = {
+  code: string
+  createdAt: string
+  expiresAt: string | null
+  viewUrl: string
+}
+
+export type VoucherProfileResponse = {
+  userId: number
+  nickname: string
+  email: string
+  avatarDataUrl: string | null
+  trvBalanceCents: number
+  verified: boolean
+  voucherCode: string
+  createdAt: string
+  expiresAt: string | null
+}
+
 export type MeResponse = {
   email: string
   nickname: string | null
@@ -355,6 +374,16 @@ export const api = {
       `/market/candles?instId=${encodeURIComponent(instId)}&bar=${encodeURIComponent(bar)}&limit=${limit}`,
       { accessToken },
     ),
+
+  // Voucher / QR Code
+  generateVoucher: (accessToken: string) =>
+    request<VoucherResponse>('/voucher/generate', { method: 'POST', accessToken }),
+  getMyVoucher: (accessToken: string) =>
+    request<VoucherResponse>('/voucher/my', { accessToken }),
+  deactivateVoucher: (accessToken: string) =>
+    request<void>('/voucher/my', { method: 'DELETE', accessToken }),
+  getVoucherProfile: (code: string) =>
+    request<VoucherProfileResponse>(`/voucher/profile/${encodeURIComponent(code)}`),
 
   // Invoice / QR Code payments
   generateInvoice: (accessToken: string, amount: string, currency: string, description?: string) =>
