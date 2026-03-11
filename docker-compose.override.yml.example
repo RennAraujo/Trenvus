@@ -1,0 +1,30 @@
+# Docker Compose Override para Desenvolvimento/Debug
+# 
+# Uso: Copie este arquivo para docker-compose.override.yml
+# Ele será usado automaticamente pelo docker-compose
+#
+# Este arquivo:
+# - Desabilita restart automático (para debugar erros)
+# - Aumenta logs
+# - Mapeia portas para debug
+
+services:
+  backend:
+    # Desabilita restart para debug
+    restart: "no"
+    # Aumenta memória para debug
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    # Desabilita healthcheck para debug
+    # healthcheck:
+    #   disable: true
+    # Mapeia porta de debug (opcional)
+    # ports:
+    #   - "5005:5005"  # JDWP debug port
+    # environment:
+    #   # Habilita debug remoto
+    #   JAVA_OPTS: "-Xmx768m -Xms256m -XX:+UseContainerSupport -XX:+UseG1GC -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Dspring.main.banner-mode=off"

@@ -6,13 +6,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-exchange}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      # Performance tuning para PostgreSQL em containers
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - exchange-network
-    restart: always
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-exchange}"]
       interval: 5s
@@ -25,6 +27,13 @@ services:
           memory: 512M
         reservations:
           memory: 256M
+    # Adicionado comando para otimizar PostgreSQL
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c effective_cache_size=384MB
+      -c maintenance_work_mem=32MB
+      -c max_connections=20
 
   backend:
     build: .
@@ -60,31 +69,42 @@ services:
       MERCADOPAGO_RETURN_URL: ${MERCADOPAGO_RETURN_URL:-http://localhost:3000/mercadopago/return}
       # Test Accounts
       TEST_ACCOUNT_ENABLED: ${TEST_ACCOUNT_ENABLED:-true}
-      TEST_ACCOUNTS: ${TEST_ACCOUNTS:-user1@test.com:test123:USER;user2@test.com:test123:USER;user3@test.com:test123:USER}
+      TEST_ACCOUNTS: ${TEST_ACCOUNTS:-user1@test.com:123:USER;user2@test.com:123:USER;user3@test.com:123:USER}
       # Admin
       ADMIN_ACCOUNT_ENABLED: ${ADMIN_ACCOUNT_ENABLED:-true}
       ADMIN_LOGIN_ENABLED: ${ADMIN_LOGIN_ENABLED:-true}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@trenvus.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
-      # JVM Options
-      JAVA_OPTS: "-Xmx512m -Xms256m -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+      # JVM Options - podem ser sobrescritas pelo usuário
+      JAVA_OPTS: ${JAVA_OPTS:--Xmx768m -Xms256m -XX:+UseContainerSupport -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom -Dspring.main.banner-mode=off}
+      # Spring Boot otimizações
+      SPRING_MAIN_BANNER_MODE: "off"
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT: "INFO"
+      LOGGING_LEVEL_TRENVUS_EXCHANGE: "DEBUG"
     ports:
       - "8080:8080"
     networks:
       - exchange-network
-    restart: always
+    # Alterado de 'always' para 'unless-stopped' para evitar loop infinito
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "sh", "-c", "curl -fsS http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 120s
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: ${BACKEND_MEMORY_LIMIT:-1.5G}
         reservations:
           memory: 512M
+    # Logs mais detalhados para debug
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build: ./frontend
@@ -96,7 +116,7 @@ services:
       - "3000:80"
     networks:
       - exchange-network
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
