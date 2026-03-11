@@ -189,14 +189,46 @@ docker exec exchange-backend env | grep JWT
 ./start-after-pull-safe.sh --debug
 ```
 
-### Issue: Frontend shows blank page or errors
+### Issue: Frontend visuals not updating / changes not showing
 
-**Symptom:** After pull, frontend doesn't load or shows TypeScript errors.
+**Symptom:** After git pull, the frontend still shows the old design/pages.
 
-**Solution:**
-1. Clear Docker build cache: `docker-compose build --no-cache frontend`
-2. Check for TypeScript errors: `cd frontend && npm run build`
-3. Verify all env vars are set in `.env`
+**Root Cause:** Docker is using cached build layers from previous builds.
+
+**Solution - Force frontend rebuild:**
+
+```bash
+# Linux/Mac/Git Bash
+./rebuild-frontend.sh
+
+# Windows CMD
+rebuild-frontend.bat
+```
+
+This script will:
+1. Stop and remove the old frontend container
+2. Remove the old Docker image
+3. Clear build cache
+4. Rebuild frontend without cache (`--no-cache`)
+5. Start the new container
+
+**Also clear browser cache:**
+- Chrome/Edge: `Ctrl + F5` or `Ctrl + Shift + R`
+- Firefox: `Ctrl + Shift + R`
+
+**Alternative - Manual rebuild:**
+```bash
+# Stop everything
+docker-compose down
+
+# Rebuild frontend only, without cache
+docker-compose build --no-cache frontend
+
+# Start again
+docker-compose up -d
+```
+
+**Note:** Flyway has nothing to do with frontend visuals. Flyway only handles database migrations.
 
 ## Quick Health Check
 
