@@ -93,6 +93,41 @@ export function Landing() {
       <main>
         <section className="hero">
           <div className="container">
+            {/* Logo Hero */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              marginBottom: 32 
+            }}>
+              <div style={{
+                width: 120,
+                height: 120,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 50%, #7C3AED 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 32px rgba(124, 58, 237, 0.4), 0 0 64px rgba(234, 29, 44, 0.2)',
+                animation: 'pulse 2s ease-in-out infinite',
+              }}>
+                <img 
+                  src={brandLogo} 
+                  alt="TRENVUS" 
+                  style={{ 
+                    width: 70, 
+                    height: 70,
+                    filter: 'brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                  }} 
+                />
+              </div>
+            </div>
+            <style>{`
+              @keyframes pulse {
+                0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(124, 58, 237, 0.4), 0 0 64px rgba(234, 29, 44, 0.2); }
+                50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(124, 58, 237, 0.5), 0 0 80px rgba(234, 29, 44, 0.3); }
+              }
+            `}</style>
+
             <h1 className="hero-title">{t('landing.hero.title')}</h1>
             <p className="hero-subtitle">{t('landing.hero.subtitle')}</p>
             <div className="hero-cta">
