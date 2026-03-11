@@ -2,6 +2,44 @@
 
 Este projeto usa Docker Compose para orquestração de containers.
 
+## ⚠️ IMPORTANTE PARA WINDOWS
+
+Se o backend entrar em loop infinito após `git pull`:
+
+### Solução Rápida (Execute 1 vez):
+
+```bash
+# Git Bash
+./fix-env-definitivo.sh
+
+# Windows CMD
+fix-env-definitivo.bat
+```
+
+### Por que isso acontece?
+
+O Docker Desktop no Windows não passa variáveis longas (como JWT keys Base64) corretamente através da seção `environment:`.
+
+A solução usa `env_file:` que é 100% confiável.
+
+### Se o script não funcionar, faça manualmente:
+
+1. **Use o docker-compose com env_file:**
+   ```bash
+   docker-compose -f docker-compose.envfile.yml up -d
+   ```
+
+2. **Ou crie o .env.backend manualmente:**
+   ```bash
+   # Copiar chaves do .env
+   grep "^JWT_PRIVATE_KEY_B64=" .env > .env.backend
+   grep "^JWT_PUBLIC_KEY_B64=" .env >> .env.backend
+   
+   # Adicionar restante das configs (veja FIX_ENV_DEFINITIVO.md)
+   ```
+
+---
+
 ## ⚡ Comandos Básicos
 
 ### Iniciar a aplicação

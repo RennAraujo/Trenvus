@@ -1,3 +1,12 @@
+# Trenvus Docker Compose Configuration
+# 
+# IMPORTANTE PARA WINDOWS:
+# Se o backend entrar em loop por causa de JWT keys vazias,
+# use a versão com env_file: docker-compose.envfile.yml
+# ou execute: ./fix-env-definitivo.sh (Linux/Mac) ou fix-env-definitivo.bat (Windows)
+#
+# Veja: FIX_ENV_DEFINITIVO.md para mais detalhes
+
 services:
   db:
     image: postgres:16-alpine
