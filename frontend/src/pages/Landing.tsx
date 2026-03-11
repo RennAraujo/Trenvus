@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { LanguageSwitcher, useI18n } from '../i18n'
 import brandLogo from '../assets/brand-mark.png'
+import heroLogo from '../assets/hero-logo.png'
 
 // Icons
 const ShieldIcon = () => (
@@ -125,7 +126,7 @@ export function Landing() {
                 }} />
                 
                 <img 
-                  src={brandLogo} 
+                  src={heroLogo} 
                   alt="TRENVUS" 
                   style={{ 
                     width: 80, 
