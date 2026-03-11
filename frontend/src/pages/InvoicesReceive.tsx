@@ -52,7 +52,7 @@ export function InvoicesReceive() {
   
   const [step, setStep] = useState<Step>('amount')
   const [amount, setAmount] = useState('')
-  const [currency, setCurrency] = useState<'USD' | 'TRV'>('USD')
+  const [currency] = useState<'TRV'>('TRV') // Sempre TRV
   const [description, setDescription] = useState('')
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null)
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
@@ -229,7 +229,7 @@ export function InvoicesReceive() {
                 fontWeight: 700,
                 color: 'white',
               }}>
-                {parseFloat(paymentRequest.amount).toFixed(2)} {paymentRequest.currency}
+                {parseFloat(paymentRequest.amount).toFixed(2)} TRV
               </div>
             </div>
 
@@ -409,9 +409,7 @@ export function InvoicesReceive() {
           borderRadius: 16,
           border: '2px solid var(--border-default)'
         }}>
-          <span style={{ fontSize: 32, fontWeight: 300, color: 'var(--text-muted)' }}>
-            {currency === 'USD' ? '$' : '₮'}
-          </span>
+          <span style={{ fontSize: 32, fontWeight: 300, color: 'var(--text-muted)' }}>₮</span>
           
           <input
             type="number"
@@ -431,9 +429,7 @@ export function InvoicesReceive() {
             }}
           />
           
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as 'USD' | 'TRV')}
+          <span
             style={{
               padding: '12px 20px',
               borderRadius: 12,
@@ -441,13 +437,11 @@ export function InvoicesReceive() {
               background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
               color: 'white',
               fontSize: 16,
-              fontWeight: 600,
-              cursor: 'pointer'
+              fontWeight: 600
             }}
           >
-            <option value="USD">USD</option>
-            <option value="TRV">TRV</option>
-          </select>
+            TRV
+          </span>
         </div>
       </div>
 
@@ -491,9 +485,7 @@ export function InvoicesReceive() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ color: 'var(--text-secondary)' }}>Your balance</span>
           <span style={{ fontWeight: 600 }}>
-            {currency === 'USD' 
-              ? formatUsd(wallet?.usdCents || 0)
-              : formatUsd(wallet?.trvCents || 0)} {currency}
+            {formatUsd(wallet?.trvCents || 0)} TRV
           </span>
         </div>
       </div>
