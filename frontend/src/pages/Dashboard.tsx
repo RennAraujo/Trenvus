@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api, createIdempotencyKey, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
@@ -79,6 +80,7 @@ function formatMoneyDigits(digits: string): { formatted: string; cents: bigint |
 export function Dashboard() {
   const auth = useAuth()
   const { t } = useI18n()
+  const navigate = useNavigate()
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -264,12 +266,19 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div style={{ marginBottom: 32 }}>
+      {/* Quick Actions - Barra Horizontal Compacta */}
+      <div style={{ 
+        marginBottom: 32,
+        padding: '16px 20px',
+        background: 'var(--bg-elevated)',
+        borderRadius: 16,
+        border: '1px solid var(--border-subtle)'
+      }}>
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 16
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          gap: 8
         }}>
           {/* Add */}
           <button
@@ -278,29 +287,31 @@ export function Dashboard() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 8,
-              padding: '16px 8px',
-              borderRadius: 16,
+              gap: 6,
+              padding: '12px 16px',
+              borderRadius: 12,
               border: 'none',
-              background: 'transparent',
-              cursor: 'pointer'
+              background: activeTab === 'deposit' ? 'var(--color-success-alpha-10)' : 'transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
             }}
           >
             <div style={{
-              width: 56,
-              height: 56,
+              width: 44,
+              height: 44,
               borderRadius: '50%',
               background: 'var(--color-success)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'white'
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
             }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M12 5v14M5 12h14"/>
               </svg>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
               {t('dashboard.add') || 'Add'}
             </span>
           </button>
@@ -312,99 +323,105 @@ export function Dashboard() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 8,
-              padding: '16px 8px',
-              borderRadius: 16,
+              gap: 6,
+              padding: '12px 16px',
+              borderRadius: 12,
               border: 'none',
-              background: 'transparent',
-              cursor: 'pointer'
+              background: activeTab === 'convert' ? 'var(--color-primary-alpha-10)' : 'transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
             }}
           >
             <div style={{
-              width: 56,
-              height: 56,
+              width: 44,
+              height: 44,
               borderRadius: '50%',
-              background: 'var(--bg-elevated)',
+              background: 'var(--color-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--text-secondary)'
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
             }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M7 16V4M7 4L3 8M7 4l4 4"/>
                 <path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
               </svg>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
               {t('dashboard.convert') || 'Convert'}
             </span>
           </button>
 
           {/* Send */}
           <button
-            onClick={() => window.location.href = '/app/transfer'}
+            onClick={() => navigate('transfer')}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 8,
-              padding: '16px 8px',
-              borderRadius: 16,
+              gap: 6,
+              padding: '12px 16px',
+              borderRadius: 12,
               border: 'none',
               background: 'transparent',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
             }}
           >
             <div style={{
-              width: 56,
-              height: 56,
+              width: 44,
+              height: 44,
               borderRadius: '50%',
-              background: 'var(--bg-elevated)',
+              background: 'var(--color-secondary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--text-secondary)'
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(236, 72, 153, 0.3)'
             }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="m22 2-7 20-4-9-9-4Z"/>
               </svg>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
               {t('dashboard.send') || 'Send'}
             </span>
           </button>
 
-          {/* Get Paid */}
+          {/* Receive */}
           <button
             onClick={() => setIsInvoiceModalOpen(true)}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 8,
-              padding: '16px 8px',
-              borderRadius: 16,
+              gap: 6,
+              padding: '12px 16px',
+              borderRadius: 12,
               border: 'none',
               background: 'transparent',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
             }}
           >
             <div style={{
-              width: 56,
-              height: 56,
+              width: 44,
+              height: 44,
               borderRadius: '50%',
-              background: 'var(--color-success)',
+              background: 'var(--color-accent)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'white'
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(234, 29, 44, 0.3)'
             }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 19V5M5 12l7-7 7 7"/>
               </svg>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
-              {t('dashboard.getPaid') || 'Get paid'}
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
+              {t('dashboard.receive') || 'Receive'}
             </span>
           </button>
         </div>
