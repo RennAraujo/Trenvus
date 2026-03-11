@@ -148,7 +148,7 @@ export function InvoicesSend() {
     if (!file) return
 
     const reader = new FileReader()
-    reader.onload = (event) => {
+    reader.onload = (_event) => {
       // In a real app, you'd decode the QR from the image
       // For now, we'll just simulate finding a payment
       setPaymentData({

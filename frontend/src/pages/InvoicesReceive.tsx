@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
-import { useNavigate } from 'react-router-dom'
 
 // Icons
 const ArrowLeftIcon = () => (
