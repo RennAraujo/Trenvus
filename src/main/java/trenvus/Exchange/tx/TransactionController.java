@@ -40,7 +40,7 @@ public class TransactionController {
 
 		Long userId = Long.valueOf(jwt.getSubject());
 		var result = transactions.findByUserIdOrderByIdDesc(userId, PageRequest.of(page, size));
-		var items = result.getContent().stream().map(TransactionController::toPrivateItem).toList();
+		var items = result.getContent().stream().map(this::toPrivateItem).toList();
 		boolean hasNext = result.hasNext();
 		return ResponseEntity.ok(new PrivateStatementResponse(items, hasNext));
 	}
