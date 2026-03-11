@@ -32,53 +32,77 @@ if "%RESET_DATA%"=="true" (
 
 echo 1. Verificando .env local...
 if not exist .env (
-  echo    .env nao encontrado! Copiando de .env.example...
-  if exist .env.example (
-    copy .env.example .env
-    echo    .env criado de .env.example
-    echo    IMPORTANTE: Edite o .env e configure suas variaveis!
-  ) else (
-    echo    .env.example tambem nao encontrado!
-    exit /b 1
-  )
-) else (
-  echo    .env local preservado
+  echo    ERRO: .env nao encontrado!
+  echo.
+  echo Execute primeiro:
+  echo   copy .env.example .env
+  echo   fix-jwt-keys.bat
+  pause
+  exit /b 1
 )
+echo    .env encontrado
 echo.
 
-echo 2. Fazendo backup do .env atual...
-for /f "tokens=2-4 delims=/ " %%a in ('date /t') do (set mydate=%%c%%a%%b)
-for /f "tokens=1-2 delims=/:" %%a in ('time /t') do (set mytime=%%a%%b)
-copy .env .env.local.backup.%mydate%_%mytime%
-echo    Backup criado: .env.local.backup.%mydate%_%mytime%
+echo 2. Verificando JWT keys...
+echo.
+
+REM Verificar se JWT keys estao configuradas usando PowerShell
+powershell -Command "
+  $private = Get-Content .env | Select-String '^JWT_PRIVATE_KEY_B64=(.+)$' | ForEach-Object { $_.Matches[0].Groups[1].Value }
+  $public = Get-Content .env | Select-String '^JWT_PUBLIC_KEY_B64=(.+)$' | ForEach-Object { $_.Matches[0].Groups[1].Value }
+  
+  if (-not $private -or -not $public) {
+    Write-Host 'JWT keys nao encontradas ou vazias!'
+    exit 1
+  }
+  
+  Write-Host \"   JWT_PRIVATE_KEY_B64: $($private.Length) caracteres\"
+  Write-Host \"   JWT_PUBLIC_KEY_B64: $($public.Length) caracteres\"
+"
+
+if errorlevel 1 (
+  echo.
+  echo Executando correcao automatica...
+  call fix-jwt-keys.bat
+  if errorlevel 1 (
+    echo Falha ao gerar JWT keys
+    pause
+    exit /b 1
+  )
+)
+
+echo.
+echo 3. Fazendo backup do .env...
+copy .env .env.backup.%date:~-4,4%%date:~-10,2%%date:~-7,2%_%time:~0,2%%time:~3,2%%time:~6,2%.old > nul
+echo    Backup criado
 echo.
 
 if "%RESET_DATA%"=="true" (
-  echo 3. Parando containers e REMOVENDO VOLUMES (reset total)...
+  echo 4. Parando containers e REMOVENDO VOLUMES (reset total)...
   docker-compose down -v
 ) else (
-  echo 3. Parando containers (PRESERVANDO dados)...
+  echo 4. Parando containers (PRESERVANDO dados)...
   docker-compose down
 )
 
 echo.
-echo 4. Removendo containers orfaos...
+echo 5. Removendo containers orfaos...
 docker rm -f exchange-db exchange-backend exchange-frontend 2>nul || echo Containers ja removidos
 
 echo.
-echo 5. Subindo containers com build...
+echo 6. Subindo containers...
 docker-compose up --build -d
 
 echo.
-echo 6. Aguardando servicos iniciarem...
+echo 7. Aguardando servicos iniciarem...
 echo    - Banco de dados (15s)...
 timeout /t 15 /nobreak >nul
 
-echo    - Backend e migracoes (20s)...
-timeout /t 20 /nobreak >nul
+echo    - Backend (30s)...
+timeout /t 30 /nobreak >nul
 
 echo.
-echo 7. Verificando status...
+echo 8. Verificando status...
 docker ps | findstr exchange
 echo.
 
@@ -86,15 +110,13 @@ echo ========================================
 echo Pronto! Acesse: http://localhost:3000
 echo ========================================
 echo.
-echo Contas de teste (senha padrao: 123):
+echo Contas de teste:
 echo    user1@test.com / 123
 echo    user2@test.com / 123
 echo    user3@test.com / 123
-echo    admin@trenvus.com / admin123 (se habilitado)
 echo.
-echo Comandos uteis:
-echo    Logs backend: docker logs -f exchange-backend
-echo    Logs frontend: docker logs -f exchange-frontend
-echo    Reset total (CUIDADO): start-after-pull-safe.bat --reset-data
+echo Se o backend estiver reiniciando:
+echo    1. Execute: docker-jwt-debug.bat
+echo    2. Ou verifique: docker logs exchange-backend
 echo ========================================
 pause

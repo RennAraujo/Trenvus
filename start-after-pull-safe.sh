@@ -56,72 +56,107 @@ if [ ! -f .env ]; then
     exit 1
   fi
 else
-  echo "   ✅ .env local preservado"
-  
-  # Verificar se JWT keys estão configuradas
-  if ! grep -q "JWT_PRIVATE_KEY_B64=" .env || ! grep -q "JWT_PUBLIC_KEY_B64=" .env; then
-    echo "   ⚠️  JWT keys não encontradas no .env!"
-    echo ""
-    echo "   Executando correção automática..."
-    ./fix-jwt-keys.sh
-    if [ $? -ne 0 ]; then
-      echo "   ❌ Falha ao gerar JWT keys"
-      exit 1
-    fi
-  fi
-  
-  # Verificar se JWT keys não estão vazias
-  PRIVATE_KEY=$(grep "JWT_PRIVATE_KEY_B64=" .env | cut -d'=' -f2 | tr -d ' ')
-  if [ -z "$PRIVATE_KEY" ]; then
-    echo "   ⚠️  JWT_PRIVATE_KEY_B64 está vazio!"
-    echo ""
-    echo "   Executando correção automática..."
-    ./fix-jwt-keys.sh
-    if [ $? -ne 0 ]; then
-      echo "   ❌ Falha ao gerar JWT keys"
-      exit 1
-    fi
-  fi
-  
-  echo "   ✅ JWT keys configuradas"
+  echo "   ✅ .env local encontrado"
 fi
-echo ""
 
-echo "2. Fazendo backup do .env atual..."
+echo ""
+echo "2. Carregando variáveis do .env..."
+
+# Carregar variáveis do .env explicitamente
+if [ -f .env ]; then
+  # Usar um método mais robusto para carregar o .env
+  while IFS='=' read -r key value || [ -n "$key" ]; do
+    # Ignorar linhas vazias e comentários
+    case "$key" in
+      ""|\#*) continue ;;
+    esac
+    
+    # Remover espaços em branco
+    key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    
+    # Exportar a variável
+    export "$key=$value"
+  done < .env
+  
+  echo "   ✅ Variáveis carregadas do .env"
+fi
+
+echo ""
+echo "3. Verificando JWT keys..."
+
+# Verificar se JWT keys estão configuradas
+if [ -z "${JWT_PRIVATE_KEY_B64:-}" ] || [ -z "${JWT_PUBLIC_KEY_B64:-}" ]; then
+  echo "   ⚠️  JWT keys não encontradas ou vazias!"
+  echo ""
+  echo "   Executando correção automática..."
+  ./fix-jwt-keys.sh
+  if [ $? -ne 0 ]; then
+    echo "   ❌ Falha ao gerar JWT keys"
+    exit 1
+  fi
+  # Recarregar o .env após a correção
+  source .env
+fi
+
+# Verificar tamanho das chaves
+if [ -n "${JWT_PRIVATE_KEY_B64:-}" ]; then
+  echo "   ✅ JWT_PRIVATE_KEY_B64: ${#JWT_PRIVATE_KEY_B64} caracteres"
+else
+  echo "   ❌ JWT_PRIVATE_KEY_B64 ainda está vazio!"
+  exit 1
+fi
+
+if [ -n "${JWT_PUBLIC_KEY_B64:-}" ]; then
+  echo "   ✅ JWT_PUBLIC_KEY_B64: ${#JWT_PUBLIC_KEY_B64} caracteres"
+else
+  echo "   ❌ JWT_PUBLIC_KEY_B64 ainda está vazio!"
+  exit 1
+fi
+
+echo ""
+echo "4. Fazendo backup do .env..."
 BACKUP_FILE=".env.local.backup.$(date +%Y%m%d_%H%M%S)"
 cp .env "$BACKUP_FILE"
 echo "   ✅ Backup criado: $BACKUP_FILE"
-echo ""
 
+echo ""
 if [ "$RESET_DATA" = true ]; then
-  echo "3. Parando containers e REMOVENDO VOLUMES (reset total)..."
+  echo "5. Parando containers e REMOVENDO VOLUMES (reset total)..."
   docker-compose down -v
 else
-  echo "3. Parando containers (PRESERVANDO dados)..."
+  echo "5. Parando containers (PRESERVANDO dados)..."
   docker-compose down
 fi
 
 echo ""
-echo "4. Removendo containers órfãos..."
+echo "6. Removendo containers órfãos..."
 docker rm -f exchange-db exchange-backend exchange-frontend 2>/dev/null || true
 
 echo ""
-echo "5. Limpando imagens antigas..."
+echo "7. Limpando imagens antigas..."
 docker image prune -f 2>/dev/null || true
 
 echo ""
-echo "6. Build e subindo containers..."
+echo "8. Build e subindo containers..."
+
+# Exportar todas as variáveis do .env para o docker-compose
+export $(grep -v '^#' .env | grep -v '^$' | xargs) 2>/dev/null || true
+
 if [ "$DEBUG_MODE" = true ]; then
   echo "   Modo DEBUG: build sem cache..."
   docker-compose build --no-cache backend
-else
-  echo "   Build normal..."
 fi
 
-docker-compose up --build -d
+# Subir os containers
+if [ "$RESET_DATA" = true ]; then
+  docker-compose up --build -d
+else
+  docker-compose up -d
+fi
 
 echo ""
-echo "7. Aguardando serviços iniciarem..."
+echo "9. Aguardando serviços iniciarem..."
 echo ""
 
 # Aguardar banco
@@ -141,7 +176,6 @@ done
 if [ $DB_WAITED -ge $DB_TIMEOUT ]; then
   echo " ❌"
   echo "   ⚠️  Timeout aguardando PostgreSQL"
-  echo "   Logs: docker logs exchange-db"
 fi
 
 # Aguardar backend
@@ -184,6 +218,8 @@ while [ $BACKEND_WAITED -lt $BACKEND_TIMEOUT ]; do
     echo "   ----------------------------------------"
     docker logs --tail 50 exchange-backend
     echo "   ----------------------------------------"
+    echo ""
+    echo "   Execute para debug: ./docker-jwt-debug.sh"
     break
   fi
   
@@ -195,11 +231,10 @@ done
 if [ $BACKEND_WAITED -ge $BACKEND_TIMEOUT ]; then
   echo " ❌"
   echo "   ⚠️  Timeout aguardando Backend"
-  echo "   Logs: docker logs exchange-backend --tail 100"
 fi
 
 echo ""
-echo "8. Verificando status dos serviços..."
+echo "10. Verificando status dos serviços..."
 echo ""
 
 # Check database
@@ -251,6 +286,7 @@ echo "🔧 Comandos úteis:"
 echo "   Logs backend:  docker logs -f exchange-backend"
 echo "   Logs frontend: docker logs -f exchange-frontend"
 echo "   Diagnóstico:   ./diagnose.sh"
+echo "   Debug JWT:     ./docker-jwt-debug.sh"
 echo "   Healthcheck:   ./healthcheck.sh"
 echo "   Stats:         docker stats"
 echo ""
