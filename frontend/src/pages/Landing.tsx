@@ -107,8 +107,8 @@ export function Landing() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 20px #8B5CF6, 0 0 40px #A855F7, 0 0 60px #C084FC, inset 0 0 20px rgba(255,255,255,0.2)',
-                animation: 'neonPulse 1.5s ease-in-out infinite',
+                boxShadow: '0 0 15px rgba(139, 92, 246, 0.6), 0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(255,255,255,0.1)',
+                animation: 'neonPulse 3s ease-in-out infinite',
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -141,11 +141,11 @@ export function Landing() {
               @keyframes neonPulse {
                 0%, 100% { 
                   transform: scale(1); 
-                  box-shadow: 0 0 20px #8B5CF6, 0 0 40px #A855F7, 0 0 60px #C084FC, inset 0 0 20px rgba(255,255,255,0.2);
+                  box-shadow: 0 0 15px rgba(139, 92, 246, 0.6), 0 0 30px rgba(168, 85, 247, 0.4), 0 0 45px rgba(192, 132, 252, 0.2);
                 }
                 50% { 
-                  transform: scale(1.08); 
-                  box-shadow: 0 0 30px #8B5CF6, 0 0 60px #A855F7, 0 0 90px #C084FC, 0 0 120px #E9D5FF, inset 0 0 30px rgba(255,255,255,0.3);
+                  transform: scale(1.03); 
+                  box-shadow: 0 0 25px rgba(139, 92, 246, 0.8), 0 0 50px rgba(168, 85, 247, 0.6), 0 0 75px rgba(192, 132, 252, 0.4);
                 }
               }
             `}</style>
