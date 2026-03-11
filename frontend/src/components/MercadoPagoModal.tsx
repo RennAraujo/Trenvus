@@ -51,8 +51,8 @@ export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: Mercado
         throw new Error(data.publicKey || 'No preference ID returned')
       }
 
-      // Salva o valor no localStorage
-      localStorage.setItem('mercadopago_amount', amount)
+      // Salva o valor no sessionStorage
+      sessionStorage.setItem('mercadopago_amount', amount)
 
       // Usa o sandbox_init_point para ambiente de teste
       const url = data.sandboxInitPoint || data.initPoint
@@ -88,8 +88,8 @@ export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: Mercado
           throw new Error(errorData.message || 'Failed to deposit')
         }
 
-        // Limpa o localStorage
-        localStorage.removeItem('mercadopago_amount')
+        // Limpa o sessionStorage
+        sessionStorage.removeItem('mercadopago_amount')
         
         // Abre o Mercado Pago em nova aba
         window.open(paymentUrl, '_blank')
