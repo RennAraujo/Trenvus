@@ -85,6 +85,58 @@ JWT_PRIVATE_KEY_B64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Fo
 - No PEM headers like `-----BEGIN PRIVATE KEY-----`
 - Single line, no line breaks in the Base64 string
 
+### Issue: JWT keys exist in .env but NOT in container (Windows)
+
+**Symptom:** 
+- `./docker-jwt-debug.sh` shows: "As chaves existem no .env local mas NÃO estão no container!"
+- Backend in restart loop with `Invalid JWT_PRIVATE_KEY_B64`
+- Docker on Windows not passing long environment variables correctly
+
+**Root Cause:** Docker Desktop on Windows has issues passing very long environment variables (like Base64-encoded keys) through `docker-compose.yml` `environment:` section.
+
+**Solution - Use env_file method (Most Reliable):**
+
+```bash
+# Windows CMD - Use this method!
+start-with-envfile.bat
+
+# Linux/Mac/Git Bash
+./start-with-envfile.sh
+```
+
+This creates a `.env.backend` file and uses `env_file:` in docker-compose, which is more reliable than inline environment variables.
+
+**Alternative Solutions:**
+
+1. **Create env_file manually:**
+   ```bash
+   # Windows
+   create-backend-env.bat
+   
+   # Then use the envfile compose
+   docker-compose -f docker-compose.envfile.yml up -d
+   ```
+
+2. **Export variables explicitly:**
+   ```bash
+   # Windows PowerShell
+   ./export-env-and-start.bat
+   ```
+
+3. **Inject directly into container (emergency):**
+   ```bash
+   ./docker-jwt-inject.sh
+   ```
+
+**Verify the fix:**
+```bash
+# Should show the keys now
+docker exec exchange-backend printenv | findstr JWT
+
+# Or
+docker exec exchange-backend env | grep JWT
+```
+
 ### Issue: Backend in restart loop / crash loop
 
 **Symptom:** Container keeps restarting, `docker ps` shows high restart count.
@@ -101,7 +153,15 @@ JWT_PRIVATE_KEY_B64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Fo
    ./start-after-pull-safe.sh
    ```
 
-2. **Out of Memory (OOM)** - Exit code 137
+2. **JWT keys exist in .env but not in container (Windows specific)**
+   ```bash
+   # Use the env_file method - MOST RELIABLE
+   start-with-envfile.bat   # Windows
+   # or
+   ./start-with-envfile.sh  # Linux/Mac
+   ```
+
+3. **Out of Memory (OOM)** - Exit code 137
    ```bash
    # Check logs
    docker logs exchange-backend | grep -i "memory\|oom\|OutOfMemory"
