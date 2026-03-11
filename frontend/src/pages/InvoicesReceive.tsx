@@ -157,7 +157,7 @@ export function InvoicesReceive() {
       
       const pngFile = canvas.toDataURL('image/png')
       const downloadLink = document.createElement('a')
-      downloadLink.download = `payment-request-${paymentRequest?.id}.png`
+      downloadLink.download = `payment-request-${paymentRequest?.qrCodeId}.png`
       downloadLink.href = pngFile
       downloadLink.click()
     }
@@ -306,7 +306,7 @@ export function InvoicesReceive() {
                 wordBreak: 'break-all',
                 fontFamily: 'monospace',
               }}>
-                {paymentRequest.id.substring(0, 16)}...
+                {paymentRequest.qrCodeId.substring(0, 16)}...
               </code>
             </div>
           </div>
