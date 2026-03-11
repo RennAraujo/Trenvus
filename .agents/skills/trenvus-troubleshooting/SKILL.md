@@ -39,13 +39,70 @@ This skill helps diagnose and fix common Trenvus deployment and operation issues
 docker logs exchange-backend | grep -i "test"
 ```
 
-### Issue: JWT keys not configured
+### Issue: JWT keys not configured or empty
 
-**Symptom:** Backend fails to start with JWT-related errors.
+**Symptom:** Backend fails to start with errors like:
+- `JWT_PRIVATE_KEY_B64 está vazio!`
+- `IllegalArgumentException: JWT private key cannot be empty`
+- Backend in restart loop
 
-**Solution:**
+**Quick Fix (Automatic):**
+```bash
+./fix-jwt-keys.sh        # Linux/Mac/Git Bash
+# ou
+fix-jwt-keys.bat         # Windows CMD
+```
+
+**Manual Fix:**
 1. Generate keys: `./generate-jwt-keys.sh`
-2. Or manually set `JWT_PRIVATE_KEY_B64` and `JWT_PUBLIC_KEY_B64` in `.env`
+2. Copy the output lines to `.env`
+3. The output will look like:
+   ```
+   JWT_PRIVATE_KEY_B64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0t...
+   JWT_PUBLIC_KEY_B64=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0...
+   ```
+
+**Important:** The keys must be Base64-encoded and on a single line (no line breaks).
+
+### Issue: Backend in restart loop / crash loop
+
+**Symptom:** Container keeps restarting, `docker ps` shows high restart count.
+
+**Common causes and solutions:**
+
+1. **JWT keys empty or missing**
+   ```bash
+   ./fix-jwt-keys.sh
+   ./start-after-pull-safe.sh
+   ```
+
+2. **Out of Memory (OOM)** - Exit code 137
+   ```bash
+   # Check logs
+   docker logs exchange-backend | grep -i "memory\|oom\|OutOfMemory"
+   
+   # Increase memory limit
+   export BACKEND_MEMORY_LIMIT=2G
+   ./start-after-pull-safe.sh
+   ```
+
+3. **Database connection failed**
+   ```bash
+   # Check if DB is running
+   docker ps | grep exchange-db
+   
+   # Check DB logs
+   docker logs exchange-db
+   ```
+
+**Debug Mode:**
+```bash
+# See real-time logs
+./debug-backend.sh
+
+# Or build without cache
+./start-after-pull-safe.sh --debug
+```
 
 ### Issue: Frontend shows blank page or errors
 

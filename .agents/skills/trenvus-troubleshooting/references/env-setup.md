@@ -17,21 +17,35 @@ cp .env.example .env
 
 ### 3. Generate JWT Keys (Required)
 
+The JWT keys are **required** for the backend to start. Without them, the container will fail in a loop.
+
+#### Option A: Automatic Fix (Recommended)
+```bash
+./fix-jwt-keys.sh        # Linux/Mac/Git Bash
+# ou
+fix-jwt-keys.bat         # Windows CMD
+```
+
+This script will:
+- Check if keys are already configured
+- Generate new keys if needed
+- Update `.env` automatically
+- Create a backup of your `.env`
+
+#### Option B: Manual Generation
 ```bash
 ./generate-jwt-keys.sh
 ```
 
 This will output something like:
 ```
-✅ Chaves JWT geradas com sucesso!
-
-Adicione estas linhas ao seu .env:
-
 JWT_PRIVATE_KEY_B64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tLi4u
 JWT_PUBLIC_KEY_B64=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0uLi4=
 ```
 
 Copy these lines into your `.env` file.
+
+**⚠️ Important:** The keys must be on a single line (Base64-encoded). Do not add line breaks!
 
 ### 4. Configure Database
 

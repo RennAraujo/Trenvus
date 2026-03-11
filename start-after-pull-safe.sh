@@ -62,9 +62,12 @@ else
   if ! grep -q "JWT_PRIVATE_KEY_B64=" .env || ! grep -q "JWT_PUBLIC_KEY_B64=" .env; then
     echo "   ⚠️  JWT keys não encontradas no .env!"
     echo ""
-    echo "   Execute: ./generate-jwt-keys.sh"
-    echo "   E cole as chaves no .env"
-    exit 1
+    echo "   Executando correção automática..."
+    ./fix-jwt-keys.sh
+    if [ $? -ne 0 ]; then
+      echo "   ❌ Falha ao gerar JWT keys"
+      exit 1
+    fi
   fi
   
   # Verificar se JWT keys não estão vazias
@@ -72,8 +75,12 @@ else
   if [ -z "$PRIVATE_KEY" ]; then
     echo "   ⚠️  JWT_PRIVATE_KEY_B64 está vazio!"
     echo ""
-    echo "   Execute: ./generate-jwt-keys.sh"
-    exit 1
+    echo "   Executando correção automática..."
+    ./fix-jwt-keys.sh
+    if [ $? -ne 0 ]; then
+      echo "   ❌ Falha ao gerar JWT keys"
+      exit 1
+    fi
   fi
   
   echo "   ✅ JWT keys configuradas"
