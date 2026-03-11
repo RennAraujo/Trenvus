@@ -93,38 +93,60 @@ export function Landing() {
       <main>
         <section className="hero">
           <div className="container">
-            {/* Logo Hero */}
+            {/* Logo Hero - Efeito Roxo Neon Pulsante */}
             <div style={{ 
               display: 'flex', 
               justifyContent: 'center', 
               marginBottom: 32 
             }}>
               <div style={{
-                width: 120,
-                height: 120,
+                width: 140,
+                height: 140,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 50%, #7C3AED 100%)',
+                background: 'linear-gradient(135deg, #8B5CF6 0%, #A855F7 25%, #C084FC 50%, #A855F7 75%, #8B5CF6 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 8px 32px rgba(124, 58, 237, 0.4), 0 0 64px rgba(234, 29, 44, 0.2)',
-                animation: 'pulse 2s ease-in-out infinite',
+                boxShadow: '0 0 20px #8B5CF6, 0 0 40px #A855F7, 0 0 60px #C084FC, inset 0 0 20px rgba(255,255,255,0.2)',
+                animation: 'neonPulse 1.5s ease-in-out infinite',
+                position: 'relative',
+                overflow: 'hidden',
               }}>
+                {/* Brilho interno */}
+                <div style={{
+                  position: 'absolute',
+                  top: '10%',
+                  left: '20%',
+                  width: '30%',
+                  height: '30%',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)',
+                  filter: 'blur(8px)',
+                }} />
+                
                 <img 
                   src={brandLogo} 
                   alt="TRENVUS" 
                   style={{ 
-                    width: 70, 
-                    height: 70,
-                    filter: 'brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                    width: 80, 
+                    height: 80,
+                    filter: 'brightness(0) invert(1) drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))',
+                    position: 'relative',
+                    zIndex: 1,
                   }} 
                 />
               </div>
             </div>
             <style>{`
-              @keyframes pulse {
-                0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(124, 58, 237, 0.4), 0 0 64px rgba(234, 29, 44, 0.2); }
-                50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(124, 58, 237, 0.5), 0 0 80px rgba(234, 29, 44, 0.3); }
+              @keyframes neonPulse {
+                0%, 100% { 
+                  transform: scale(1); 
+                  box-shadow: 0 0 20px #8B5CF6, 0 0 40px #A855F7, 0 0 60px #C084FC, inset 0 0 20px rgba(255,255,255,0.2);
+                }
+                50% { 
+                  transform: scale(1.08); 
+                  box-shadow: 0 0 30px #8B5CF6, 0 0 60px #A855F7, 0 0 90px #C084FC, 0 0 120px #E9D5FF, inset 0 0 30px rgba(255,255,255,0.3);
+                }
               }
             `}</style>
 
