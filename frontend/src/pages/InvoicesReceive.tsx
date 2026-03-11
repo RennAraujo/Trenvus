@@ -58,7 +58,6 @@ interface PaymentRequest {
 
 export function InvoicesReceive() {
   const auth = useAuth()
-  const navigate = useNavigate()
   
   const [step, setStep] = useState<Step>('amount')
   const [amount, setAmount] = useState('')
@@ -83,10 +82,6 @@ export function InvoicesReceive() {
     }
   }
 
-  function generateId() {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-  }
-
   async function generatePaymentRequest() {
     if (!amount || parseFloat(amount) <= 0) return
     
@@ -95,12 +90,15 @@ export function InvoicesReceive() {
       const token = await auth.getValidAccessToken()
       const user = await api.getMe(token)
       
+      // Gera ID único para o payment request
+      const requestId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36)
+      
       const request: PaymentRequest = {
-        id: generateId(),
+        id: requestId,
         amount,
         currency,
         description: description || `Payment request from ${user.nickname || user.email}`,
-        recipientId: user.id,
+        recipientId: 0, // Será preenchido pelo backend ao processar
         recipientEmail: user.email,
         recipientNickname: user.nickname || user.email.split('@')[0],
         timestamp: Date.now()
