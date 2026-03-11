@@ -33,52 +33,38 @@ fi
 
 echo "⚠️  JWT keys não configuradas ou vazias!"
 echo ""
-
-# Verificar se já existem arquivos de chave
-if [ -f private.pem ] && [ -f public.pem ]; then
-  echo "2. Arquivos de chave PEM encontrados!"
-  echo "   Gerando Base64 a partir dos arquivos existentes..."
-  
-  PRIVATE_B64=$(cat private.pem | base64 -w 0)
-  PUBLIC_B64=$(cat public.pem | base64 -w 0)
-  
-  # Fazer backup do .env
-  cp .env ".env.backup.$(date +%Y%m%d_%H%M%S)"
-  
-  # Atualizar .env
-  if grep -q "^JWT_PRIVATE_KEY_B64=" .env; then
-    sed -i "s|^JWT_PRIVATE_KEY_B64=.*|JWT_PRIVATE_KEY_B64=$PRIVATE_B64|" .env
-  else
-    echo "JWT_PRIVATE_KEY_B64=$PRIVATE_B64" >> .env
-  fi
-  
-  if grep -q "^JWT_PUBLIC_KEY_B64=" .env; then
-    sed -i "s|^JWT_PUBLIC_KEY_B64=.*|JWT_PUBLIC_KEY_B64=$PUBLIC_B64|" .env
-  else
-    echo "JWT_PUBLIC_KEY_B64=$PUBLIC_B64" >> .env
-  fi
-  
-  echo ""
-  echo "✅ JWT keys atualizadas no .env!"
-  echo ""
-  echo "Você pode remover os arquivos PEM se quiser:"
-  echo "  rm private.pem public.pem"
-  exit 0
-fi
-
-echo "2. Gerando novas chaves RSA..."
+echo "2. Gerando novas chaves RSA no formato correto (PKCS#8 DER)..."
 echo ""
 
-# Gerar chaves
+# Verificar se openssl está instalado
+if ! command -v openssl &> /dev/null; then
+    echo "❌ OpenSSL não encontrado!"
+    exit 1
+fi
+
+# Gerar chave privada RSA
 openssl genrsa -out private.pem 2048 2>/dev/null
+
+# Extrair chave pública
 openssl rsa -in private.pem -pubout -out public.pem 2>/dev/null
 
-# Converter para Base64
-PRIVATE_B64=$(cat private.pem | base64 -w 0)
-PUBLIC_B64=$(cat public.pem | base64 -w 0)
+# Converter chave privada para formato PKCS#8 DER e codificar em Base64
+openssl pkcs8 -topk8 -inform PEM -outform DER -in private.pem -nocrypt | base64 -w 0 > private.b64
+
+# Converter chave pública para formato X.509 DER e codificar em Base64
+openssl rsa -pubin -in public.pem -outform DER | base64 -w 0 > public.b64
+
+# Ler os valores
+PRIVATE_B64=$(cat private.b64)
+PUBLIC_B64=$(cat public.b64)
+
+# Limpar arquivos temporários
+rm -f private.pem public.pem private.b64 public.b64
 
 # Fazer backup do .env
-cp .env ".env.backup.$(date +%Y%m%d_%H%M%S)"
+BACKUP_FILE=".env.backup.$(date +%Y%m%d_%H%M%S)"
+cp .env "$BACKUP_FILE"
+echo "   ✅ Backup criado: $BACKUP_FILE"
 
 # Atualizar ou adicionar as chaves no .env
 if grep -q "^JWT_PRIVATE_KEY_B64=" .env; then
@@ -95,12 +81,8 @@ else
   echo "JWT_PUBLIC_KEY_B64=$PUBLIC_B64" >> .env
 fi
 
-# Limpar arquivos temporários
-rm -f private.pem public.pem
-
-echo "✅ Chaves JWT geradas e salvas no .env!"
 echo ""
-echo "Um backup do .env anterior foi criado."
+echo "✅ Chaves JWT geradas e salvas no .env!"
 echo ""
 echo "Próximo passo:"
 echo "  ./start-after-pull-safe.sh"

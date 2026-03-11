@@ -39,30 +39,51 @@ This skill helps diagnose and fix common Trenvus deployment and operation issues
 docker logs exchange-backend | grep -i "test"
 ```
 
-### Issue: JWT keys not configured or empty
+### Issue: JWT keys not configured or empty / Invalid key format
 
 **Symptom:** Backend fails to start with errors like:
 - `JWT_PRIVATE_KEY_B64 está vazio!`
-- `IllegalArgumentException: JWT private key cannot be empty`
+- `Invalid JWT_PRIVATE_KEY_B64`
+- `InvalidKeyException: invalid key format`
 - Backend in restart loop
+
+**Root Cause:** The Java backend expects keys in specific format:
+- **Private Key**: PKCS#8 DER format (binary), Base64-encoded
+- **Public Key**: X.509 DER format (binary), Base64-encoded
+
+The old scripts were generating PEM format (text with headers), which Java cannot parse directly.
 
 **Quick Fix (Automatic):**
 ```bash
-./fix-jwt-keys.sh        # Linux/Mac/Git Bash
-# ou
-fix-jwt-keys.bat         # Windows CMD
+# Linux/Mac/Git Bash (NEW fixed script)
+./fix-jwt-keys.sh
+
+# Windows CMD (NEW fixed script)
+fix-jwt-keys.bat
 ```
 
-**Manual Fix:**
-1. Generate keys: `./generate-jwt-keys.sh`
-2. Copy the output lines to `.env`
-3. The output will look like:
-   ```
-   JWT_PRIVATE_KEY_B64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0t...
-   JWT_PUBLIC_KEY_B64=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0...
-   ```
+**Manual Fix with Correct Format:**
+```bash
+# 1. Generate keys with CORRECT format (PKCS#8 DER, not PEM)
+./generate-jwt-keys.sh
 
-**Important:** The keys must be Base64-encoded and on a single line (no line breaks).
+# 2. Copy output to .env
+# The output should be a single long Base64 string (no line breaks)
+```
+
+**Verify the format:**
+```bash
+# Good format (single line, no headers)
+JWT_PRIVATE_KEY_B64=MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
+
+# Bad format (PEM with headers - OLD scripts did this)
+JWT_PRIVATE_KEY_B64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRRDNxdW9vSmluZ0d0c0EK...
+```
+
+**Important:** 
+- Keys must be Base64-encoded DER format (PKCS#8 for private, X.509 for public)
+- No PEM headers like `-----BEGIN PRIVATE KEY-----`
+- Single line, no line breaks in the Base64 string
 
 ### Issue: Backend in restart loop / crash loop
 
@@ -70,9 +91,13 @@ fix-jwt-keys.bat         # Windows CMD
 
 **Common causes and solutions:**
 
-1. **JWT keys empty or missing**
+1. **JWT keys empty, missing, or wrong format**
    ```bash
-   ./fix-jwt-keys.sh
+   # Use the NEW fixed scripts
+   ./fix-jwt-keys.sh        # Linux/Mac/Git Bash
+   # or
+   fix-jwt-keys.bat         # Windows CMD
+   
    ./start-after-pull-safe.sh
    ```
 

@@ -19,6 +19,10 @@ cp .env.example .env
 
 The JWT keys are **required** for the backend to start. Without them, the container will fail in a loop.
 
+**⚠️ IMPORTANT:** The backend expects keys in a specific format:
+- **Private Key**: PKCS#8 DER format, Base64-encoded
+- **Public Key**: X.509 DER format, Base64-encoded
+
 #### Option A: Automatic Fix (Recommended)
 ```bash
 ./fix-jwt-keys.sh        # Linux/Mac/Git Bash
@@ -28,24 +32,42 @@ fix-jwt-keys.bat         # Windows CMD
 
 This script will:
 - Check if keys are already configured
-- Generate new keys if needed
+- Generate new keys in the CORRECT format if needed
 - Update `.env` automatically
 - Create a backup of your `.env`
 
 #### Option B: Manual Generation
 ```bash
-./generate-jwt-keys.sh
+./generate-jwt-keys.sh        # Linux/Mac/Git Bash
+# ou
+generate-jwt-keys.bat         # Windows CMD
 ```
 
 This will output something like:
 ```
-JWT_PRIVATE_KEY_B64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tLi4u
-JWT_PUBLIC_KEY_B64=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0uLi4=
+JWT_PRIVATE_KEY_B64=MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
+JWT_PUBLIC_KEY_B64=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+```
+
+**The key format should be:**
+- ✅ Single line of Base64 characters
+- ✅ No PEM headers like `-----BEGIN PRIVATE KEY-----`
+- ✅ Starts with `MII` (PKCS#8) for private key
+- ✅ Starts with `MIIB` (X.509) for public key
+
+**❌ Old incorrect format (PEM):**
+```
+JWT_PRIVATE_KEY_B64=LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRRDNxdW9vSmluZ0d0c0EK...
+```
+
+**✅ Correct format (PKCS#8 DER):**
+```
+JWT_PRIVATE_KEY_B64=MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
 ```
 
 Copy these lines into your `.env` file.
 
-**⚠️ Important:** The keys must be on a single line (Base64-encoded). Do not add line breaks!
+**⚠️ IMPORTANT:** If you previously used the old scripts, you MUST regenerate the keys with the new scripts!
 
 ### 4. Configure Database
 
