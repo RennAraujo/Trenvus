@@ -97,6 +97,20 @@ export function Transfer() {
       setError(t('errors.transfer'))
       return
     }
+    
+    // Validação de saldo mínimo
+    const amountCents = amount.cents || 0n
+    if (Number(amountCents) > totals.trv) {
+      setError(t('errors.transferInsufficientBalance'))
+      return
+    }
+    
+    // Validação de valor mínimo (0.01 TRV = 1 cent)
+    if (amountCents < 1n) {
+      setError(t('errors.transferMinimum'))
+      return
+    }
+    
     // Mostra o modal de confirmação
     setShowConfirmation(true)
   }

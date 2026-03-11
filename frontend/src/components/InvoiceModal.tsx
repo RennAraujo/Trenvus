@@ -87,7 +87,15 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
   }
 
   const handleCreateInvoice = async () => {
-    if (!amount || parseFloat(amount) <= 0) return
+    const amountNum = parseFloat(amount)
+    if (!amount || isNaN(amountNum) || amountNum <= 0) {
+      alert('Please enter a valid amount greater than 0')
+      return
+    }
+    if (amountNum > 1000000) {
+      alert('Maximum invoice amount is 1,000,000')
+      return
+    }
     
     setLoading(true)
     try {
@@ -95,15 +103,24 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
       const response = await api.generateInvoice(token, amount, currency, description || 'Invoice payment')
       setQrPayload(response.qrPayload)
       setStep('invoice-qr')
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to generate invoice', err)
+      alert(err?.message || 'Failed to generate invoice')
     } finally {
       setLoading(false)
     }
   }
 
   const handleCreateLink = async () => {
-    if (!amount || parseFloat(amount) <= 0) return
+    const amountNum = parseFloat(amount)
+    if (!amount || isNaN(amountNum) || amountNum <= 0) {
+      alert('Please enter a valid amount greater than 0')
+      return
+    }
+    if (amountNum > 1000000) {
+      alert('Maximum invoice amount is 1,000,000')
+      return
+    }
     
     setLoading(true)
     try {
@@ -111,8 +128,9 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
       const response = await api.generateInvoice(token, amount, currency, description || 'Payment link')
       setQrPayload(response.qrPayload)
       setStep('link-qr')
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to generate link', err)
+      alert(err?.message || 'Failed to generate link')
     } finally {
       setLoading(false)
     }

@@ -40,6 +40,14 @@ public class TokenService {
 	}
 
 	public AccessTokenResult createAccessToken(UserEntity user, Instant now) {
+		// Validate required fields
+		if (user.getId() == null) {
+			throw new IllegalArgumentException("User ID cannot be null");
+		}
+		if (user.getEmail() == null || user.getEmail().isBlank()) {
+			throw new IllegalArgumentException("User email cannot be null or blank");
+		}
+		
 		var role = user.getRole() == null ? "USER" : user.getRole().name();
 		var roles = List.of(role);
 		
@@ -52,7 +60,7 @@ public class TokenService {
 		
 		var expiresAt = now.plusSeconds(accessTtlSeconds);
 		var claimsBuilder = JwtClaimsSet.builder()
-				.issuer(issuer)
+				.issuer(issuer != null ? issuer : "trenvus")
 				.issuedAt(now)
 				.expiresAt(expiresAt)
 				.id(jti)

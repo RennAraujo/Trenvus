@@ -148,6 +148,16 @@ export function Dashboard() {
       setShowConvertConfirmation(false)
       return
     }
+    
+    // Validação de saldo antes de executar
+    const amountCents = parsed.cents || 0n
+    const currentBalance = convertDirection === 'USD_TO_TRV' ? totals.usd : totals.trv
+    if (Number(amountCents) > currentBalance) {
+      setError(t('errors.insufficientBalance'))
+      setShowConvertConfirmation(false)
+      return
+    }
+    
     setBusy(true)
     try {
       const token = await auth.getValidAccessToken()
@@ -630,14 +640,14 @@ export function Dashboard() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                       <span className="text-secondary">Fee (1%)</span>
                       <span className="font-mono text-danger">
-                        -{formatMoneyDigits((Number(displayCents) / 100).toString().split('.')[0]).formatted} {convertDirection === 'USD_TO_TRV' ? 'USD' : 'TRV'}
+                        -{formatMoneyDigits((Number(currencyValue) / 100).toFixed(0)).formatted} {convertDirection === 'USD_TO_TRV' ? 'USD' : 'TRV'}
                       </span>
                     </div>
                     <div style={{ height: 1, background: 'var(--border-subtle)', margin: '8px 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span className="text-secondary">You receive</span>
                       <span className="font-mono font-bold text-accent">
-                        {formatMoneyDigits((Number(displayCents) * 0.99).toString().split('.')[0]).formatted} {convertDirection === 'USD_TO_TRV' ? 'TRV' : 'USD'}
+                        {formatMoneyDigits((Number(currencyValue) * 0.99).toFixed(0)).formatted} {convertDirection === 'USD_TO_TRV' ? 'TRV' : 'USD'}
                       </span>
                     </div>
                   </div>

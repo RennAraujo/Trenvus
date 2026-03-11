@@ -83,10 +83,33 @@ export function InvoicesSend() {
         // Try to parse QR input if provided
         if (qrInput.trim()) {
           try {
-            const decoded = JSON.parse(atob(qrInput.trim()))
-            setPaymentData(decoded)
+            // Tenta diferentes formatos de QR code
+            let decoded: any
+            try {
+              decoded = JSON.parse(atob(qrInput.trim()))
+            } catch {
+              // Tenta parse direto como JSON
+              decoded = JSON.parse(qrInput.trim())
+            }
+            
+            // Valida campos obrigatórios
+            if (!decoded.amount || !decoded.recipientId) {
+              throw new Error('Invalid QR code format: missing required fields')
+            }
+            
+            setPaymentData({
+              id: decoded.id || decoded.invoiceId || `inv-${Date.now()}`,
+              amount: String(decoded.amount),
+              currency: decoded.currency || 'USD',
+              description: decoded.description || '',
+              recipientId: Number(decoded.recipientId),
+              recipientEmail: decoded.recipientEmail || '',
+              recipientNickname: decoded.recipientNickname || 'Unknown',
+              timestamp: decoded.timestamp || Date.now()
+            })
             setStep('confirm')
-          } catch {
+          } catch (err: any) {
+            console.error('QR parse error:', err)
             setError('Invalid QR code. Please try again.')
             setStep('scan')
           }
