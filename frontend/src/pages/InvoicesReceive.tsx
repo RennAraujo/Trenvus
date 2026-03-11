@@ -164,7 +164,7 @@ export function InvoicesReceive() {
     ? `${window.location.origin}/pay?r=${encodeURIComponent(btoa(JSON.stringify(paymentRequest)))}`
     : ''
 
-  // QR Screen - Estilo Voucher
+  // QR Screen - Estilo Voucher/Binance
   if (step === 'qr' && paymentRequest) {
     return (
       <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
@@ -193,12 +193,12 @@ export function InvoicesReceive() {
           </h1>
         </div>
 
-        {/* Payment Card - Estilo Voucher */}
+        {/* Payment Card - Estilo Voucher/Binance */}
         <div 
-          className="card"
           style={{
             background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
             border: '1px solid rgba(124, 58, 237, 0.3)',
+            borderRadius: 24,
             position: 'relative',
             overflow: 'hidden',
             marginBottom: 24,
@@ -233,14 +233,14 @@ export function InvoicesReceive() {
               </div>
             </div>
 
-            {/* QR Code Container - Estilo Voucher */}
+            {/* QR Code Container - Estilo Binance */}
             <div style={{ 
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: 20,
             }}>
-              {/* Container branco do QR - estilo Binance */}
+              {/* Container branco do QR */}
               <div style={{
                 background: 'white',
                 padding: 20,
@@ -264,7 +264,7 @@ export function InvoicesReceive() {
                     }}
                   />
                   
-                  {/* Círculo branco de fundo estilo Binance */}
+                  {/* Círculo branco de fundo */}
                   <div style={{
                     position: 'absolute',
                     top: '50%',

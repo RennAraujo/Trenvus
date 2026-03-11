@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
 
@@ -39,7 +39,7 @@ interface PaymentData {
   timestamp: number
 }
 
-type Step = 'scan' | 'scanning' | 'confirm' | 'processing' | 'success' | 'error'
+type Step = 'scan' | 'confirm' | 'processing' | 'success' | 'error'
 
 export function InvoicesSend() {
   const auth = useAuth()
@@ -48,10 +48,8 @@ export function InvoicesSend() {
   const [qrInput, setQrInput] = useState('')
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null)
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
-  const [scanProgress, setScanProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [processing, setProcessing] = useState(false)
 
   useEffect(() => {
     loadWallet()
@@ -67,134 +65,88 @@ export function InvoicesSend() {
     }
   }
 
-  function startScanning() {
-    setStep('scanning')
-    setScanProgress(0)
+  function parseQRCode() {
+    if (!qrInput.trim()) {
+      setError('Please enter QR code data')
+      return
+    }
+
     setError(null)
-
-    // Simulate scanning animation
-    let progress = 0
-    const interval = setInterval(() => {
-      progress += Math.random() * 20
-      if (progress >= 100) {
-        progress = 100
-        clearInterval(interval)
-        
-        // Try to parse QR input if provided
-        if (qrInput.trim()) {
-          try {
-            // Tenta diferentes formatos de QR code
-            let decoded: any
-            try {
-              decoded = JSON.parse(atob(qrInput.trim()))
-            } catch {
-              // Tenta parse direto como JSON
-              decoded = JSON.parse(qrInput.trim())
-            }
-            
-            // Valida campos obrigatórios
-            if (!decoded.amount || !decoded.recipientId) {
-              throw new Error('Invalid QR code format: missing required fields')
-            }
-            
-            setPaymentData({
-              id: decoded.id || decoded.invoiceId || `inv-${Date.now()}`,
-              amount: String(decoded.amount),
-              currency: decoded.currency || 'USD',
-              description: decoded.description || '',
-              recipientId: Number(decoded.recipientId),
-              recipientEmail: decoded.recipientEmail || '',
-              recipientNickname: decoded.recipientNickname || 'Unknown',
-              timestamp: decoded.timestamp || Date.now()
-            })
-            setStep('confirm')
-          } catch (err: any) {
-            console.error('QR parse error:', err)
-            setError('Invalid QR code. Please try again.')
-            setStep('scan')
-          }
-        } else {
-          // Demo data for testing
-          setPaymentData({
-            id: 'demo-123',
-            amount: '25.00',
-            currency: 'USD',
-            description: 'Demo payment request',
-            recipientId: 2,
-            recipientEmail: 'user2@test.com',
-            recipientNickname: 'teste2',
-            timestamp: Date.now()
-          })
-          setStep('confirm')
-        }
+    
+    try {
+      // Tenta diferentes formatos de QR code
+      let decoded: any
+      try {
+        decoded = JSON.parse(atob(qrInput.trim()))
+      } catch {
+        // Tenta parse direto como JSON
+        decoded = JSON.parse(qrInput.trim())
       }
-      setScanProgress(progress)
-    }, 200)
-  }
-
-  function cancelScan() {
-    setStep('scan')
-    setScanProgress(0)
-    setQrInput('')
+      
+      // Valida campos obrigatórios
+      if (!decoded.amount || !decoded.recipientEmail) {
+        throw new Error('Invalid QR code: missing required fields')
+      }
+      
+      setPaymentData({
+        id: decoded.id || 'unknown',
+        amount: decoded.amount,
+        currency: decoded.currency || 'USD',
+        description: decoded.description || '',
+        recipientId: decoded.recipientId || 0,
+        recipientEmail: decoded.recipientEmail,
+        recipientNickname: decoded.recipientNickname || decoded.recipientEmail.split('@')[0],
+        timestamp: decoded.timestamp || Date.now()
+      })
+      
+      setStep('confirm')
+    } catch (err: any) {
+      setError('Invalid QR code. Please check the data and try again.')
+      console.error('QR parse error:', err)
+    }
   }
 
   async function confirmPayment() {
     if (!paymentData) return
-
-    const balance = paymentData.currency === 'USD' 
-      ? wallet?.usdCents 
-      : wallet?.trvCents
+    
+    // A API só suporta transferência TRV
+    const balance = wallet?.trvCents
     const amountCents = Math.round(parseFloat(paymentData.amount) * 100)
 
     if (!balance || balance < amountCents) {
-      setError(`Insufficient ${paymentData.currency} balance`)
+      setError(`Insufficient TRV balance`)
       setStep('error')
       return
     }
 
+    setProcessing(true)
     setStep('processing')
 
     try {
       const token = await auth.getValidAccessToken()
-      const payload = btoa(JSON.stringify(paymentData))
-      await api.payInvoice(token, payload, paymentData.amount, paymentData.currency)
+      
+      // Usa a API de transferência TRV
+      await api.transferTrv(
+        token,
+        paymentData.recipientEmail,
+        paymentData.amount
+      )
+      
       setStep('success')
-      loadWallet() // Refresh balance
+      loadWallet() // Atualiza saldo
     } catch (err: any) {
       setError(err?.message || 'Payment failed')
       setStep('error')
+    } finally {
+      setProcessing(false)
     }
-  }
-
-  function handleFileUpload(_e: React.ChangeEvent<HTMLInputElement>) {
-    const file = _e.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (_event) => {
-      // In a real app, you'd decode the QR from the image
-      // For now, we'll just simulate finding a payment
-      setPaymentData({
-        id: 'scanned-' + Date.now(),
-        amount: '50.00',
-        currency: 'USD',
-        description: 'Scanned payment',
-        recipientId: 3,
-        recipientEmail: 'user3@test.com',
-        recipientNickname: 'teste3',
-        timestamp: Date.now()
-      })
-      setStep('confirm')
-    }
-    reader.readAsDataURL(file)
   }
 
   function reset() {
     setStep('scan')
-    setPaymentData(null)
     setQrInput('')
+    setPaymentData(null)
     setError(null)
-    setScanProgress(0)
   }
 
   // Success Screen
@@ -296,11 +248,44 @@ export function InvoicesSend() {
     )
   }
 
-  // Confirmation Screen
+  // Processing Screen
+  if (step === 'processing') {
+    return (
+      <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
+        <div style={{
+          background: 'var(--bg-elevated)',
+          borderRadius: 24,
+          padding: 48,
+          textAlign: 'center'
+        }}>
+          <div style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            border: '4px solid var(--border-default)',
+            borderTop: '4px solid #7C3AED',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 24px'
+          }} />
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+
+          <h2 style={{ fontSize: 24, marginBottom: 12 }}>Processing Payment...</h2>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            Please wait while we process your payment
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Confirmation Screen - Estilo Voucher/Binance
   if (step === 'confirm' && paymentData) {
-    const balance = paymentData.currency === 'USD' 
-      ? wallet?.usdCents 
-      : wallet?.trvCents
+    const balance = wallet?.trvCents
     const amountCents = Math.round(parseFloat(paymentData.amount) * 100)
     const hasEnoughBalance = balance && balance >= amountCents
 
@@ -329,83 +314,118 @@ export function InvoicesSend() {
           <h1 style={{ fontSize: 28, fontWeight: 700 }}>Confirm Payment</h1>
         </div>
 
-        {/* Payment Card */}
-        <div style={{
-          background: 'linear-gradient(145deg, rgba(124, 58, 237, 0.1) 0%, rgba(234, 29, 44, 0.05) 100%)',
-          border: '1px solid rgba(124, 58, 237, 0.2)',
-          borderRadius: 24,
-          padding: 32,
-          marginBottom: 24
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8 }}>You're sending</div>
-            <div style={{
-              fontSize: 48,
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              {parseFloat(paymentData.amount).toFixed(2)} {paymentData.currency}
-            </div>
-          </div>
-
-          <div style={{
-            background: 'var(--bg-elevated)',
-            borderRadius: 16,
-            padding: 20
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              marginBottom: 16,
-              paddingBottom: 16,
-              borderBottom: '1px solid var(--border-default)'
-            }}>
-              <span style={{ color: 'var(--text-secondary)' }}>To</span>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: 600 }}>{paymentData.recipientNickname}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{paymentData.recipientEmail}</div>
-              </div>
-            </div>
-
-            {paymentData.description && (
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                marginBottom: 16,
-                paddingBottom: 16,
-                borderBottom: '1px solid var(--border-default)'
-              }}>
-                <span style={{ color: 'var(--text-secondary)' }}>For</span>
-                <span>{paymentData.description}</span>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Your balance</span>
+        {/* Payment Card - Estilo Voucher/Binance */}
+        <div 
+          style={{
+            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+            border: '1px solid rgba(124, 58, 237, 0.3)',
+            borderRadius: 24,
+            position: 'relative',
+            overflow: 'hidden',
+            marginBottom: 24,
+          }}
+        >
+          <div style={{ position: 'relative', zIndex: 1, padding: '32px 24px' }}>
+            {/* Logo TRENVUS */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
               <span style={{ 
-                fontWeight: 600, 
-                color: hasEnoughBalance ? '#10b981' : '#ef4444'
+                fontSize: 28, 
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                letterSpacing: '0.15em',
               }}>
-                {formatUsd(balance || 0)} {paymentData.currency}
+                TRENVUS
               </span>
             </div>
-          </div>
 
-          {!hasEnoughBalance && (
-            <div style={{
-              marginTop: 16,
-              padding: '12px 16px',
-              background: 'rgba(239, 68, 68, 0.1)',
-              borderRadius: 12,
-              color: '#ef4444',
-              fontSize: 14,
-              textAlign: 'center'
-            }}>
-              Insufficient balance. You need {parseFloat(paymentData.amount).toFixed(2)} {paymentData.currency}.
+            {/* Amount */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 8 }}>
+                You're sending
+              </div>
+              <div style={{
+                fontSize: 36,
+                fontWeight: 700,
+                color: 'white',
+              }}>
+                {parseFloat(paymentData.amount).toFixed(2)} {paymentData.currency}
+              </div>
             </div>
-          )}
+
+            {/* Recipient Info */}
+            <div style={{
+              background: 'rgba(255,255,255,0.05)',
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 20,
+            }}>
+              <div style={{ marginBottom: 16 }}>
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>To</span>
+                <div style={{ 
+                  color: 'white', 
+                  fontWeight: 600,
+                  fontSize: 18,
+                  marginTop: 4
+                }}>
+                  {paymentData.recipientNickname}
+                </div>
+                <div style={{ 
+                  color: 'rgba(255,255,255,0.5)', 
+                  fontSize: 13,
+                  marginTop: 2
+                }}>
+                  {paymentData.recipientEmail}
+                </div>
+              </div>
+
+              {paymentData.description && (
+                <div>
+                  <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>For</span>
+                  <div style={{ 
+                    color: 'white', 
+                    fontSize: 14,
+                    marginTop: 4
+                  }}>
+                    {paymentData.description}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Balance */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 0',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
+            }}>
+              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>Your TRV balance</span>
+              <span style={{ 
+                fontWeight: 600, 
+                color: hasEnoughBalance ? '#10b981' : '#ef4444',
+                fontSize: 14,
+              }}>
+                {formatUsd(balance || 0)} TRV
+              </span>
+            </div>
+
+            {!hasEnoughBalance && (
+              <div style={{
+                marginTop: 16,
+                padding: '12px 16px',
+                background: 'rgba(239, 68, 68, 0.2)',
+                borderRadius: 12,
+                color: '#ef4444',
+                fontSize: 14,
+                textAlign: 'center'
+              }}>
+                Insufficient TRV balance. You need {parseFloat(paymentData.amount).toFixed(2)} TRV.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Actions */}
@@ -428,7 +448,7 @@ export function InvoicesSend() {
 
           <button
             onClick={confirmPayment}
-            disabled={!hasEnoughBalance}
+            disabled={!hasEnoughBalance || processing}
             style={{
               flex: 2,
               padding: '18px 24px',
@@ -443,121 +463,25 @@ export function InvoicesSend() {
               cursor: hasEnoughBalance ? 'pointer' : 'not-allowed'
             }}
           >
-            Confirm Payment
+            {processing ? 'Processing...' : 'Confirm Payment'}
           </button>
         </div>
       </div>
     )
   }
 
-  // Scanning Screen
-  if (step === 'scanning') {
-    return (
-      <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
-        <div style={{ marginBottom: 24 }}>
-          <button
-            onClick={cancelScan}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              fontSize: 14,
-              cursor: 'pointer'
-            }}
-          >
-            <ArrowLeftIcon />
-            Cancel
-          </button>
-        </div>
-
-        <div style={{
-          background: 'var(--bg-elevated)',
-          borderRadius: 24,
-          padding: 48,
-          textAlign: 'center'
-        }}>
-          <div style={{
-            position: 'relative',
-            width: 280,
-            height: 280,
-            margin: '0 auto 32px',
-            background: 'var(--bg-subtle)',
-            borderRadius: 20,
-            overflow: 'hidden',
-            border: '2px solid var(--border-default)'
-          }}>
-            {/* Scanning Animation */}
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(180deg, transparent 0%, rgba(124,58,237,0.15) 50%, transparent 100%)',
-              animation: 'scan 2s linear infinite'
-            }} />
-            <style>{`
-              @keyframes scan {
-                0% { transform: translateY(-100%); }
-                100% { transform: translateY(100%); }
-              }
-            `}</style>
-
-            {/* Corner Markers */}
-            <div style={{ position: 'absolute', top: 20, left: 20, width: 40, height: 40, borderTop: '3px solid #7C3AED', borderLeft: '3px solid #7C3AED' }} />
-            <div style={{ position: 'absolute', top: 20, right: 20, width: 40, height: 40, borderTop: '3px solid #7C3AED', borderRight: '3px solid #7C3AED' }} />
-            <div style={{ position: 'absolute', bottom: 20, left: 20, width: 40, height: 40, borderBottom: '3px solid #7C3AED', borderLeft: '3px solid #7C3AED' }} />
-            <div style={{ position: 'absolute', bottom: 20, right: 20, width: 40, height: 40, borderBottom: '3px solid #7C3AED', borderRight: '3px solid #7C3AED' }} />
-
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              textAlign: 'center',
-              color: '#7C3AED'
-            }}>
-              <CameraIcon />
-              <p style={{ marginTop: 12, color: 'var(--text-secondary)' }}>Scanning...</p>
-            </div>
-
-            <div style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 4,
-              background: 'var(--bg-elevated)'
-            }}>
-              <div style={{
-                width: `${scanProgress}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #7C3AED, #EA1D2C)',
-                transition: 'width 0.1s linear'
-              }} />
-            </div>
-          </div>
-
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Processing QR code...
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // Scan Input Screen (default)
+  // Scan Input Screen
   return (
     <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 8 }}>Scan QR Code</h1>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Scan a payment QR code to send money instantly
+          Paste QR code data to send money instantly
         </p>
       </div>
 
-      {/* Balance Card */}
+      {/* Balance Cards */}
       <div style={{
         background: 'linear-gradient(145deg, rgba(124, 58, 237, 0.1) 0%, rgba(234, 29, 44, 0.05) 100%)',
         border: '1px solid rgba(124, 58, 237, 0.2)',
@@ -577,77 +501,47 @@ export function InvoicesSend() {
         </div>
       </div>
 
-      {/* Scan Button */}
-      <button
-        onClick={startScanning}
-        style={{
-          width: '100%',
-          padding: '24px',
-          borderRadius: 20,
-          border: '2px dashed var(--border-default)',
-          background: 'var(--bg-elevated)',
-          cursor: 'pointer',
-          marginBottom: 24
-        }}
-      >
-        <div style={{
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 16px',
-          color: 'white'
-        }}>
-          <CameraIcon />
-        </div>
-        <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
-          Tap to Scan QR Code
-        </div>
-        <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-          Or paste QR code data below
-        </div>
-      </button>
-
-      {/* Manual Input */}
+      {/* QR Input */}
       <div style={{ marginBottom: 16 }}>
         <label style={{
           display: 'block',
           fontSize: 14,
           fontWeight: 500,
-          marginBottom: 8,
+          marginBottom: 12,
           color: 'var(--text-secondary)'
         }}>
-          Or paste QR code data
+          QR Code Data
         </label>
         
         <textarea
           value={qrInput}
           onChange={(e) => setQrInput(e.target.value)}
           placeholder="Paste QR code data here..."
-          rows={3}
+          rows={5}
           style={{
             width: '100%',
             padding: '16px 20px',
             background: 'var(--bg-elevated)',
             borderRadius: 16,
-            border: '2px solid var(--border-default)',
+            border: error ? '2px solid #ef4444' : '2px solid var(--border-default)',
             fontSize: 14,
             outline: 'none',
             resize: 'none',
             fontFamily: 'monospace'
           }}
         />
+        
+        {error && (
+          <p style={{ color: '#ef4444', fontSize: 13, marginTop: 8 }}>{error}</p>
+        )}
       </div>
 
       <button
-        onClick={startScanning}
+        onClick={parseQRCode}
         disabled={!qrInput.trim()}
         style={{
           width: '100%',
-          padding: '16px 24px',
+          padding: '18px 24px',
           borderRadius: 12,
           border: 'none',
           background: qrInput.trim()
@@ -656,19 +550,16 @@ export function InvoicesSend() {
           color: qrInput.trim() ? 'white' : 'var(--text-muted)',
           fontSize: 16,
           fontWeight: 600,
-          cursor: qrInput.trim() ? 'pointer' : 'not-allowed'
+          cursor: qrInput.trim() ? 'pointer' : 'not-allowed',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
         }}
       >
+        <CameraIcon />
         Process QR Code
       </button>
-
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileUpload}
-        accept="image/*"
-        style={{ display: 'none' }}
-      />
     </div>
   )
 }
