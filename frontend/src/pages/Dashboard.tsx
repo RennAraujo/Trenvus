@@ -704,7 +704,6 @@ export function Dashboard() {
       <InvoiceModal
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
-        currency={convertDirection === 'USD_TO_TRV' ? 'USD' : 'TRV'}
       />
     </div>
   )

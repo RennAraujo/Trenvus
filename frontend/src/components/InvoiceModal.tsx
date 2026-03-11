@@ -61,12 +61,11 @@ const ShareIcon = () => (
 interface InvoiceModalProps {
   isOpen: boolean
   onClose: () => void
-  currency: 'USD' | 'TRV'
 }
 
 type Step = 'menu' | 'invoice-form' | 'invoice-qr' | 'link-form' | 'link-qr'
 
-export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
+export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const auth = useAuth()
   const { t, locale } = useI18n()
   const [step, setStep] = useState<Step>('menu')
@@ -100,7 +99,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
     setLoading(true)
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, amount, currency, description || 'Invoice payment')
+      const response = await api.generateInvoice(token, amount, 'TRV', description || 'Invoice payment')
       setQrPayload(response.qrPayload)
       setStep('invoice-qr')
     } catch (err: any) {
@@ -125,7 +124,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
     setLoading(true)
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, amount, currency, description || 'Payment link')
+      const response = await api.generateInvoice(token, amount, 'TRV', description || 'Payment link')
       setQrPayload(response.qrPayload)
       setStep('link-qr')
     } catch (err: any) {
@@ -150,7 +149,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
     if (navigator.share && qrPayload) {
       navigator.share({
         title: `Payment request`,
-        text: `Payment request for ${amount} ${currency}`,
+        text: `Payment request for ${amount} TRV`,
         url: `${window.location.origin}/pay?invoice=${encodeURIComponent(qrPayload)}`
       })
     } else {
@@ -385,9 +384,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
                 borderRadius: 16,
                 border: '2px solid var(--border-default)'
               }}>
-                <span style={{ fontSize: 24, fontWeight: 600 }}>
-                  {currency === 'USD' ? '$' : '₮'}
-                </span>
+                <span style={{ fontSize: 24, fontWeight: 600 }}>₮</span>
                 
                 <input
                   type="number"
@@ -413,7 +410,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
                   fontSize: 14,
                   fontWeight: 600
                 }}>
-                  {currency}
+                  TRV
                 </span>
               </div>
             </div>
@@ -594,7 +591,7 @@ export function InvoiceModal({ isOpen, onClose, currency }: InvoiceModalProps) {
               fontWeight: 700,
               fontFamily: 'var(--font-mono)'
             }}>
-              {parseFloat(amount).toFixed(2)} {currency}
+              {parseFloat(amount).toFixed(2)} TRV
             </div>
             
             {description && (

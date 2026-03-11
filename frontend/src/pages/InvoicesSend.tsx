@@ -91,7 +91,7 @@ export function InvoicesSend() {
       setPaymentData({
         id: decoded.id || 'unknown',
         amount: decoded.amount,
-        currency: decoded.currency || 'USD',
+        currency: 'TRV', // Sempre TRV, ignora do QR code
         description: decoded.description || '',
         recipientId: decoded.recipientId || 0,
         recipientEmail: decoded.recipientEmail,
@@ -175,7 +175,7 @@ export function InvoicesSend() {
 
           <h2 style={{ fontSize: 28, marginBottom: 12 }}>Payment Sent!</h2>
           <p style={{ opacity: 0.9, marginBottom: 32 }}>
-            {paymentData?.amount} {paymentData?.currency} sent to {paymentData?.recipientNickname}
+            {paymentData?.amount} TRV sent to {paymentData?.recipientNickname}
           </p>
 
           <button
@@ -350,7 +350,7 @@ export function InvoicesSend() {
                 fontWeight: 700,
                 color: 'white',
               }}>
-                {parseFloat(paymentData.amount).toFixed(2)} {paymentData.currency}
+                {parseFloat(paymentData.amount).toFixed(2)} TRV
               </div>
             </div>
 
@@ -481,7 +481,7 @@ export function InvoicesSend() {
         </p>
       </div>
 
-      {/* Balance Cards */}
+      {/* Balance Card - Apenas TRV */}
       <div style={{
         background: 'linear-gradient(145deg, rgba(124, 58, 237, 0.1) 0%, rgba(234, 29, 44, 0.05) 100%)',
         border: '1px solid rgba(124, 58, 237, 0.2)',
@@ -489,15 +489,9 @@ export function InvoicesSend() {
         padding: 24,
         marginBottom: 32
       }}>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 4 }}>USD Balance</div>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>{formatUsd(wallet?.usdCents || 0)}</div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 4 }}>TRV Balance</div>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>{formatUsd(wallet?.trvCents || 0)}</div>
-          </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 4 }}>TRV Balance</div>
+          <div style={{ fontSize: 32, fontWeight: 700 }}>{formatUsd(wallet?.trvCents || 0)} TRV</div>
         </div>
       </div>
 
