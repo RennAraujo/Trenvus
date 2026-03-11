@@ -61,7 +61,7 @@ export function PayInvoice() {
   const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
 
-  const invoiceParam = searchParams.get('invoice')
+  const invoiceParam = searchParams.get('invoice') || searchParams.get('r')
 
   useEffect(() => {
     if (!invoiceParam) {
