@@ -52,7 +52,7 @@ export function InvoicesReceive() {
   
   const [step, setStep] = useState<Step>('amount')
   const [amount, setAmount] = useState('')
-  const [currency, setCurrency] = useState<'TRV'>('TRV') // Sempre TRV
+  const [currency] = useState<'TRV'>('TRV') // Sempre TRV, sem setCurrency
   const [description, setDescription] = useState('')
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null)
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
