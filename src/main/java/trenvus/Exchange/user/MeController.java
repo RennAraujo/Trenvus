@@ -51,7 +51,7 @@ public class MeController {
 	public ResponseEntity<MeResponse> getMe(@AuthenticationPrincipal Jwt jwt) {
 		Long userId = Long.valueOf(jwt.getSubject());
 		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
+		return ResponseEntity.ok(new MeResponse(user.getId(), user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
 	}
 
 	@PutMapping("/phone")
@@ -60,7 +60,7 @@ public class MeController {
 		var user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 		user.setPhone(request.phone().trim());
 		user = users.save(user);
-		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
+		return ResponseEntity.ok(new MeResponse(user.getId(), user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
 	}
 
 	@PutMapping("/password")
@@ -109,7 +109,7 @@ public class MeController {
 		var dataUrl = "data:" + contentType + ";base64," + b64;
 		user.setAvatarDataUrl(dataUrl);
 		user = users.save(user);
-		return ResponseEntity.ok(new MeResponse(user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
+		return ResponseEntity.ok(new MeResponse(user.getId(), user.getEmail(), user.getNickname(), user.getPhone(), toAvatarDataUrl(user)));
 	}
 
 	@PostMapping("/delete-request")
@@ -181,5 +181,5 @@ public class MeController {
 
 	public record DeleteRequestResponse(String status, String message) {}
 
-	public record MeResponse(String email, String nickname, String phone, String avatarDataUrl) {}
+	public record MeResponse(Long id, String email, String nickname, String phone, String avatarDataUrl) {}
 }

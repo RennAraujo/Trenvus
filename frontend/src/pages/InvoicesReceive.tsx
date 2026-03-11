@@ -38,12 +38,14 @@ const DownloadIcon = () => (
 type Step = 'amount' | 'qr'
 
 interface PaymentRequest {
-  id: string
+  type: 'INVOICE'
+  qrCodeId: string
+  recipientId: number
+  recipientEmail: string
+  recipientNickname: string
   amount: string
   currency: 'USD' | 'TRV'
   description: string
-  recipientEmail: string
-  recipientNickname: string
   timestamp: number
 }
 
@@ -85,12 +87,14 @@ export function InvoicesReceive() {
       const requestId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36)
       
       const request: PaymentRequest = {
-        id: requestId,
+        type: 'INVOICE',
+        qrCodeId: requestId,
+        recipientId: user.id,
+        recipientEmail: user.email,
+        recipientNickname: user.nickname || user.email.split('@')[0],
         amount,
         currency,
         description: description || `Payment request from ${user.nickname || user.email}`,
-        recipientEmail: user.email,
-        recipientNickname: user.nickname || user.email.split('@')[0],
         timestamp: Date.now()
       }
       

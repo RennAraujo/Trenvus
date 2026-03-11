@@ -53,6 +53,7 @@ export type VoucherProfileResponse = {
 }
 
 export type MeResponse = {
+  id: number
   email: string
   nickname: string | null
   phone: string | null
@@ -65,6 +66,8 @@ export type PrivateStatementItem = {
   type: string
   createdAt: string | null
   values: Array<{ currency: string; cents: number; fee: boolean }>
+  notes?: string
+  senderNickname?: string
 }
 
 export type AdminStatementItem = {
