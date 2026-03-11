@@ -1,70 +1,77 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
+import { useNavigate } from 'react-router-dom'
 
 // Icons
-const WalletIcon = () => (
+const ArrowLeftIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
-  </svg>
-)
-
-const CheckIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 6 9 17l-5-5"/>
+    <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
   </svg>
 )
 
 const CopyIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
   </svg>
 )
 
 const ShareIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="18" cy="5" r="3"/>
-    <circle cx="6" cy="12" r="3"/>
-    <circle cx="18" cy="19" r="3"/>
-    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
-    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
   </svg>
 )
 
-const ArrowLeftIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m12 19-7-7 7-7"/>
-    <path d="M19 12H5"/>
-  </svg>
-)
-
-const RefreshIcon = () => (
+const CheckIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-    <path d="M21 3v5h-5"/>
+    <path d="M20 6 9 17l-5-5"/>
   </svg>
 )
+
+const WalletIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+  </svg>
+)
+
+const DownloadIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+  </svg>
+)
+
+type Step = 'amount' | 'details' | 'qr'
+
+interface PaymentRequest {
+  id: string
+  amount: string
+  currency: 'USD' | 'TRV'
+  description: string
+  recipientId: number
+  recipientEmail: string
+  recipientNickname: string
+  timestamp: number
+}
 
 export function InvoicesReceive() {
   const auth = useAuth()
+  const navigate = useNavigate()
   
-  const [step, setStep] = useState<'form' | 'qr' | 'waiting' | 'received' | 'error'>('form')
+  const [step, setStep] = useState<Step>('amount')
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState<'USD' | 'TRV'>('USD')
   const [description, setDescription] = useState('')
-  const [qrPayload, setQrPayload] = useState<string | null>(null)
-  const [paymentLink, setPaymentLink] = useState<string | null>(null)
+  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null)
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
   const [copied, setCopied] = useState(false)
-  const [receivedPayment, setReceivedPayment] = useState<{
-    amount: string
-    currency: string
-    from: string
-  } | null>(null)
+  const [generating, setGenerating] = useState(false)
+
+  useEffect(() => {
+    loadWallet()
+  }, [])
 
   async function loadWallet() {
     try {
@@ -76,132 +83,96 @@ export function InvoicesReceive() {
     }
   }
 
-  useEffect(() => {
-    loadWallet()
-  }, [])
+  function generateId() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+  }
 
-  async function generateQR() {
+  async function generatePaymentRequest() {
     if (!amount || parseFloat(amount) <= 0) return
-
+    
+    setGenerating(true)
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, amount, currency, description || 'Payment')
+      const user = await api.getMe(token)
       
-      setQrPayload(response.qrPayload)
+      const request: PaymentRequest = {
+        id: generateId(),
+        amount,
+        currency,
+        description: description || `Payment request from ${user.nickname || user.email}`,
+        recipientId: user.id,
+        recipientEmail: user.email,
+        recipientNickname: user.nickname || user.email.split('@')[0],
+        timestamp: Date.now()
+      }
       
-      // Gerar link de pagamento
-      const baseUrl = window.location.origin
-      const link = `${baseUrl}/pay?invoice=${encodeURIComponent(response.qrPayload)}`
-      setPaymentLink(link)
-      
+      setPaymentRequest(request)
       setStep('qr')
-    } catch (err: any) {
-      console.error('Failed to generate QR', err)
+    } catch (err) {
+      console.error('Failed to generate payment request', err)
+    } finally {
+      setGenerating(false)
     }
+  }
+
+  function getPaymentUrl() {
+    if (!paymentRequest) return ''
+    const baseUrl = window.location.origin
+    const payload = btoa(JSON.stringify(paymentRequest))
+    return `${baseUrl}/pay?r=${payload}`
   }
 
   function copyLink() {
-    if (paymentLink) {
-      navigator.clipboard.writeText(paymentLink)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    }
+    navigator.clipboard.writeText(getPaymentUrl())
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   function share() {
-    if (navigator.share && paymentLink) {
+    if (navigator.share) {
       navigator.share({
-        title: 'Payment Request',
-        text: `Payment request for ${amount} ${currency}`,
-        url: paymentLink
+        title: `Payment request for ${amount} ${currency}`,
+        text: paymentRequest?.description || 'Payment request',
+        url: getPaymentUrl()
       })
     } else {
       copyLink()
     }
   }
 
-  function startWaiting() {
-    setStep('waiting')
-    // Simula recebimento após alguns segundos
-    setTimeout(() => {
-      setReceivedPayment({
-        amount: amount,
-        currency: currency,
-        from: 'user2@test.com'
-      })
-      setStep('received')
-      loadWallet() // Atualiza saldo
-    }, 10000)
+  function downloadQR() {
+    const svg = document.querySelector('#payment-qr-code svg')
+    if (!svg) return
+    
+    const svgData = new XMLSerializer().serializeToString(svg)
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx?.drawImage(img, 0, 0)
+      const pngFile = canvas.toDataURL('image/png')
+      const downloadLink = document.createElement('a')
+      downloadLink.download = `payment-request-${paymentRequest?.id}.png`
+      downloadLink.href = pngFile
+      downloadLink.click()
+    }
+    
+    img.src = 'data:image/svg+xml;base64,' + btoa(svgData)
   }
 
-  function reset() {
-    setStep('form')
-    setQrPayload(null)
-    setPaymentLink(null)
-    setReceivedPayment(null)
-    setAmount('')
-    setDescription('')
-    setCopied(false)
-  }
-
-  // Success Screen - Payment Received
-  if (step === 'received' && receivedPayment) {
+  // QR Code Screen
+  if (step === 'qr' && paymentRequest) {
+    const paymentUrl = getPaymentUrl()
+    
     return (
       <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-          borderRadius: 24,
-          padding: 48,
-          textAlign: 'center',
-          color: 'white'
-        }}>
-          <div style={{
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 24px'
-          }}>
-            <CheckIcon />
-          </div>
-          
-          <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Payment Received!</h2>
-          
-          <p style={{ opacity: 0.9, marginBottom: 32 }}>
-            You received {receivedPayment.amount} {receivedPayment.currency} from {receivedPayment.from}
-          </p>
-
-          <button
-            onClick={reset}
-            style={{
-              width: '100%',
-              padding: '16px 24px',
-              borderRadius: 12,
-              border: 'none',
-              background: 'white',
-              color: '#059669',
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Create New Request
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // Waiting Screen
-  if (step === 'waiting') {
-    return (
-      <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
+        {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <button
-            onClick={() => setStep('qr')}
+            onClick={() => setStep('amount')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -210,272 +181,197 @@ export function InvoicesReceive() {
               border: 'none',
               color: 'var(--text-secondary)',
               fontSize: 14,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              marginBottom: 16
             }}
           >
             <ArrowLeftIcon />
-            Back to QR
+            New Request
           </button>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
-          borderRadius: 24,
-          padding: 48,
-          textAlign: 'center',
-          border: '1px solid rgba(124, 58, 237, 0.3)'
-        }}>
-          <div style={{
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 24px',
-            animation: 'pulse 2s infinite'
-          }}>
-            <WalletIcon />
-          </div>
-          
-          <style>{`
-            @keyframes pulse {
-              0%, 100% { transform: scale(1); opacity: 1; }
-              50% { transform: scale(1.05); opacity: 0.8; }
-            }
-          `}</style>
-          
-          <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12, color: 'white' }}>Waiting for Payment</h2>
-          
-          <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 32 }}>
-            Share the QR code or link with the payer. You'll be notified when payment is received.
+          <h1 style={{ fontSize: 28, fontWeight: 700 }}>Your QR Code</h1>
+          <p style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
+            Share this QR code or link to receive payment
           </p>
-
-          <div style={{
-            background: 'rgba(0,0,0,0.3)',
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 24
-          }}>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 8 }}>Expected Amount</div>
-            <div style={{
-              fontSize: 36,
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              {amount} {currency}
-            </div>
-          </div>
-
-          <button
-            onClick={reset}
-            style={{
-              padding: '12px 24px',
-              borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.2)',
-              background: 'transparent',
-              color: 'white',
-              fontSize: 14,
-              cursor: 'pointer'
-            }}
-          >
-            Cancel Request
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // QR Screen
-  if (step === 'qr' && qrPayload) {
-    return (
-      <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
-        <div style={{ marginBottom: 24 }}>
-          <button
-            onClick={reset}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              fontSize: 14,
-              cursor: 'pointer'
-            }}
-          >
-            <ArrowLeftIcon />
-            Back
-          </button>
         </div>
 
+        {/* QR Card */}
         <div style={{
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+          background: 'linear-gradient(145deg, rgba(124, 58, 237, 0.1) 0%, rgba(234, 29, 44, 0.05) 100%)',
+          border: '1px solid rgba(124, 58, 237, 0.2)',
           borderRadius: 24,
           padding: 32,
-          border: '1px solid rgba(124, 58, 237, 0.3)'
+          marginBottom: 24
         }}>
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>Scan to pay</div>
-            
-            <div style={{
-              background: 'white',
-              padding: 24,
-              borderRadius: 20,
-              display: 'inline-block',
-              marginBottom: 24
-            }}>
-              <QRCodeSVG 
-                value={qrPayload}
-                size={240}
-                level="H"
-                bgColor="#ffffff"
-                fgColor="#000000"
-              />
+          {/* Amount */}
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
+            <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8 }}>
+              You're requesting
             </div>
-
             <div style={{
-              fontSize: 48,
+              fontSize: 42,
               fontWeight: 700,
               background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              {amount} {currency}
+              {parseFloat(amount).toFixed(2)} {currency}
             </div>
-
-            {description && (
-              <div style={{ marginTop: 8, color: 'rgba(255,255,255,0.6)' }}>{description}</div>
-            )}
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-            <button
-              onClick={copyLink}
-              style={{
-                flex: 1,
-                padding: '16px 24px',
-                borderRadius: 12,
-                border: '1px solid rgba(255,255,255,0.2)',
-                background: 'transparent',
-                color: 'white',
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8
-              }}
-            >
-              {copied ? <CheckIcon /> : <CopyIcon />}
-              {copied ? 'Copied!' : 'Copy Link'}
-            </button>
-
-            <button
-              onClick={share}
-              style={{
-                flex: 1,
-                padding: '16px 24px',
-                borderRadius: 12,
-                border: 'none',
-                background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
-                color: 'white',
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8
-              }}
-            >
-              <ShareIcon />
-              Share
-            </button>
+          {/* QR Code */}
+          <div style={{
+            background: 'white',
+            padding: 24,
+            borderRadius: 20,
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: 24
+          }} id="payment-qr-code">
+            <QRCodeSVG 
+              value={paymentUrl}
+              size={240}
+              level="H"
+              bgColor="#ffffff"
+              fgColor="#000000"
+              includeMargin={false}
+            />
           </div>
 
-          <button
-            onClick={startWaiting}
-            style={{
-              width: '100%',
-              padding: '16px 24px',
+          {/* Description */}
+          {description && (
+            <div style={{
+              textAlign: 'center',
+              padding: '12px 16px',
+              background: 'var(--bg-elevated)',
               borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255,255,255,0.1)',
-              color: 'white',
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: 'pointer',
+              marginBottom: 16
+            }}>
+              <span style={{ color: 'var(--text-secondary)' }}>{description}</span>
+            </div>
+          )}
+
+          {/* Your Balance */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '16px 20px',
+            background: 'var(--bg-elevated)',
+            borderRadius: 12
+          }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Your balance</span>
+            <span style={{ fontWeight: 600 }}>
+              {currency === 'USD' 
+                ? formatUsd(wallet?.usdCents || 0)
+                : formatUsd(wallet?.trvCents || 0)} {currency}
+            </span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+          <button
+            onClick={copyLink}
+            style={{
+              flex: 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 8
+              gap: 8,
+              padding: '16px 20px',
+              borderRadius: 12,
+              border: '1px solid var(--border-default)',
+              background: 'var(--bg-elevated)',
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: 'pointer'
             }}
           >
-            <RefreshIcon />
-            Simulate Payment Received
+            {copied ? <CheckIcon /> : <CopyIcon />}
+            {copied ? 'Copied!' : 'Copy Link'}
+          </button>
+
+          <button
+            onClick={share}
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '16px 20px',
+              borderRadius: 12,
+              border: 'none',
+              background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
+              color: 'white',
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <ShareIcon />
+            Share
           </button>
         </div>
+
+        <button
+          onClick={downloadQR}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: '14px 20px',
+            borderRadius: 12,
+            border: '1px solid var(--border-default)',
+            background: 'transparent',
+            fontSize: 14,
+            cursor: 'pointer'
+          }}
+        >
+          <DownloadIcon />
+          Download QR Code
+        </button>
       </div>
     )
   }
 
-  // Form Screen
+  // Amount Input Screen
   return (
     <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px' }}>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 8 }}>Request Payment</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Generate a QR code to receive payment</p>
-      </div>
-
-      {/* Balance Card */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
-        borderRadius: 20,
-        padding: 24,
-        marginBottom: 24,
-        border: '1px solid rgba(124, 58, 237, 0.3)'
-      }}>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>USD Balance</div>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>{wallet ? formatUsd(wallet.usdCents) : '—'}</div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>TRV Balance</div>
-            <div style={{ fontSize: 24, fontWeight: 700 }}>{wallet ? formatUsd(wallet.trvCents) : '—'}</div>
-          </div>
-        </div>
+        <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 8 }}>Request Money</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>
+          Create a payment request that anyone can pay
+        </p>
       </div>
 
       {/* Amount Input */}
-      <div style={{ marginBottom: 24 }}>
-        <label style={{ 
-          display: 'block', 
-          fontSize: 14, 
-          fontWeight: 500, 
-          marginBottom: 8,
+      <div style={{ marginBottom: 32 }}>
+        <label style={{
+          display: 'block',
+          fontSize: 14,
+          fontWeight: 500,
+          marginBottom: 12,
           color: 'var(--text-secondary)'
         }}>
-          Amount *
+          Amount
         </label>
         
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
-          padding: '16px 20px',
+          gap: 16,
+          padding: '20px 24px',
           background: 'var(--bg-elevated)',
           borderRadius: 16,
           border: '2px solid var(--border-default)'
         }}>
-          <span style={{ fontSize: 24, fontWeight: 600 }}>$</span>
+          <span style={{ fontSize: 32, fontWeight: 300, color: 'var(--text-muted)' }}>
+            {currency === 'USD' ? '$' : '₮'}
+          </span>
           
           <input
             type="number"
@@ -486,8 +382,8 @@ export function InvoicesReceive() {
               flex: 1,
               border: 'none',
               background: 'transparent',
-              fontSize: 28,
-              fontWeight: 700,
+              fontSize: 42,
+              fontWeight: 600,
               outline: 'none',
               fontFamily: 'var(--font-mono)'
             }}
@@ -497,12 +393,12 @@ export function InvoicesReceive() {
             value={currency}
             onChange={(e) => setCurrency(e.target.value as 'USD' | 'TRV')}
             style={{
-              padding: '8px 16px',
+              padding: '12px 20px',
               borderRadius: 12,
               border: 'none',
               background: 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
               color: 'white',
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: 600,
               cursor: 'pointer'
             }}
@@ -515,24 +411,24 @@ export function InvoicesReceive() {
 
       {/* Description Input */}
       <div style={{ marginBottom: 32 }}>
-        <label style={{ 
-          display: 'block', 
-          fontSize: 14, 
-          fontWeight: 500, 
-          marginBottom: 8,
+        <label style={{
+          display: 'block',
+          fontSize: 14,
+          fontWeight: 500,
+          marginBottom: 12,
           color: 'var(--text-secondary)'
         }}>
-          Description (optional)
+          What's this for? <span style={{ fontWeight: 400 }}>(optional)</span>
         </label>
         
         <input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="What is this payment for?"
+          placeholder="e.g. Dinner, Freelance work, etc."
           style={{
             width: '100%',
-            padding: '16px 20px',
+            padding: '18px 20px',
             background: 'var(--bg-elevated)',
             borderRadius: 16,
             border: '2px solid var(--border-default)',
@@ -542,25 +438,25 @@ export function InvoicesReceive() {
         />
       </div>
 
-      {/* Generate Button */}
+      {/* Continue Button */}
       <button
-        onClick={generateQR}
-        disabled={!amount || parseFloat(amount) <= 0}
+        onClick={generatePaymentRequest}
+        disabled={!amount || parseFloat(amount) <= 0 || generating}
         style={{
           width: '100%',
           padding: '20px 24px',
           borderRadius: 16,
           border: 'none',
-          background: (!amount || parseFloat(amount) <= 0) 
-            ? 'var(--bg-elevated)' 
+          background: (!amount || parseFloat(amount) <= 0 || generating)
+            ? 'var(--bg-elevated)'
             : 'linear-gradient(135deg, #7C3AED 0%, #EA1D2C 100%)',
-          color: (!amount || parseFloat(amount) <= 0) 
-            ? 'var(--text-muted)' 
+          color: (!amount || parseFloat(amount) <= 0 || generating)
+            ? 'var(--text-muted)'
             : 'white',
           fontSize: 18,
           fontWeight: 600,
-          cursor: (!amount || parseFloat(amount) <= 0) 
-            ? 'not-allowed' 
+          cursor: (!amount || parseFloat(amount) <= 0 || generating)
+            ? 'not-allowed'
             : 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -569,16 +465,17 @@ export function InvoicesReceive() {
         }}
       >
         <WalletIcon />
-        Generate QR Code
+        {generating ? 'Generating...' : 'Generate QR Code'}
       </button>
 
-      <p style={{ 
-        textAlign: 'center', 
-        marginTop: 24, 
-        fontSize: 14, 
-        color: 'var(--text-secondary)' 
+      {/* Info */}
+      <p style={{
+        textAlign: 'center',
+        marginTop: 24,
+        fontSize: 14,
+        color: 'var(--text-secondary)'
       }}>
-        Generate a QR code that others can scan to pay you
+        Anyone with the link can pay you. No fees for receiving.
       </p>
     </div>
   )
