@@ -315,7 +315,7 @@ export function Statement() {
     doc.roundedRect(margin, y, tableWidth, 35, 4, 4, 'F')
     
     // Gradient accent
-    const headerGradient = doc.setFillColor(124, 58, 237)
+    doc.setFillColor(124, 58, 237)
     doc.rect(margin, y + 30, tableWidth, 5, 'F')
     
     doc.setFont('helvetica', 'bold')
