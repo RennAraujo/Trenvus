@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api } from '../api'
 import { useAuth } from '../auth'
-import { useI18n } from '../i18n'
 
 // Icons
 const CloseIcon = () => (
@@ -73,7 +72,6 @@ type Step = 'menu' | 'invoice-form' | 'invoice-qr' | 'link-form' | 'link-qr'
 
 export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const auth = useAuth()
-  const { t, locale } = useI18n()
   const [step, setStep] = useState<Step>('menu')
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
@@ -82,14 +80,6 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const [loading, setLoading] = useState(false)
 
   if (!isOpen) return null
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString(locale === 'pt-BR' ? 'pt-BR' : 'en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
 
   const handleCreateInvoice = async () => {
     const amountNum = parseFloat(amount)
