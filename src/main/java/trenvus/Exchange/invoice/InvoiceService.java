@@ -57,7 +57,7 @@ public class InvoiceService {
         }
 
         // Validate that request amount and currency match QR payload
-        if (!request.amount().equals(qrData.amount())) {
+        if (request.amount().compareTo(qrData.amount()) != 0) {
             throw new IllegalArgumentException(
                 String.format("Amount mismatch: QR code amount is %s %s but request amount is %s %s",
                     qrData.amount(), qrData.currency(), request.amount(), request.currency()));
@@ -98,7 +98,7 @@ public class InvoiceService {
         }
 
         // Validate that request amount and currency match QR payload
-        if (!request.amount().equals(qrData.amount())) {
+        if (request.amount().compareTo(qrData.amount()) != 0) {
             throw new IllegalArgumentException(
                 String.format("Amount mismatch: QR code amount is %s %s but request amount is %s %s",
                     qrData.amount(), qrData.currency(), request.amount(), request.currency()));
