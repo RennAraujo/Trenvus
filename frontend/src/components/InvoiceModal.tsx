@@ -353,69 +353,102 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
       <div style={{
         position: 'fixed',
         inset: 0,
-        background: 'var(--bg-primary)',
+        background: 'rgba(0,0,0,0.7)',
+        backdropFilter: 'blur(4px)',
         display: 'flex',
-        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         zIndex: 1000,
-        animation: 'fadeIn 0.2s ease'
+        animation: 'fadeIn 0.2s ease',
+        padding: 16
       }}>
-        {/* Header */}
+        <style>{`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
+        
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          padding: '16px 24px',
-          borderBottom: '1px solid var(--border-default)'
+          background: 'var(--bg-primary)',
+          width: '100%',
+          maxWidth: 420,
+          borderRadius: 20,
+          overflow: 'hidden',
+          animation: 'scaleIn 0.25s ease',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
         }}>
-          <button
-            onClick={() => setStep('menu')}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              border: 'none',
-              background: 'var(--bg-elevated)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="m15 18-6-6 6-6"/>
-            </svg>
-          </button>
-          
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            {isInvoice ? (t('invoice.createInvoice') || 'Create invoice') : (t('invoice.sharePaymentLink') || 'Share payment link')}
-          </h2>
-        </div>
+          {/* Header */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '20px 24px',
+            borderBottom: '1px solid var(--border-default)',
+            background: 'var(--bg-elevated)'
+          }}>
+            <button
+              onClick={() => setStep('menu')}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                border: 'none',
+                background: 'var(--bg-primary)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--border-default)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-primary)'}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+            </button>
+            
+            <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+              {isInvoice ? (t('invoice.createInvoice') || 'Fatura com QR Code') : (t('invoice.sharePaymentLink') || 'Link de Pagamento')}
+            </h2>
+          </div>
 
-        {/* Form */}
-        <div style={{ flex: 1, padding: 24, overflow: 'auto' }}>
-          <div style={{ maxWidth: 400, margin: '0 auto' }}>
+          {/* Form */}
+          <div style={{ padding: 24 }}>
             {/* Amount */}
             <div style={{ marginBottom: 24 }}>
               <label style={{
                 display: 'block',
                 fontSize: 14,
-                fontWeight: 500,
-                marginBottom: 8,
-                color: 'var(--text-secondary)'
+                fontWeight: 600,
+                marginBottom: 10,
+                color: 'var(--text-primary)'
               }}>
-                {t('invoice.amount') || 'Amount'}
+                {t('invoice.amount') || 'Valor'}
               </label>
               
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                padding: '16px 20px',
+                padding: '18px 20px',
                 background: 'var(--bg-elevated)',
                 borderRadius: 16,
-                border: '2px solid var(--border-default)'
+                border: '2px solid var(--border-default)',
+                transition: 'all 0.2s'
               }}>
-                <span style={{ fontSize: 24, fontWeight: 600 }}>₮</span>
+                <span style={{ 
+                  fontSize: 28, 
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>₮</span>
                 
                 <input
                   type="number"
@@ -429,20 +462,137 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                     fontSize: 32,
                     fontWeight: 700,
                     outline: 'none',
-                    fontFamily: 'var(--font-mono)'
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--text-primary)'
                   }}
                 />
                 
                 <span style={{
-                  padding: '6px 12px',
-                  background: 'var(--color-primary)',
-                  color: 'white',
+                  padding: '8px 16px',
                   borderRadius: 20,
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+                  color: 'white',
                   fontSize: 14,
-                  fontWeight: 600
+                  fontWeight: 700
                 }}>
                   TRV
                 </span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{
+                display: 'block',
+                fontSize: 14,
+                fontWeight: 600,
+                marginBottom: 10,
+                color: 'var(--text-primary)'
+              }}>
+                {t('invoice.description') || 'Descrição (opcional)'}
+              </label>
+              
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={isInvoice ? "Ex: Pagamento de serviço" : "Ex: Doação para o projeto"}
+                style={{
+                  width: '100%',
+                  padding: '16px 20px',
+                  background: 'var(--bg-elevated)',
+                  borderRadius: 16,
+                  border: '2px solid var(--border-default)',
+                  fontSize: 16,
+                  outline: 'none',
+                  color: 'var(--text-primary)',
+                  transition: 'all 0.2s'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--border-default)'}
+              />
+            </div>
+
+            {/* Due Date (only for invoice) */}
+            {isInvoice && (
+              <div style={{ marginBottom: 24 }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  marginBottom: 10,
+                  color: 'var(--text-primary)'
+                }}>
+                  {t('invoice.dueDate') || 'Vencimento'}
+                </label>
+                
+                <div style={{
+                  padding: '16px 20px',
+                  background: 'var(--bg-elevated)',
+                  borderRadius: 16,
+                  border: '2px solid var(--border-default)',
+                  fontSize: 16,
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" x2="16" y1="2" y2="6"/>
+                    <line x1="8" x2="8" y1="2" y2="6"/>
+                    <line x1="3" x2="21" y1="10" y2="10"/>
+                  </svg>
+                  {formatDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            padding: '20px 24px',
+            borderTop: '1px solid var(--border-default)',
+            background: 'var(--bg-elevated)'
+          }}>
+            <button
+              onClick={isInvoice ? handleCreateInvoice : handleCreateLink}
+              disabled={!amount || parseFloat(amount) <= 0 || loading}
+              style={{
+                width: '100%',
+                padding: '18px 24px',
+                borderRadius: 16,
+                border: 'none',
+                background: (!amount || parseFloat(amount) <= 0 || loading) 
+                  ? 'var(--bg-subtle)' 
+                  : 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)',
+                color: (!amount || parseFloat(amount) <= 0 || loading) 
+                  ? 'var(--text-muted)' 
+                  : 'white',
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: (!amount || parseFloat(amount) <= 0 || loading) 
+                  ? 'not-allowed' 
+                  : 'pointer',
+                boxShadow: (!amount || parseFloat(amount) <= 0 || loading) 
+                  ? 'none' 
+                  : '0 4px 16px rgba(124, 58, 237, 0.4)',
+                transition: 'all 0.2s'
+              }}
+            >
+              {loading 
+                ? (t('actions.processing') || 'Processando...') 
+                : (isInvoice 
+                  ? (t('invoice.createInvoice') || 'Criar Fatura') 
+                  : (t('invoice.createLink') || 'Criar Link'))}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // QR Display Step
               </div>
             </div>
 
