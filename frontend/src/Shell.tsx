@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth'
 import { LanguageSwitcher, useI18n } from './i18n'
@@ -32,13 +32,6 @@ const TransferIcon = () => (
   </svg>
 )
 
-const InvoiceIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="18" y2="12"/><line x1="9" x2="15" y1="15" y2="15"/>
-  </svg>
-)
-
 const AdminIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -64,12 +57,6 @@ const LogoutIcon = () => (
   </svg>
 )
 
-const ChevronDownIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m6 9 6 6 6-6"/>
-  </svg>
-)
-
 const MenuIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
@@ -88,31 +75,14 @@ export function Shell() {
   const { isComplete } = useProfileComplete()
   const navigate = useNavigate()
   const location = useLocation()
-  const invoicesActive = location.pathname.startsWith('/app/invoices')
-  const [invoicesOpen, setInvoicesOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const invoicesRef = useRef<HTMLDivElement | null>(null)
 
-  const closeInvoices = useMemo(() => () => setInvoicesOpen(false), [])
   const closeUserMenu = useMemo(() => () => setUserOpen(false), [])
 
   useEffect(() => {
-    closeInvoices()
     setMobileMenuOpen(false)
-  }, [location.pathname, closeInvoices])
-
-  useEffect(() => {
-    function onDocMouseDown(e: MouseEvent) {
-      const root = invoicesRef.current
-      if (!root) return
-      const target = e.target
-      if (target instanceof Node && root.contains(target)) return
-      closeInvoices()
-    }
-    document.addEventListener('mousedown', onDocMouseDown)
-    return () => document.removeEventListener('mousedown', onDocMouseDown)
-  }, [closeInvoices])
+  }, [location.pathname])
 
   useEffect(() => {
     closeUserMenu()
@@ -164,7 +134,7 @@ export function Shell() {
       <header className="topbar">
         <div className="container topbar-inner">
           <div className="topbar-left">
-            <Link to="/" className="brand">
+            <Link to={auth.isAuthenticated ? '/app' : '/'} className="brand">
               <img className="brand-logo" src={brandLogo} alt="TRENVUS" />
             </Link>
             
@@ -177,30 +147,6 @@ export function Shell() {
                   {item.label}
                 </NavLink>
               ))}
-              
-              <div
-                ref={invoicesRef}
-                className={`dropdown ${invoicesOpen ? 'open' : ''}`}
-              >
-                <button
-                  type="button"
-                  className={`dropdown-trigger ${invoicesActive ? 'active' : ''}`}
-                  onClick={() => setInvoicesOpen((v) => !v)}
-                  aria-expanded={invoicesOpen}
-                >
-                  <InvoiceIcon />
-                  {t('nav.invoices')}
-                  <ChevronDownIcon />
-                </button>
-                <div className="dropdown-menu" role="menu">
-                  <NavLink to="/app/invoices/send" className="dropdown-item">
-                    {t('nav.invoicesSend')}
-                  </NavLink>
-                  <NavLink to="/app/invoices/receive" className="dropdown-item">
-                    {t('nav.invoicesReceive')}
-                  </NavLink>
-                </div>
-              </div>
               
               {auth.isAdmin && (
                 <NavLink to="/app/admin/users" className="nav-link">
@@ -268,18 +214,6 @@ export function Shell() {
               {item.label}
             </NavLink>
           ))}
-          
-          <div style={{ marginTop: 8 }}>
-            <div style={{ padding: '12px 16px', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.08, color: 'var(--text-muted)' }}>
-              {t('nav.invoices')}
-            </div>
-            <NavLink to="/app/invoices/send" className="mobile-nav-link" style={{ paddingLeft: 40 }}>
-              {t('nav.invoicesSend')}
-            </NavLink>
-            <NavLink to="/app/invoices/receive" className="mobile-nav-link" style={{ paddingLeft: 40 }}>
-              {t('nav.invoicesReceive')}
-            </NavLink>
-          </div>
           
           {auth.isAdmin && (
             <NavLink to="/app/admin/users" className="mobile-nav-link">

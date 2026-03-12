@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { api, formatUsd, type WalletResponse } from '../api'
 import { useAuth } from '../auth'
+import { useI18n } from '../i18n'
 
 // Icons
 const WalletIcon = () => (
@@ -54,6 +55,7 @@ export function PayInvoice() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const auth = useAuth()
+  const { t } = useI18n()
   
   const [step, setStep] = useState<'loading' | 'login-required' | 'confirmation' | 'processing' | 'success' | 'error'>('loading')
   const [invoice, setInvoice] = useState<InvoiceData | null>(null)
@@ -65,7 +67,7 @@ export function PayInvoice() {
 
   useEffect(() => {
     if (!invoiceParam) {
-      setError('Invalid or missing invoice code')
+      setError(t('payInvoice.errors.invalidOrMissing'))
       setStep('error')
       return
     }
@@ -87,10 +89,10 @@ export function PayInvoice() {
       // Verifica se está logado
       checkAuth()
     } catch (err) {
-      setError('Invalid invoice format')
+      setError(t('payInvoice.errors.invalidFormat'))
       setStep('error')
     }
-  }, [invoiceParam])
+  }, [invoiceParam, t])
 
   async function checkAuth() {
     try {
@@ -129,7 +131,7 @@ export function PayInvoice() {
       const amountCents = Math.round(parseFloat(invoice.amount) * 100)
       
       if (!balance || balance < amountCents) {
-        throw new Error(`Insufficient ${invoice.currency} balance`)
+        throw new Error(t('payInvoice.errors.insufficientBalance', { currency: invoice.currency }))
       }
 
       // Executa o pagamento
@@ -137,7 +139,7 @@ export function PayInvoice() {
       
       setStep('success')
     } catch (err: any) {
-      setError(err?.message || 'Payment failed')
+      setError(err?.message || t('payInvoice.errors.failed'))
       setStep('error')
     } finally {
       setProcessing(false)
@@ -158,7 +160,7 @@ export function PayInvoice() {
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <div className="animate-pulse" style={{ color: 'white', fontSize: 18 }}>Loading...</div>
+        <div className="animate-pulse" style={{ color: 'white', fontSize: 18 }}>{t('payInvoice.loading')}</div>
       </div>
     )
   }
@@ -196,8 +198,8 @@ export function PayInvoice() {
             <XIcon />
           </div>
           
-          <h2 style={{ marginBottom: 12 }}>Payment Error</h2>
-          <p style={{ opacity: 0.7, marginBottom: 24 }}>{error || 'Something went wrong'}</p>
+          <h2 style={{ marginBottom: 12 }}>{t('payInvoice.error.title')}</h2>
+          <p style={{ opacity: 0.7, marginBottom: 24 }}>{error || t('payInvoice.error.default')}</p>
           
           <button
             onClick={() => navigate('/')}
@@ -212,7 +214,7 @@ export function PayInvoice() {
               cursor: 'pointer'
             }}
           >
-            Go Home
+            {t('payInvoice.error.goHome')}
           </button>
         </div>
       </div>
@@ -252,9 +254,9 @@ export function PayInvoice() {
             <LockIcon />
           </div>
           
-          <h2 style={{ marginBottom: 12, fontSize: 24 }}>Login Required</h2>
+          <h2 style={{ marginBottom: 12, fontSize: 24 }}>{t('payInvoice.loginRequired.title')}</h2>
           <p style={{ opacity: 0.7, marginBottom: 32 }}>
-            Please log in to complete this payment
+            {t('payInvoice.loginRequired.subtitle')}
           </p>
 
           {invoice && (
@@ -264,7 +266,7 @@ export function PayInvoice() {
               padding: 20,
               marginBottom: 32
             }}>
-              <div style={{ fontSize: 14, opacity: 0.6, marginBottom: 8 }}>Payment Amount</div>
+              <div style={{ fontSize: 14, opacity: 0.6, marginBottom: 8 }}>{t('payInvoice.loginRequired.amountLabel')}</div>
               <div style={{
                 fontSize: 32,
                 fontWeight: 700,
@@ -274,7 +276,7 @@ export function PayInvoice() {
               }}>
                 {invoice.amount} {invoice.currency}
               </div>
-              <div style={{ fontSize: 14, opacity: 0.6, marginTop: 8 }}>To: {invoice.recipientNickname}</div>
+              <div style={{ fontSize: 14, opacity: 0.6, marginTop: 8 }}>{t('payInvoice.loginRequired.to', { name: invoice.recipientNickname })}</div>
             </div>
           )}
           
@@ -293,7 +295,7 @@ export function PayInvoice() {
               marginBottom: 12
             }}
           >
-            Log In to Continue
+            {t('payInvoice.loginRequired.loginButton')}
           </button>
           
           <button
@@ -309,7 +311,7 @@ export function PayInvoice() {
               cursor: 'pointer'
             }}
           >
-            Cancel
+            {t('payInvoice.cancel')}
           </button>
         </div>
       </div>
@@ -346,10 +348,10 @@ export function PayInvoice() {
               }}
             >
               <ArrowLeftIcon />
-              Cancel
+              {t('payInvoice.cancel')}
             </button>
             
-            <h1 style={{ fontSize: 32, fontWeight: 700, color: 'white' }}>Confirm Payment</h1>
+            <h1 style={{ fontSize: 32, fontWeight: 700, color: 'white' }}>{t('payInvoice.confirm.title')}</h1>
           </div>
 
           {/* Payment Card */}
@@ -374,7 +376,7 @@ export function PayInvoice() {
                 <WalletIcon />
               </div>
               
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 8 }}>You will pay</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 8 }}>{t('payInvoice.confirm.youWillPay')}</div>
               
               <div style={{
                 fontSize: 48,
@@ -399,7 +401,7 @@ export function PayInvoice() {
                 paddingBottom: 16,
                 borderBottom: '1px solid rgba(255,255,255,0.1)'
               }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)' }}>To</span>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>{t('payInvoice.confirm.toLabel')}</span>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontWeight: 600, color: 'white' }}>{invoice.recipientNickname}</div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{invoice.recipientEmail}</div>
@@ -414,13 +416,13 @@ export function PayInvoice() {
                   paddingBottom: 16,
                   borderBottom: '1px solid rgba(255,255,255,0.1)'
                 }}>
-                  <span style={{ color: 'rgba(255,255,255,0.6)' }}>Description</span>
+                  <span style={{ color: 'rgba(255,255,255,0.6)' }}>{t('payInvoice.confirm.descriptionLabel')}</span>
                   <span style={{ color: 'white' }}>{invoice.description}</span>
                 </div>
               )}
 
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)' }}>Your Balance</span>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>{t('payInvoice.confirm.yourBalance')}</span>
                 <span style={{ fontWeight: 600, color: hasEnoughBalance ? '#10b981' : '#ef4444' }}>
                   {formatUsd(balance || 0)} {invoice.currency}
                 </span>
@@ -439,7 +441,7 @@ export function PayInvoice() {
               color: '#ef4444',
               textAlign: 'center'
             }}>
-              Insufficient {invoice.currency} balance. Please deposit more funds.
+              {t('payInvoice.confirm.insufficientBalance', { currency: invoice.currency })}
             </div>
           )}
 
@@ -459,7 +461,7 @@ export function PayInvoice() {
                 cursor: 'pointer'
               }}
             >
-              Cancel
+              {t('payInvoice.cancel')}
             </button>
 
             <button
@@ -479,7 +481,7 @@ export function PayInvoice() {
                 cursor: hasEnoughBalance ? 'pointer' : 'not-allowed'
               }}
             >
-              {processing ? 'Processing...' : 'Confirm Payment'}
+              {processing ? t('payInvoice.confirm.processing') : t('payInvoice.confirm.confirmButton')}
             </button>
           </div>
         </div>
@@ -519,8 +521,8 @@ export function PayInvoice() {
             <CheckIcon />
           </div>
           
-          <h2 style={{ fontSize: 28, marginBottom: 12 }}>Payment Successful!</h2>
-          <p style={{ opacity: 0.9, marginBottom: 32 }}>Your payment has been processed successfully.</p>
+          <h2 style={{ fontSize: 28, marginBottom: 12 }}>{t('payInvoice.success.title')}</h2>
+          <p style={{ opacity: 0.9, marginBottom: 32 }}>{t('payInvoice.success.subtitle')}</p>
           
           <button
             onClick={() => navigate('/app')}
@@ -535,7 +537,7 @@ export function PayInvoice() {
               cursor: 'pointer'
             }}
           >
-            Go to Dashboard
+            {t('payInvoice.success.goDashboard')}
           </button>
         </div>
       </div>

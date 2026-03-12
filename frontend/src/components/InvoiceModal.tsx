@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api } from '../api'
 import { useAuth } from '../auth'
+import { useI18n } from '../i18n'
 
 // Helper functions for amount formatting
 function groupInt(value: string): string {
@@ -97,6 +98,7 @@ interface InvoiceModalProps {
 
 export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const auth = useAuth()
+  const { t } = useI18n()
   const [view, setView] = useState<'menu' | 'invoice-form' | 'invoice-qr' | 'link-form' | 'link-qr'>('menu')
   const [amountDigits, setAmountDigits] = useState('')
   const [description, setDescription] = useState('')
@@ -121,24 +123,24 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
 
   const handleCreateInvoice = async () => {
     if (!amount.plain) {
-      alert('Please enter a valid amount greater than 0')
+      alert(t('invoiceModal.validation.amountRequired'))
       return
     }
     const amountNum = parseFloat(amount.plain)
     if (amountNum > 1000000) {
-      alert('Maximum invoice amount is 1,000,000')
+      alert(t('invoiceModal.validation.amountMax'))
       return
     }
     
     setLoading(true)
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, amount.plain, 'TRV', description || 'Invoice payment')
+      const response = await api.generateInvoice(token, amount.plain, 'TRV', description || t('invoiceModal.defaultDescriptionInvoice'))
       setQrPayload(response.qrPayload)
       setView('invoice-qr')
     } catch (err: any) {
-      console.error('Failed to generate invoice', err)
-      alert(err?.message || 'Failed to generate invoice')
+      console.error(t('invoiceModal.errors.generateInvoice'), err)
+      alert(err?.message || t('invoiceModal.errors.generateInvoice'))
     } finally {
       setLoading(false)
     }
@@ -146,24 +148,24 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
 
   const handleCreateLink = async () => {
     if (!amount.plain) {
-      alert('Please enter a valid amount greater than 0')
+      alert(t('invoiceModal.validation.amountRequired'))
       return
     }
     const amountNum = parseFloat(amount.plain)
     if (amountNum > 1000000) {
-      alert('Maximum invoice amount is 1,000,000')
+      alert(t('invoiceModal.validation.amountMax'))
       return
     }
     
     setLoading(true)
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, amount.plain, 'TRV', description || 'Payment link')
+      const response = await api.generateInvoice(token, amount.plain, 'TRV', description || t('invoiceModal.defaultDescriptionLink'))
       setQrPayload(response.qrPayload)
       setView('link-qr')
     } catch (err: any) {
-      console.error('Failed to generate link', err)
-      alert(err?.message || 'Failed to generate link')
+      console.error(t('invoiceModal.errors.generateLink'), err)
+      alert(err?.message || t('invoiceModal.errors.generateLink'))
     } finally {
       setLoading(false)
     }
@@ -182,8 +184,8 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const share = () => {
     if (navigator.share && qrPayload) {
       navigator.share({
-        title: `Payment request`,
-        text: `Payment request for ${amount.formatted} TRV`,
+        title: t('invoiceModal.share.title'),
+        text: t('invoiceModal.share.text', { amount: amount.formatted }),
         url: `${window.location.origin}/pay?invoice=${encodeURIComponent(qrPayload)}`
       })
     } else {
@@ -233,10 +235,10 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
           }}>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px 0', color: '#fff' }}>
-                Receber Pagamento
+                {t('invoiceModal.menu.title')}
               </h2>
               <p style={{ fontSize: 13, color: '#717190', margin: 0 }}>
-                Escolha como quer receber TRV
+                {t('invoiceModal.menu.subtitle')}
               </p>
             </div>
             <button
@@ -291,10 +293,10 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
               
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2, color: '#fff' }}>
-                  QR Code
+                  {t('invoiceModal.option.qr.title')}
                 </div>
                 <div style={{ fontSize: 12, color: '#717190' }}>
-                  O pagador escaneia com a câmera
+                  {t('invoiceModal.option.qr.subtitle')}
                 </div>
               </div>
               
@@ -332,10 +334,10 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
               
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2, color: '#fff' }}>
-                  Link de Pagamento
+                  {t('invoiceModal.option.link.title')}
                 </div>
                 <div style={{ fontSize: 12, color: '#717190' }}>
-                  Copie e envie por WhatsApp ou email
+                  {t('invoiceModal.option.link.subtitle')}
                 </div>
               </div>
               
@@ -404,7 +406,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
             </button>
             
             <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#fff' }}>
-              {isInvoice ? 'QR Code' : 'Link de Pagamento'}
+              {isInvoice ? t('invoiceModal.form.qr.title') : t('invoiceModal.form.link.title')}
             </h2>
           </div>
 
@@ -420,7 +422,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 color: '#717190',
                 textTransform: 'uppercase'
               }}>
-                Valor
+                {t('invoiceModal.form.amountLabel')}
               </label>
               
               <div style={{
@@ -461,7 +463,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                     })
                   }}
                   inputMode="numeric"
-                  placeholder="0,00"
+                  placeholder={t('money.placeholder')}
                   style={{
                     flex: 1,
                     border: 'none',
@@ -496,14 +498,14 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 color: '#717190',
                 textTransform: 'uppercase'
               }}>
-                Descrição (opcional)
+                {t('invoiceModal.form.descriptionLabel')}
               </label>
               
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={isInvoice ? "Ex: Pagamento de serviço" : "Ex: Doação"}
+                placeholder={isInvoice ? t('invoiceModal.form.descriptionPlaceholderQr') : t('invoiceModal.form.descriptionPlaceholderLink')}
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -540,7 +542,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 opacity: (!amount.plain || loading) ? 0.6 : 1
               }}
             >
-              {loading ? 'Gerando...' : (isInvoice ? 'Gerar QR Code' : 'Gerar Link')}
+              {loading ? t('invoiceModal.form.generating') : (isInvoice ? t('invoiceModal.form.generateQr') : t('invoiceModal.form.generateLink'))}
             </button>
           </div>
         </div>
@@ -677,7 +679,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 fontWeight: 800,
                 color: '#a855f7'
               }}>
-                {amount.formatted || '0,00'} TRV
+                {amount.formatted || t('money.placeholder')} TRV
               </div>
               
               {description && (
@@ -721,7 +723,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 }}
               >
                 {copied ? <CheckIcon /> : <CopyIcon />}
-                {copied ? 'Copiado!' : 'Copiar'}
+                {copied ? t('invoiceModal.qr.copied') : t('invoiceModal.qr.copy')}
               </button>
               
               <button
@@ -743,7 +745,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 }}
               >
                 <ShareIcon />
-                Compartilhar
+                {t('invoiceModal.qr.share')}
               </button>
             </div>
 
@@ -761,7 +763,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 cursor: 'pointer'
               }}
             >
-              Criar novo
+              {t('invoiceModal.qr.createNew')}
             </button>
           </div>
         </div>

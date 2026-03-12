@@ -198,16 +198,16 @@ export function Dashboard() {
             <button
               className={`private-toggle ${privateMode ? 'active' : ''}`}
               onClick={() => setPrivateMode(!privateMode)}
-              title={privateMode ? 'Show values' : 'Hide values'}
+              title={privateMode ? t('dashboard.showValues') : t('dashboard.hideValues')}
             >
               {privateMode ? <EyeOffIcon /> : <EyeIcon />}
-              <span>Private</span>
+              <span>{t('dashboard.private')}</span>
             </button>
             <button 
               className="btn btn-secondary btn-icon" 
               onClick={loadWallet} 
               disabled={busy}
-              title="Refresh"
+              title={t('dashboard.refresh')}
             >
               <RefreshIcon />
             </button>
@@ -237,7 +237,7 @@ export function Dashboard() {
           </div>
           <div className="balance-footer">
             <div style={{ flex: 1 }} />
-            <div className="text-xs text-tertiary">1 USD = 1 TRV</div>
+            <div className="text-xs text-tertiary">{t('dashboard.trvRate')}</div>
           </div>
         </div>
 
@@ -312,7 +312,7 @@ export function Dashboard() {
               </svg>
             </div>
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {t('dashboard.add') || 'Add'}
+              {t('dashboard.add')}
             </span>
           </button>
 
@@ -349,7 +349,7 @@ export function Dashboard() {
               </svg>
             </div>
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {t('dashboard.convert') || 'Convert'}
+              {t('dashboard.convert.title')}
             </span>
           </button>
 
@@ -385,7 +385,7 @@ export function Dashboard() {
               </svg>
             </div>
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {t('dashboard.send') || 'Send'}
+              {t('dashboard.send')}
             </span>
           </button>
 
@@ -421,7 +421,7 @@ export function Dashboard() {
               </svg>
             </div>
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {t('nav.invoices') || 'Invoice'}
+              {t('dashboard.receive')}
             </span>
           </button>
         </div>
@@ -544,7 +544,7 @@ export function Dashboard() {
                       })
                     }}
                     inputMode="numeric"
-                    placeholder="0,00"
+                    placeholder={t('money.placeholder')}
                     style={{ fontSize: 18, padding: '14px 16px' }}
                   />
                   <span className="text-sm text-secondary" style={{ fontWeight: 500 }}>USD</span>
@@ -560,7 +560,7 @@ export function Dashboard() {
               >
                 {busy ? (
                   <>
-                    <span className="animate-pulse">Processing...</span>
+                    <span className="animate-pulse">{t('actions.processing')}</span>
                   </>
                 ) : (
                   <>
@@ -573,7 +573,7 @@ export function Dashboard() {
           ) : (
             <form onSubmit={onConvert} style={{ maxWidth: 480 }}>
               <div style={{ marginBottom: 20 }}>
-                <label className="field-label">Conversion Direction</label>
+                <label className="field-label">{t('dashboard.convert.directionLabel')}</label>
                 <div className="toggle-group">
                   <button
                     type="button"
@@ -628,7 +628,7 @@ export function Dashboard() {
                       })
                     }}
                     inputMode="numeric"
-                    placeholder="0,00"
+                    placeholder={t('money.placeholder')}
                     style={{ fontSize: 18, padding: '14px 16px' }}
                   />
                   <span className="text-sm text-secondary" style={{ fontWeight: 500 }}>
@@ -649,20 +649,20 @@ export function Dashboard() {
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span className="text-secondary">You send</span>
+                      <span className="text-secondary">{t('convert.youSend')}</span>
                       <span className="font-mono font-semibold">
                         {formatMoneyDigits(convertDigits).formatted} {convertDirection === 'USD_TO_TRV' ? 'USD' : 'TRV'}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span className="text-secondary">Fee (1%)</span>
+                      <span className="text-secondary">{t('convert.fee')} (1%)</span>
                       <span className="font-mono text-danger">
                         -{formatMoneyDigits((Number(currencyValue) / 100).toFixed(0)).formatted} {convertDirection === 'USD_TO_TRV' ? 'USD' : 'TRV'}
                       </span>
                     </div>
                     <div style={{ height: 1, background: 'var(--border-subtle)', margin: '8px 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span className="text-secondary">You receive</span>
+                      <span className="text-secondary">{t('convert.youReceive')}</span>
                       <span className="font-mono font-bold text-accent">
                         {formatMoneyDigits((Number(currencyValue) * 0.99).toFixed(0)).formatted} {convertDirection === 'USD_TO_TRV' ? 'TRV' : 'USD'}
                       </span>
@@ -679,7 +679,7 @@ export function Dashboard() {
               >
                 {busy ? (
                   <>
-                    <span className="animate-pulse">Processing...</span>
+                    <span className="animate-pulse">{t('actions.processing')}</span>
                   </>
                 ) : (
                   <>

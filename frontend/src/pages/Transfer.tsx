@@ -116,7 +116,7 @@ export function Transfer() {
         setRecipient(null)
         const message = err?.message || ''
         if (message.includes('not found') || message.includes('não encontrado')) {
-          setRecipientError('Destinatário não encontrado')
+          setRecipientError(t('errors.transferRecipientNotFound'))
         } else {
           setRecipientError(null)
         }
@@ -130,7 +130,7 @@ export function Transfer() {
         clearTimeout(lookupTimeoutRef.current)
       }
     }
-  }, [toIdentifier, auth])
+  }, [toIdentifier, auth, t])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
