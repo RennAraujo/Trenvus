@@ -541,8 +541,8 @@ export function Statement() {
                       {(item.type === 'TRANSFER_TRV_IN' || item.type === 'TRANSFER_TRV_OUT') && (
                         <span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>
                           {item.type === 'TRANSFER_TRV_IN' 
-                            ? `de ${item.senderNickname || item.tec}` 
-                            : `para ${item.recipientNickname || item.tec}`}
+                            ? t('statement.transfer.from', { name: item.senderNickname || item.tec }) 
+                            : t('statement.transfer.to', { name: item.recipientNickname || item.tec })}
                         </span>
                       )}
                     </div>

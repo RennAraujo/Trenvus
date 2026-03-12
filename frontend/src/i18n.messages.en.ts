@@ -166,6 +166,9 @@ export const messagesEn: Record<string, string> = {
   'mercadopago.pay': 'Pay',
   'mercadopago.cancel': 'Cancel',
   'mercadopago.processing': 'Processing...',
+  'mercadopago.errors.invalidToken': 'Mercado Pago is not configured correctly (invalid access token).',
+  'mercadopago.errors.unavailable': 'Mercado Pago is temporarily unavailable. Please try again later.',
+  'mercadopago.errors.depositFailed': 'Unable to process deposit.',
 
   'statement.title': 'Private statement',
   'statement.subtitle': 'Only values are shown to preserve privacy.',
@@ -181,6 +184,8 @@ export const messagesEn: Record<string, string> = {
   'statement.type.convertUsdToTrv': 'USD --> TRV',
   'statement.type.convertTrvToUsd': 'TRV --> USD',
   'statement.type.transferOut': 'Transfer sent (TRV)',
+  'statement.transfer.from': 'from {name}',
+  'statement.transfer.to': 'to {name}',
   'statement.type.transferIn': 'Transfer received (TRV)',
   'statement.type.feeIncome': 'Fee received (USD)',
   'statement.type.adminAdjust': 'Admin adjustment',

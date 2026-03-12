@@ -11,7 +11,7 @@ interface MercadoPagoModalProps {
 
 export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: MercadoPagoModalProps) {
   const auth = useAuth()
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
@@ -22,6 +22,20 @@ export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: Mercado
     }
   }, [isOpen, amount])
 
+  function formatError(err: unknown): string {
+    const raw = typeof (err as any)?.message === 'string' ? (err as any).message : ''
+    try {
+      const parsed = raw ? JSON.parse(raw) as { code?: unknown } : null
+      const code = typeof parsed?.code === 'string' ? parsed.code : ''
+      if (code === 'MERCADOPAGO_INVALID_TOKEN') return t('mercadopago.errors.invalidToken')
+      if (code === 'MERCADOPAGO_API_ERROR' || code === 'MERCADOPAGO_ERROR') return t('mercadopago.errors.unavailable')
+    } catch {
+    }
+    if (raw.startsWith('MP API Error: 401')) return t('mercadopago.errors.invalidToken')
+    if (raw.startsWith('MP API Error:')) return t('mercadopago.errors.unavailable')
+    return raw || t('mercadopago.errors.unavailable')
+  }
+
   const createPreference = async () => {
     setLoading(true)
     setError(null)
@@ -30,7 +44,6 @@ export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: Mercado
     try {
       const token = await auth.getValidAccessToken()
 
-      console.log('Criando preferência...')
       const response = await fetch('/api/mercadopago/create-preference', {
         method: 'POST',
         headers: {
@@ -40,15 +53,14 @@ export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: Mercado
         body: JSON.stringify({ amount: parseFloat(amount) })
       })
 
-      const data = await response.json()
-      console.log('Resposta:', data)
+      const data = await response.json().catch(() => ({} as any))
 
       if (!response.ok) {
-        throw new Error(data.publicKey || 'Failed to create preference')
+        throw new Error(JSON.stringify(data))
       }
 
       if (!data.preferenceId) {
-        throw new Error(data.publicKey || 'No preference ID returned')
+        throw new Error(t('mercadopago.errors.unavailable'))
       }
 
       // Salva o valor no sessionStorage
@@ -57,10 +69,9 @@ export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: Mercado
       // Usa o sandbox_init_point para ambiente de teste
       const url = data.sandboxInitPoint || data.initPoint
       setPaymentUrl(url)
-      console.log('URL de pagamento:', url)
     } catch (err: any) {
-      console.error('Erro:', err)
-      setError(err?.message || 'Payment failed')
+      console.error(err)
+      setError(formatError(err))
     } finally {
       setLoading(false)
     }
@@ -97,21 +108,18 @@ export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: Mercado
         // Chama onSuccess para atualizar a carteira na tela
         onSuccess()
       } catch (err: any) {
-        setError(err?.message || 'Erro ao processar depósito')
+        setError(err?.message || t('mercadopago.errors.depositFailed'))
       }
     }
   }
 
-  // Determina o texto baseado no idioma
   const isPortuguese = () => locale === 'pt-BR'
   const currencySymbol = isPortuguese() ? 'R$' : '$'
 
-  const title = isPortuguese() ? 'Pagamento via Mercado Pago' : 'Mercado Pago Payment'
-  const description = isPortuguese()
-    ? `Clique no botão abaixo para pagar ${currencySymbol}${amount} via Mercado Pago.`
-    : `Click the button below to pay ${currencySymbol}${amount} via Mercado Pago.`
-  const cancelText = isPortuguese() ? 'Cancelar' : 'Cancel'
-  const payText = isPortuguese() ? 'Ir para o Mercado Pago' : 'Go to Mercado Pago'
+  const title = t('mercadopago.title')
+  const description = t('mercadopago.description', { amount })
+  const cancelText = t('mercadopago.cancel')
+  const payText = t('mercadopago.pay')
 
   if (!isOpen) return null
 
@@ -169,7 +177,7 @@ export function MercadoPagoModal({ isOpen, onClose, amount, onSuccess }: Mercado
                   margin: '0 auto'
                 }} />
                 <p style={{ marginTop: 12, color: 'var(--text-secondary)' }}>
-                  {isPortuguese() ? 'Carregando...' : 'Loading...'}
+                  {t('mercadopago.processing')}
                 </p>
               </div>
             ) : paymentUrl ? (

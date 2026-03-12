@@ -38,7 +38,7 @@ public class MercadoPagoController {
      * @return Dados da preferência do Mercado Pago
      */
     @PostMapping("/create-preference")
-    public ResponseEntity<MercadoPagoPreferenceResponse> createPreference(
+    public ResponseEntity<?> createPreference(
             @RequestBody MercadoPagoPreferenceRequest request,
             @AuthenticationPrincipal Jwt jwt,
             Locale locale) {
@@ -63,26 +63,25 @@ public class MercadoPagoController {
                 preference.publicKey()
             ));
         } catch (MPApiException e) {
-            String errorMsg = "MP API Error: " + e.getApiResponse().getStatusCode() + " - " + e.getApiResponse().getContent();
-            return ResponseEntity.badRequest().body(new MercadoPagoPreferenceResponse(
-                null,
-                null,
-                null,
-                errorMsg
+            int statusCode = e.getApiResponse() != null ? e.getApiResponse().getStatusCode() : 502;
+            String content = e.getApiResponse() != null ? e.getApiResponse().getContent() : "";
+            String code = (statusCode == 401 || (content != null && content.contains("invalid access token")))
+                    ? "MERCADOPAGO_INVALID_TOKEN"
+                    : "MERCADOPAGO_API_ERROR";
+            return ResponseEntity.status(502).body(Map.of(
+                    "code", code,
+                    "status", statusCode,
+                    "message", "Mercado Pago API error"
             ));
         } catch (MPException e) {
-            return ResponseEntity.badRequest().body(new MercadoPagoPreferenceResponse(
-                null,
-                null,
-                null,
-                "MP Error: " + e.getMessage()
+            return ResponseEntity.status(502).body(Map.of(
+                    "code", "MERCADOPAGO_ERROR",
+                    "message", "Mercado Pago error"
             ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MercadoPagoPreferenceResponse(
-                null,
-                null,
-                null,
-                "Error: " + e.getMessage()
+            return ResponseEntity.status(500).body(Map.of(
+                    "code", "INTERNAL_ERROR",
+                    "message", "Unable to create Mercado Pago preference"
             ));
         }
     }

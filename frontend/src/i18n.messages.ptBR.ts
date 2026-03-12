@@ -166,6 +166,9 @@ export const messagesPtBR: Record<string, string> = {
   'mercadopago.pay': 'Pagar',
   'mercadopago.cancel': 'Cancelar',
   'mercadopago.processing': 'Processando...',
+  'mercadopago.errors.invalidToken': 'Mercado Pago não está configurado corretamente (token inválido).',
+  'mercadopago.errors.unavailable': 'Mercado Pago está indisponível no momento. Tente novamente mais tarde.',
+  'mercadopago.errors.depositFailed': 'Não foi possível processar o depósito.',
 
   'statement.title': 'Extrato privado',
   'statement.subtitle': 'Apenas valores são exibidos para manter privacidade.',
@@ -181,6 +184,8 @@ export const messagesPtBR: Record<string, string> = {
   'statement.type.convertUsdToTrv': 'USD --> TRV',
   'statement.type.convertTrvToUsd': 'TRV --> USD',
   'statement.type.transferOut': 'Transferência enviada (TRV)',
+  'statement.transfer.from': 'de {name}',
+  'statement.transfer.to': 'para {name}',
   'statement.type.transferIn': 'Transferência recebida (TRV)',
   'statement.type.feeIncome': 'Taxa recebida (USD)',
   'statement.type.adminAdjust': 'Ajuste administrativo',
