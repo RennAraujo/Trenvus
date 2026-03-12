@@ -634,17 +634,39 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
             <div style={{
               background: 'white',
               padding: 20,
-              borderRadius: 16,
+              borderRadius: 24,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
               marginBottom: 20
             }}>
               {qrPayload && (
-                <QRCodeSVG 
-                  value={qrPayload}
-                  size={180}
-                  level="H"
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                />
+                <div style={{ position: 'relative', lineHeight: 0 }}>
+                  <QRCodeSVG 
+                    value={qrPayload}
+                    size={200}
+                    level="H"
+                    includeMargin={false}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    imageSettings={{
+                      src: '/logo-qr.png',
+                      height: 44,
+                      width: 44,
+                      excavate: false,
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 46,
+                    height: 46,
+                    background: 'white',
+                    borderRadius: '50%',
+                    zIndex: -1,
+                    border: '2px solid black',
+                  }}/>
+                </div>
               )}
             </div>
 
