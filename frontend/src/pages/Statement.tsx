@@ -301,7 +301,7 @@ export function Statement() {
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
     doc.text('Data/Hora', margin + 12, y + 19)
-    doc.text('Tipo / Descrição', margin + 110, y + 19)
+    doc.text('Tipo / Descrição', margin + 160, y + 19)
     doc.text('Valor', pageWidth - margin - 12, y + 19, { align: 'right' })
     
     y += 42
@@ -347,13 +347,13 @@ export function Statement() {
       doc.setTextColor(typeColor[0], typeColor[1], typeColor[2])
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
-      doc.text(typeText, margin + 110, y + 12)
+      doc.text(typeText, margin + 160, y + 12)
       
       // TEC reference - darker for visibility
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8)
       doc.setTextColor(120, 120, 140)
-      doc.text(item.tec, margin + 110, y + 26)
+      doc.text(item.tec, margin + 160, y + 26)
       
       // Values
       let valueY = y
