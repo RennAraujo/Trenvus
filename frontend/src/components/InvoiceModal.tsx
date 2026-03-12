@@ -214,10 +214,10 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
           }}>
             <div>
               <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 4px 0' }}>
-                {t('invoice.createRequest') || 'Criar Cobrança'}
+                Receber Pagamento
               </h2>
               <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
-                {t('invoice.chooseOption') || 'Escolha como deseja receber'}
+                Escolha como quer receber TRV
               </p>
             </div>
             <button
@@ -282,10 +282,10 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
               
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4 }}>
-                  {t('invoice.createInvoice') || 'Fatura com QR Code'}
+                  QR Code
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {t('invoice.createInvoiceDesc') || 'Gere uma fatura profissional com QR Code para pagamento'}
+                  O pagador escaneia com a câmera
                 </div>
               </div>
               
@@ -331,10 +331,10 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
               
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4 }}>
-                  {t('invoice.sharePaymentLink') || 'Link de Pagamento'}
+                  Link de Pagamento
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {t('invoice.sharePaymentLinkDesc') || 'Crie um link simples para compartilhar em qualquer lugar'}
+                  Copie e envie por WhatsApp, email ou redes
                 </div>
               </div>
               
@@ -414,7 +414,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
             </button>
             
             <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-              {isInvoice ? (t('invoice.createInvoice') || 'Fatura com QR Code') : (t('invoice.sharePaymentLink') || 'Link de Pagamento')}
+              {isInvoice ? 'QR Code' : 'Link de Pagamento'}
             </h2>
           </div>
 
@@ -429,7 +429,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 marginBottom: 10,
                 color: 'var(--text-primary)'
               }}>
-                {t('invoice.amount') || 'Valor'}
+                Quanto quer receber?
               </label>
               
               <div style={{
@@ -489,7 +489,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 marginBottom: 10,
                 color: 'var(--text-primary)'
               }}>
-                {t('invoice.description') || 'Descrição (opcional)'}
+                Do que se trata? (opcional)
               </label>
               
               <input
@@ -581,10 +581,10 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
               }}
             >
               {loading 
-                ? (t('actions.processing') || 'Processando...') 
+                ? 'Gerando...' 
                 : (isInvoice 
-                  ? (t('invoice.createInvoice') || 'Criar Fatura') 
-                  : (t('invoice.createLink') || 'Criar Link'))}
+                  ? 'Gerar QR Code' 
+                  : 'Gerar Link')}
             </button>
           </div>
         </div>
