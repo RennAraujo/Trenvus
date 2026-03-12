@@ -184,23 +184,21 @@ export function Statement() {
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const margin = 40
-    let y = 140
+    let y = 110
 
     const now = new Date()
     const nowLabel = formatWhen(now.toISOString()) || now.toISOString()
     
-    // Calculate totals
-    let totalUsdIn = 0, totalUsdOut = 0
-    let totalTrvIn = 0, totalTrvOut = 0
+    // Get wallet balances from current state
+    const wallet = items.length > 0 ? { usdCents: 0, trvCents: 0 } : { usdCents: 0, trvCents: 0 }
     
+    // Calculate totals from items
+    let totalUsd = 0, totalTrv = 0
     for (const item of items) {
       for (const v of item.values) {
-        if (v.currency === 'USD') {
-          if (v.cents > 0) totalUsdIn += v.cents
-          else totalUsdOut += Math.abs(v.cents)
-        } else if (v.currency === 'TRV') {
-          if (v.cents > 0) totalTrvIn += v.cents
-          else totalTrvOut += Math.abs(v.cents)
+        if (!v.fee) {
+          if (v.currency === 'USD') totalUsd += v.cents
+          else if (v.currency === 'TRV') totalTrv += v.cents
         }
       }
     }
@@ -208,153 +206,156 @@ export function Statement() {
     function ensureSpace(height: number) {
       if (y + height <= pageHeight - margin - 60) return
       doc.addPage()
-      addModernHeader()
-      y = 100
+      addHeader()
+      y = 80
     }
 
-    function addModernHeader() {
-      // Dark blue gradient header background
-      const gradientSteps = 20
-      for (let i = 0; i < gradientSteps; i++) {
-        const ratio = i / gradientSteps
-        const r = Math.round(26 + (10 - 26) * ratio)
-        const g = Math.round(26 + (20 - 26) * ratio)
-        const b = Math.round(46 + (60 - 46) * ratio)
-        doc.setFillColor(r, g, b)
-        doc.rect(0, i * 3, pageWidth, 3, 'F')
-      }
+    function addHeader() {
+      // Dark navy header background
+      doc.setFillColor(20, 20, 40)
+      doc.rect(0, 0, pageWidth, 90, 'F')
       
-      // Geometric accent shapes
+      // Decorative geometric shapes on right
       doc.setFillColor(124, 58, 237)
-      doc.triangle(pageWidth - 100, 0, pageWidth, 0, pageWidth, 40, 'F')
-      doc.setFillColor(234, 29, 44)
-      doc.triangle(pageWidth - 60, 0, pageWidth - 20, 0, pageWidth - 40, 25, 'F')
+      doc.triangle(pageWidth - 150, 0, pageWidth, 0, pageWidth, 70, 'F')
+      doc.setFillColor(200, 50, 80)
+      doc.triangle(pageWidth - 80, 0, pageWidth - 30, 0, pageWidth - 55, 45, 'F')
       
-      // Logo area
-      addTrenvusLogo(doc, margin, 25, 0.8)
-      
-      // Title on the right
+      // Trenvus Logo Text (stylized)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(28)
       doc.setTextColor(255, 255, 255)
-      doc.text('EXTRATO', pageWidth - margin - 120, 50, { align: 'right' })
+      doc.text('TRENVUS', margin, 55)
       
-      // Reference number and date
+      // Purple accent line under logo
+      doc.setFillColor(124, 58, 237)
+      doc.rect(margin, 62, 80, 3, 'F')
+      
+      // Document title
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(26)
+      doc.setTextColor(255, 255, 255)
+      doc.text('EXTRATO', pageWidth - margin, 50, { align: 'right' })
+      
+      // Reference and date - better contrast
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(10)
-      doc.setTextColor(180, 180, 200)
-      doc.text(`Ref: TEC-${now.getTime().toString().slice(-10)}`, pageWidth - margin - 120, 68, { align: 'right' })
-      doc.text(`Data: ${nowLabel}`, pageWidth - margin - 120, 82, { align: 'right' })
+      doc.setFontSize(9)
+      doc.setTextColor(200, 200, 220)
+      const refText = `Ref: TEC-${now.getTime().toString().slice(-10)}`
+      doc.text(refText, pageWidth - margin, 68, { align: 'right' })
+      doc.text(`Data: ${nowLabel}`, pageWidth - margin, 82, { align: 'right' })
     }
 
-    function addModernFooter(pageNum: number, totalPages: number) {
-      // Dark blue footer
-      doc.setFillColor(26, 26, 46)
-      doc.rect(0, pageHeight - 50, pageWidth, 50, 'F')
+    function addFooter(pageNum: number, totalPages: number) {
+      // Dark footer
+      doc.setFillColor(20, 20, 40)
+      doc.rect(0, pageHeight - 45, pageWidth, 45, 'F')
       
       // Contact info
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(9)
-      doc.setTextColor(150, 150, 180)
-      doc.text('Trenvus © 2026 - trenvus.com', margin, pageHeight - 25)
-      doc.text('contato@trenvus.com', margin, pageHeight - 12)
+      doc.setTextColor(180, 180, 200)
+      doc.text('Trenvus © 2026 · trenvus.com · contato@trenvus.com', margin, pageHeight - 20)
       
       // Page number
-      doc.text(`${pageNum} / ${totalPages}`, pageWidth - margin, pageHeight - 25, { align: 'right' })
+      doc.text(`Página ${pageNum} de ${totalPages}`, pageWidth - margin, pageHeight - 20, { align: 'right' })
     }
 
     // First page header
-    addModernHeader()
+    addHeader()
 
-    // Summary Cards Section
+    // Balance Section - USD and TRV cards
     y += 20
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
-    doc.setTextColor(50, 50, 70)
-    doc.text('Resumo das Transações', margin, y)
+    doc.setFontSize(11)
+    doc.setTextColor(60, 60, 80)
+    doc.text('Saldos Atuais', margin, y)
     y += 25
 
-    // Summary cards
+    // Balance cards side by side
     const cardWidth = (pageWidth - margin * 2 - 20) / 2
-    const cardHeight = 70
     
-    // Card 1 - Entradas
-    doc.setFillColor(240, 247, 240)
-    doc.roundedRect(margin, y, cardWidth, cardHeight, 8, 8, 'F')
-    doc.setDrawColor(16, 185, 129)
-    doc.setLineWidth(2)
-    doc.line(margin, y + cardHeight - 15, margin + cardWidth, y + cardHeight - 15)
+    // USD Balance Card
+    doc.setFillColor(245, 248, 255)
+    doc.roundedRect(margin, y, cardWidth, 75, 6, 6, 'F')
+    // Blue accent line
+    doc.setFillColor(59, 130, 246)
+    doc.rect(margin, y + 70, cardWidth, 5, 'F')
+    
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.setTextColor(100, 100, 100)
-    doc.text('Total Entradas', margin + 15, y + 25)
+    doc.setFontSize(11)
+    doc.setTextColor(100, 100, 120)
+    doc.text('Saldo USD', margin + 15, y + 28)
+    
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(14)
-    doc.setTextColor(16, 185, 129)
-    doc.text(`+${formatUsd(totalUsdIn + totalTrvIn)}`, margin + 15, y + 50)
+    doc.setFontSize(18)
+    doc.setTextColor(59, 130, 246)
+    const totalUsdFormatted = formatUsd(Math.abs(totalUsd))
+    doc.text(`${totalUsd >= 0 ? '+' : '-'}${totalUsdFormatted}`, margin + 15, y + 55)
     
-    // Card 2 - Saídas
-    doc.setFillColor(255, 245, 245)
-    doc.roundedRect(margin + cardWidth + 20, y, cardWidth, cardHeight, 8, 8, 'F')
-    doc.setDrawColor(239, 68, 68)
-    doc.line(margin + cardWidth + 20, y + cardHeight - 15, margin + cardWidth * 2 + 20, y + cardHeight - 15)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.setTextColor(100, 100, 100)
-    doc.text('Total Saídas', margin + cardWidth + 35, y + 25)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(14)
-    doc.setTextColor(239, 68, 68)
-    doc.text(`-${formatUsd(totalUsdOut + totalTrvOut)}`, margin + cardWidth + 35, y + 50)
-    
-    y += cardHeight + 35
-
-    // Transactions Table Header - Dark blue modern style
-    const tableWidth = pageWidth - margin * 2
-    doc.setFillColor(26, 26, 46)
-    doc.roundedRect(margin, y, tableWidth, 35, 4, 4, 'F')
-    
-    // Gradient accent
+    // TRV Balance Card
+    doc.setFillColor(250, 245, 255)
+    doc.roundedRect(margin + cardWidth + 20, y, cardWidth, 75, 6, 6, 'F')
+    // Purple accent line
     doc.setFillColor(124, 58, 237)
-    doc.rect(margin, y + 30, tableWidth, 5, 'F')
+    doc.rect(margin + cardWidth + 20, y + 70, cardWidth, 5, 'F')
+    
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    doc.setTextColor(100, 100, 120)
+    doc.text('Saldo TRV', margin + cardWidth + 35, y + 28)
+    
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(18)
+    doc.setTextColor(124, 58, 237)
+    const totalTrvFormatted = formatUsd(Math.abs(totalTrv))
+    doc.text(`${totalTrv >= 0 ? '+' : '-'}${totalTrvFormatted}`, margin + cardWidth + 35, y + 55)
+    
+    y += 95
+
+    // Transactions Section Title
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    doc.setTextColor(60, 60, 80)
+    doc.text('Histórico de Transações', margin, y)
+    y += 20
+
+    // Transactions Table Header
+    const tableWidth = pageWidth - margin * 2
+    doc.setFillColor(30, 30, 50)
+    doc.roundedRect(margin, y, tableWidth, 32, 3, 3, 'F')
+    // Purple accent bar at bottom of header
+    doc.setFillColor(124, 58, 237)
+    doc.rect(margin, y + 27, tableWidth, 5, 'F')
     
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
-    doc.text('Data', margin + 15, y + 22)
-    doc.text('Tipo / Descrição', margin + 120, y + 22)
-    doc.text('Valor', pageWidth - margin - 15, y + 22, { align: 'right' })
+    doc.text('Data/Hora', margin + 12, y + 19)
+    doc.text('Tipo / Descrição', margin + 110, y + 19)
+    doc.text('Valor', pageWidth - margin - 12, y + 19, { align: 'right' })
     
-    y += 45
+    y += 42
 
-    // Transactions with alternating row colors
+    // Transactions rows
     let rowIndex = 0
     for (const item of items) {
-      ensureSpace(50)
+      ensureSpace(45)
       
       // Alternating row background
       if (rowIndex % 2 === 0) {
-        doc.setFillColor(250, 250, 255)
-        doc.roundedRect(margin, y - 5, tableWidth, 40, 2, 2, 'F')
+        doc.setFillColor(248, 248, 252)
+        doc.roundedRect(margin, y - 4, tableWidth, 38, 2, 2, 'F')
       }
       
       // Date
       const dateStr = formatWhen(item.createdAt?.toString() || null) || '-'
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(9)
+      doc.setFontSize(8)
       doc.setTextColor(80, 80, 100)
-      doc.text(dateStr, margin + 15, y + 15)
+      doc.text(dateStr, margin + 12, y + 12)
       
-      // Type with icon indicator
-      let typeColor = [100, 100, 100]
-      if (item.type === 'TRANSFER_TRV_IN') typeColor = [16, 185, 129]
-      else if (item.type === 'TRANSFER_TRV_OUT') typeColor = [239, 68, 68]
-      else if (item.type === 'DEPOSIT_USD') typeColor = [59, 130, 246]
-      
-      doc.setTextColor(typeColor[0], typeColor[1], typeColor[2])
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(10)
-      
+      // Type - truncated if too long
       let typeText = typeLabel(item.type)
       if (item.type === 'TRANSFER_TRV_IN' && item.senderNickname) {
         typeText += ` de ${item.senderNickname}`
@@ -362,28 +363,38 @@ export function Statement() {
         typeText += ` para ${item.recipientNickname}`
       }
       
-      // Truncate if too long
-      if (typeText.length > 35) {
-        typeText = typeText.substring(0, 32) + '...'
+      // Truncate long text
+      if (typeText.length > 38) {
+        typeText = typeText.substring(0, 35) + '...'
       }
       
-      doc.text(typeText, margin + 120, y + 15)
+      // Type color based on transaction type
+      let typeColor = [80, 80, 100]
+      if (item.type === 'TRANSFER_TRV_IN') typeColor = [16, 185, 129]
+      else if (item.type === 'TRANSFER_TRV_OUT') typeColor = [239, 68, 68]
+      else if (item.type === 'DEPOSIT_USD') typeColor = [59, 130, 246]
+      else if (item.type.includes('CONVERT')) typeColor = [124, 58, 237]
       
-      // TEC reference
+      doc.setTextColor(typeColor[0], typeColor[1], typeColor[2])
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.text(typeText, margin + 110, y + 12)
+      
+      // TEC reference - darker for visibility
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8)
-      doc.setTextColor(150, 150, 170)
-      doc.text(item.tec, margin + 120, y + 28)
+      doc.setTextColor(120, 120, 140)
+      doc.text(item.tec, margin + 110, y + 26)
       
-      // Values on the right
+      // Values
       let valueY = y
       for (const v of item.values) {
         const valueText = formatSigned(v.currency, v.cents)
         
         if (v.fee) {
-          doc.setTextColor(150, 150, 150)
-          doc.setFontSize(8)
-          doc.text(`${valueText} (taxa)`, pageWidth - margin - 15, valueY + 15, { align: 'right' })
+          doc.setTextColor(140, 140, 160)
+          doc.setFontSize(7)
+          doc.text(`${valueText} (taxa)`, pageWidth - margin - 12, valueY + 10, { align: 'right' })
         } else {
           if (v.cents >= 0) {
             doc.setTextColor(16, 185, 129)
@@ -391,15 +402,14 @@ export function Statement() {
             doc.setTextColor(239, 68, 68)
           }
           doc.setFont('helvetica', 'bold')
-          doc.setFontSize(11)
-          doc.text(valueText, pageWidth - margin - 15, valueY + 15, { align: 'right' })
+          doc.setFontSize(10)
+          doc.text(valueText, pageWidth - margin - 12, valueY + 12, { align: 'right' })
         }
         
-        valueY += 14
+        valueY += 13
       }
       
-      doc.setTextColor(0, 0, 0)
-      y = Math.max(y + 35, valueY + 10)
+      y = Math.max(y + 32, valueY + 5)
       rowIndex++
     }
 
@@ -407,7 +417,7 @@ export function Statement() {
     const totalPages = doc.getNumberOfPages()
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i)
-      addModernFooter(i, totalPages)
+      addFooter(i, totalPages)
     }
 
     // Store PDF data and open modal
