@@ -176,31 +176,34 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
       <div style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(0,0,0,0.7)',
+        backdropFilter: 'blur(4px)',
         display: 'flex',
-        alignItems: 'flex-end',
+        alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        animation: 'fadeIn 0.2s ease'
+        animation: 'fadeIn 0.2s ease',
+        padding: 16
       }}>
         <style>{`
           @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
           }
-          @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+          @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
           }
         `}</style>
         
         <div style={{
           background: 'var(--bg-primary)',
           width: '100%',
-          maxWidth: 480,
-          borderRadius: '24px 24px 0 0',
-          padding: 24,
-          animation: 'slideUp 0.3s ease'
+          maxWidth: 420,
+          borderRadius: 20,
+          padding: '28px 24px',
+          animation: 'scaleIn 0.25s ease',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
         }}>
           {/* Header */}
           <div style={{
@@ -209,22 +212,30 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
             justifyContent: 'space-between',
             marginBottom: 24
           }}>
-            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-              {t('invoice.howToRequest') || 'How would you like to request?'}
-            </h2>
+            <div>
+              <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 4px 0' }}>
+                {t('invoice.createRequest') || 'Criar Cobrança'}
+              </h2>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
+                {t('invoice.chooseOption') || 'Escolha como deseja receber'}
+              </p>
+            </div>
             <button
               onClick={handleClose}
               style={{
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 borderRadius: '50%',
                 border: 'none',
                 background: 'var(--bg-elevated)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                transition: 'all 0.2s'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--border-default)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-elevated)'}
             >
               <CloseIcon />
             </button>
@@ -240,31 +251,41 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 gap: 16,
                 padding: 20,
                 borderRadius: 16,
-                border: '1px solid var(--border-default)',
+                border: '2px solid var(--border-default)',
                 background: 'var(--bg-elevated)',
                 cursor: 'pointer',
-                textAlign: 'left'
+                textAlign: 'left',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-primary)'
+                e.currentTarget.style.background = 'var(--color-primary-alpha-10)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-default)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
               }}
             >
               <div style={{
-                width: 48,
-                height: 48,
+                width: 52,
+                height: 52,
                 borderRadius: '50%',
-                background: 'var(--color-primary-alpha-10)',
-                color: 'var(--color-primary)',
+                background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)',
+                color: 'white',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
               }}>
                 <InvoiceIcon />
               </div>
               
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4 }}>
-                  {t('invoice.createInvoice') || 'Create invoice'}
+                  {t('invoice.createInvoice') || 'Fatura com QR Code'}
                 </div>
-                <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-                  {t('invoice.createInvoiceDesc') || 'Generate a professional invoice with QR code'}
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  {t('invoice.createInvoiceDesc') || 'Gere uma fatura profissional com QR Code para pagamento'}
                 </div>
               </div>
               
@@ -279,31 +300,41 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 gap: 16,
                 padding: 20,
                 borderRadius: 16,
-                border: '1px solid var(--border-default)',
+                border: '2px solid var(--border-default)',
                 background: 'var(--bg-elevated)',
                 cursor: 'pointer',
-                textAlign: 'left'
+                textAlign: 'left',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-success)'
+                e.currentTarget.style.background = 'var(--color-success-alpha-10)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-default)'
+                e.currentTarget.style.background = 'var(--bg-elevated)'
               }}
             >
               <div style={{
-                width: 48,
-                height: 48,
+                width: 52,
+                height: 52,
                 borderRadius: '50%',
-                background: 'var(--color-success-alpha-10)',
-                color: 'var(--color-success)',
+                background: 'linear-gradient(135deg, var(--color-success) 0%, #10b981 100%)',
+                color: 'white',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
               }}>
                 <LinkIcon />
               </div>
               
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4 }}>
-                  {t('invoice.sharePaymentLink') || 'Share payment link'}
+                  {t('invoice.sharePaymentLink') || 'Link de Pagamento'}
                 </div>
-                <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-                  {t('invoice.sharePaymentLinkDesc') || 'Create a simple link to share anywhere'}
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  {t('invoice.sharePaymentLinkDesc') || 'Crie um link simples para compartilhar em qualquer lugar'}
                 </div>
               </div>
               

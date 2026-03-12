@@ -421,7 +421,7 @@ export function Dashboard() {
               </svg>
             </div>
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {t('dashboard.receive') || 'Receive'}
+              {t('nav.invoices') || 'Invoice'}
             </span>
           </button>
         </div>
