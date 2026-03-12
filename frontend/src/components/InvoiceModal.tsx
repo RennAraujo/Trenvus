@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api } from '../api'
 import { useAuth } from '../auth'
@@ -107,6 +107,18 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const [loading, setLoading] = useState(false)
   const amountInputRef = useRef<HTMLInputElement | null>(null)
 
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setStep('menu')
+      setAmountDigits('')
+      setDescription('')
+      setQrPayload(null)
+      setCopied(false)
+      setLoading(false)
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const amount = useMemo(() => formatMoneyDigits(amountDigits), [amountDigits])
@@ -192,7 +204,6 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   }
 
   const handleClose = () => {
-    reset()
     onClose()
   }
 
