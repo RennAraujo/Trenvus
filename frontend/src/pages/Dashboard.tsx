@@ -291,7 +291,7 @@ export function Dashboard() {
               padding: '12px 16px',
               borderRadius: 12,
               border: 'none',
-              background: activeTab === 'deposit' ? 'var(--color-success-alpha-10)' : 'transparent',
+              background: activeTab === 'deposit' ? 'var(--color-primary-alpha-10)' : 'transparent',
               cursor: 'pointer',
               transition: 'all 0.2s ease'
             }}
@@ -300,12 +300,12 @@ export function Dashboard() {
               width: 44,
               height: 44,
               borderRadius: '50%',
-              background: 'var(--color-success)',
+              background: 'var(--color-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
             }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M12 5v14M5 12h14"/>
@@ -373,12 +373,12 @@ export function Dashboard() {
               width: 44,
               height: 44,
               borderRadius: '50%',
-              background: 'var(--color-secondary)',
+              background: 'var(--color-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              boxShadow: '0 4px 12px rgba(236, 72, 153, 0.3)'
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
             }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="m22 2-7 20-4-9-9-4Z"/>
@@ -409,12 +409,12 @@ export function Dashboard() {
               width: 44,
               height: 44,
               borderRadius: '50%',
-              background: 'var(--color-accent)',
+              background: 'var(--color-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              boxShadow: '0 4px 12px rgba(234, 29, 44, 0.3)'
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
             }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 19V5M5 12l7-7 7 7"/>
