@@ -558,20 +558,34 @@ export function Statement() {
                 </div>
 
                 <div className="tx-amount" style={{ textAlign: 'right' }}>
-                  {item.values.map((v, i) => (
-                    <div 
-                      key={i} 
-                      style={{ 
-                        fontSize: 14, 
-                        fontWeight: 500,
-                        color: v.fee ? 'var(--text-muted)' : (v.cents >= 0 ? 'var(--color-success)' : 'var(--text-primary)'),
-                        fontFamily: 'var(--font-mono)'
-                      }}
-                    >
-                      {formatSigned(v.currency, v.cents)}
-                      {v.fee && <span style={{ fontSize: 11, marginLeft: 4 }}>({t('statement.fee')})</span>}
-                    </div>
-                  ))}
+                  {item.values.map((v, i) => {
+                    // Determine color based on value and transaction type
+                    let valueColor: string
+                    if (v.fee) {
+                      valueColor = 'var(--text-muted)'
+                    } else if (v.cents >= 0) {
+                      valueColor = 'var(--color-success)'
+                    } else {
+                      // Negative values
+                      const isConvert = item.type === 'CONVERT_USD_TO_TRV' || item.type === 'CONVERT_TRV_TO_USD'
+                      valueColor = isConvert ? 'var(--color-primary)' : 'var(--color-danger)'
+                    }
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        style={{ 
+                          fontSize: 14, 
+                          fontWeight: 500,
+                          color: valueColor,
+                          fontFamily: 'var(--font-mono)'
+                        }}
+                      >
+                        {formatSigned(v.currency, v.cents)}
+                        {v.fee && <span style={{ fontSize: 11, marginLeft: 4 }}>({t('statement.fee')})</span>}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )
