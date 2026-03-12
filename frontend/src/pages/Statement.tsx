@@ -483,6 +483,11 @@ export function Statement() {
                           de {item.senderNickname}
                         </span>
                       )}
+                      {item.type === 'TRANSFER_TRV_OUT' && item.recipientNickname && (
+                        <span style={{ color: 'var(--color-danger)', marginLeft: 6 }}>
+                          para {item.recipientNickname}
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

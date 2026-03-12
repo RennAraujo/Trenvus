@@ -211,6 +211,7 @@ public class InvoiceService {
             outTx.setTrvAmountCents(amountCents);
         }
         outTx.setSourceUserId(recipientId);
+        outTx.setTargetUserId(recipientId);
         transactions.save(outTx);
 
         var inTx = new TransactionEntity();
@@ -222,6 +223,7 @@ public class InvoiceService {
             inTx.setTrvAmountCents(amountCents);
         }
         inTx.setSourceUserId(payerUserId);
+        inTx.setTargetUserId(payerUserId);
         transactions.save(inTx);
 
         // Return updated payer wallet

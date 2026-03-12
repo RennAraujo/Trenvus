@@ -39,6 +39,9 @@ public class TransactionEntity {
 	@Column(name = "source_user_id")
 	private Long sourceUserId;
 
+	@Column(name = "target_user_id")
+	private Long targetUserId;
+
 	@Column(name = "notes", length = 500)
 	private String notes;
 
@@ -103,6 +106,14 @@ public class TransactionEntity {
 
 	public void setSourceUserId(Long sourceUserId) {
 		this.sourceUserId = sourceUserId;
+	}
+
+	public Long getTargetUserId() {
+		return targetUserId;
+	}
+
+	public void setTargetUserId(Long targetUserId) {
+		this.targetUserId = targetUserId;
 	}
 
 	public String getNotes() {

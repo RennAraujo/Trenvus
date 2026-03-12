@@ -68,6 +68,7 @@ export type PrivateStatementItem = {
   values: Array<{ currency: string; cents: number; fee: boolean }>
   notes?: string
   senderNickname?: string
+  recipientNickname?: string
 }
 
 export type AdminStatementItem = {

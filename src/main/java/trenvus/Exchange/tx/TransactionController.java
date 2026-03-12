@@ -59,8 +59,16 @@ public class TransactionController {
 				.orElse(null);
 		}
 
+		// Busca nickname do destinatário para transferências enviadas
+		String recipientNickname = null;
+		if (type == TransactionType.TRANSFER_TRV_OUT && tx.getTargetUserId() != null) {
+			recipientNickname = users.findById(tx.getTargetUserId())
+				.map(u -> u.getNickname() != null ? u.getNickname() : u.getEmail())
+				.orElse(null);
+		}
+
 		if (tx.getType() == TransactionType.DEPOSIT_USD) {
-			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("USD", tx.getUsdAmountCents(), false)), null, senderNickname);
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("USD", tx.getUsdAmountCents(), false)), null, senderNickname, recipientNickname);
 		}
 		if (tx.getType() == TransactionType.CONVERT_USD_TO_TRV) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
@@ -70,7 +78,7 @@ public class TransactionController {
 					new ValueLine("USD", -usd, false),
 					new ValueLine("TRV", trv, false),
 					new ValueLine("USD", -fee, true)
-			), null, senderNickname);
+			), null, senderNickname, recipientNickname);
 		}
 		if (tx.getType() == TransactionType.CONVERT_TRV_TO_USD) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
@@ -80,17 +88,17 @@ public class TransactionController {
 					new ValueLine("TRV", -trv, false),
 					new ValueLine("USD", usd, false),
 					new ValueLine("USD", -fee, true)
-			), null, senderNickname);
+			), null, senderNickname, recipientNickname);
 		}
 		if (tx.getType() == TransactionType.TRANSFER_TRV_OUT) {
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
 			return new PrivateStatementItem(id, tec, type, createdAt, List.of(
 					new ValueLine("TRV", -trv, false)
-			), null, senderNickname);
+			), null, senderNickname, recipientNickname);
 		}
 		if (tx.getType() == TransactionType.TRANSFER_TRV_IN) {
 			var trv = tx.getTrvAmountCents() == null ? 0 : tx.getTrvAmountCents();
-			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("TRV", trv, false)), null, senderNickname);
+			return new PrivateStatementItem(id, tec, type, createdAt, List.of(new ValueLine("TRV", trv, false)), null, senderNickname, recipientNickname);
 		}
 		if (tx.getType() == TransactionType.ADMIN_ADJUST_WALLET) {
 			var usd = tx.getUsdAmountCents() == null ? 0 : tx.getUsdAmountCents();
@@ -99,17 +107,20 @@ public class TransactionController {
 			var values = new java.util.ArrayList<ValueLine>();
 			if (usd != 0) values.add(new ValueLine("USD", usd, false));
 			if (trv != 0) values.add(new ValueLine("TRV", trv, false));
-			return new PrivateStatementItem(id, tec, type, createdAt, values, notes, senderNickname);
+			return new PrivateStatementItem(id, tec, type, createdAt, values, notes, senderNickname, recipientNickname);
 		}
-		return new PrivateStatementItem(id, tec, type, createdAt, List.of(), null, senderNickname);
+		return new PrivateStatementItem(id, tec, type, createdAt, List.of(), null, senderNickname, recipientNickname);
 	}
 
-	public record PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values, String notes, String senderNickname) {
+	public record PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values, String notes, String senderNickname, String recipientNickname) {
 		public PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values) {
-			this(id, tec, type, createdAt, values, null, null);
+			this(id, tec, type, createdAt, values, null, null, null);
 		}
 		public PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values, String notes) {
-			this(id, tec, type, createdAt, values, notes, null);
+			this(id, tec, type, createdAt, values, notes, null, null);
+		}
+		public PrivateStatementItem(Long id, String tec, TransactionType type, Instant createdAt, List<ValueLine> values, String notes, String senderNickname) {
+			this(id, tec, type, createdAt, values, notes, senderNickname, null);
 		}
 	}
 
