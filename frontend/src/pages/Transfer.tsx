@@ -65,7 +65,7 @@ export function Transfer() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [isLookingUp, setIsLookingUp] = useState(false)
   const amountInputRef = useRef<HTMLInputElement | null>(null)
-  const lookupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const totals = useMemo(() => {
     const usd = wallet?.usdCents ?? 0
