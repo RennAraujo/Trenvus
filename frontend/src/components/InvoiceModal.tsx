@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api } from '../api'
 import { useAuth } from '../auth'
@@ -95,11 +95,9 @@ interface InvoiceModalProps {
   onClose: () => void
 }
 
-type Step = 'menu' | 'invoice-form' | 'invoice-qr' | 'link-form' | 'link-qr'
-
 export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const auth = useAuth()
-  const [step, setStep] = useState<Step>('menu')
+  const [view, setView] = useState<'menu' | 'invoice-form' | 'invoice-qr' | 'link-form' | 'link-qr'>('menu')
   const [amountDigits, setAmountDigits] = useState('')
   const [description, setDescription] = useState('')
   const [qrPayload, setQrPayload] = useState<string | null>(null)
@@ -107,21 +105,19 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const [loading, setLoading] = useState(false)
   const amountInputRef = useRef<HTMLInputElement | null>(null)
 
-  // Reset state when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setStep('menu')
-      setAmountDigits('')
-      setDescription('')
-      setQrPayload(null)
-      setCopied(false)
-      setLoading(false)
-    }
-  }, [isOpen])
-
-  if (!isOpen) return null
-
+  // Calculate formatted amount
   const amount = useMemo(() => formatMoneyDigits(amountDigits), [amountDigits])
+
+  if (!isOpen) {
+    // Reset state when modal is closed
+    if (view !== 'menu') setView('menu')
+    if (amountDigits !== '') setAmountDigits('')
+    if (description !== '') setDescription('')
+    if (qrPayload !== null) setQrPayload(null)
+    if (copied !== false) setCopied(false)
+    if (loading !== false) setLoading(false)
+    return null
+  }
 
   const handleCreateInvoice = async () => {
     if (!amount.plain) {
@@ -139,7 +135,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
       const token = await auth.getValidAccessToken()
       const response = await api.generateInvoice(token, amount.plain, 'TRV', description || 'Invoice payment')
       setQrPayload(response.qrPayload)
-      setStep('invoice-qr')
+      setView('invoice-qr')
     } catch (err: any) {
       console.error('Failed to generate invoice', err)
       alert(err?.message || 'Failed to generate invoice')
@@ -164,7 +160,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
       const token = await auth.getValidAccessToken()
       const response = await api.generateInvoice(token, amount.plain, 'TRV', description || 'Payment link')
       setQrPayload(response.qrPayload)
-      setStep('link-qr')
+      setView('link-qr')
     } catch (err: any) {
       console.error('Failed to generate link', err)
       alert(err?.message || 'Failed to generate link')
@@ -195,99 +191,95 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
     }
   }
 
-  const reset = () => {
-    setStep('menu')
-    setAmountDigits('')
-    setDescription('')
-    setQrPayload(null)
-    setCopied(false)
-  }
-
   const handleClose = () => {
     onClose()
   }
 
-  // Menu Step
-  if (step === 'menu') {
-    console.log('Rendering menu step')
+  // Render Menu
+  if (view === 'menu') {
     return (
       <div 
-        className="modal-overlay" 
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: 16
+        }}
         onClick={handleClose}
-        style={{ zIndex: 9999 }}
       >
         <div 
-          onClick={e => e.stopPropagation()}
           style={{
-            position: 'relative',
-            maxWidth: 420,
             width: '100%',
-            background: 'var(--bg-elevated)',
+            maxWidth: 400,
+            background: '#1a1a25',
             borderRadius: 20,
-            padding: 0,
-            overflow: 'hidden',
-            border: '2px solid var(--border-default)',
-            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-            zIndex: 10000
+            border: '2px solid #2a2a3c',
+            overflow: 'hidden'
           }}
+          onClick={e => e.stopPropagation()}
         >
           {/* Header */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '24px 24px 16px',
-            borderBottom: '1px solid var(--border-default)',
-            background: 'linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-primary) 100%)'
+            padding: '20px 20px 16px',
+            borderBottom: '1px solid #2a2a3c'
           }}>
             <div>
-              <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 6px 0' }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px 0', color: '#fff' }}>
                 Receber Pagamento
               </h2>
-              <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
+              <p style={{ fontSize: 13, color: '#717190', margin: 0 }}>
                 Escolha como quer receber TRV
               </p>
             </div>
             <button
               onClick={handleClose}
-              className="btn btn-icon btn-secondary"
-              style={{ width: 36, height: 36 }}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                border: 'none',
+                background: '#2a2a3c',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#a0a0b8'
+              }}
             >
               <CloseIcon />
             </button>
           </div>
 
           {/* Options */}
-          <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <button
-              onClick={() => setStep('invoice-form')}
+              onClick={() => setView('invoice-form')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
-                padding: 20,
-                borderRadius: 16,
-                border: '2px solid var(--border-default)',
-                background: 'var(--bg-elevated)',
+                gap: 14,
+                padding: 16,
+                borderRadius: 14,
+                border: '2px solid #2a2a3c',
+                background: '#12121a',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'all 0.2s ease',
                 width: '100%'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--color-primary)'
-                e.currentTarget.style.boxShadow = '0 0 0 3px var(--color-primary-alpha-20)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-default)'
-                e.currentTarget.style.boxShadow = 'none'
               }}
             >
               <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
-                background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)',
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
                 color: 'white',
                 display: 'flex',
                 alignItems: 'center',
@@ -298,48 +290,37 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
               </div>
               
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>
+                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2, color: '#fff' }}>
                   QR Code
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 12, color: '#717190' }}>
                   O pagador escaneia com a câmera
                 </div>
               </div>
               
-              <div style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                <ArrowRightIcon />
-              </div>
+              <ArrowRightIcon />
             </button>
 
             <button
-              onClick={() => setStep('link-form')}
+              onClick={() => setView('link-form')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
-                padding: 20,
-                borderRadius: 16,
-                border: '2px solid var(--border-default)',
-                background: 'var(--bg-elevated)',
+                gap: 14,
+                padding: 16,
+                borderRadius: 14,
+                border: '2px solid #2a2a3c',
+                background: '#12121a',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'all 0.2s ease',
                 width: '100%'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--color-success)'
-                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.2)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-default)'
-                e.currentTarget.style.boxShadow = 'none'
               }}
             >
               <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
-                background: 'linear-gradient(135deg, var(--color-success) 0%, #059669 100%)',
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 color: 'white',
                 display: 'flex',
                 alignItems: 'center',
@@ -350,17 +331,15 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
               </div>
               
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>
+                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2, color: '#fff' }}>
                   Link de Pagamento
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 12, color: '#717190' }}>
                   Copie e envie por WhatsApp ou email
                 </div>
               </div>
               
-              <div style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                <ArrowRightIcon />
-              </div>
+              <ArrowRightIcon />
             </button>
           </div>
         </div>
@@ -368,64 +347,78 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
     )
   }
 
-  // Form Step (Invoice or Link)
-  if (step === 'invoice-form' || step === 'link-form') {
-    const isInvoice = step === 'invoice-form'
+  // Render Form
+  if (view === 'invoice-form' || view === 'link-form') {
+    const isInvoice = view === 'invoice-form'
     return (
       <div 
-        className="modal-overlay" 
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: 16
+        }}
         onClick={handleClose}
-        style={{ zIndex: 9999 }}
       >
         <div 
-          onClick={e => e.stopPropagation()}
           style={{
-            position: 'relative',
-            maxWidth: 440,
             width: '100%',
-            background: 'var(--bg-elevated)',
+            maxWidth: 400,
+            background: '#1a1a25',
             borderRadius: 20,
-            padding: 0,
-            overflow: 'hidden',
-            border: '2px solid var(--border-default)',
-            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-            zIndex: 10000
+            border: '2px solid #2a2a3c',
+            overflow: 'hidden'
           }}
+          onClick={e => e.stopPropagation()}
         >
           {/* Header */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: 12,
-            padding: '20px 24px',
-            borderBottom: '1px solid var(--border-default)',
-            background: 'var(--bg-elevated)'
+            padding: '16px 20px',
+            borderBottom: '1px solid #2a2a3c',
+            background: '#12121a'
           }}>
             <button
-              onClick={() => setStep('menu')}
-              className="btn btn-icon btn-secondary"
-              style={{ width: 36, height: 36 }}
+              onClick={() => setView('menu')}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                border: 'none',
+                background: '#1a1a25',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#a0a0b8'
+              }}
             >
               <BackIcon />
             </button>
             
-            <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#fff' }}>
               {isInvoice ? 'QR Code' : 'Link de Pagamento'}
             </h2>
           </div>
 
           {/* Form */}
-          <div style={{ padding: 24 }}>
+          <div style={{ padding: 20 }}>
             {/* Amount */}
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 16 }}>
               <label style={{
                 display: 'block',
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 600,
                 marginBottom: 8,
-                color: 'var(--text-secondary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
+                color: '#717190',
+                textTransform: 'uppercase'
               }}>
                 Valor
               </label>
@@ -434,17 +427,15 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                padding: '16px 20px',
-                background: 'var(--bg-elevated)',
-                borderRadius: 14,
-                border: '2px solid var(--border-default)',
-                transition: 'all 0.2s'
+                padding: '14px 16px',
+                background: '#12121a',
+                borderRadius: 12,
+                border: '2px solid #2a2a3c'
               }}>
                 <span style={{ 
-                  fontSize: 32, 
+                  fontSize: 28, 
                   fontWeight: 800,
-                  color: 'var(--color-primary)',
-                  lineHeight: 1
+                  color: '#a855f7'
                 }}>₮</span>
                 
                 <input
@@ -453,14 +444,12 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                   onFocus={() => {
                     const el = amountInputRef.current
                     if (!el) return
-                    const len = el.value.length
-                    el.setSelectionRange(len, len)
+                    el.setSelectionRange(el.value.length, el.value.length)
                   }}
                   onClick={() => {
                     const el = amountInputRef.current
                     if (!el) return
-                    const len = el.value.length
-                    el.setSelectionRange(len, len)
+                    el.setSelectionRange(el.value.length, el.value.length)
                   }}
                   onChange={(e) => {
                     const nextDigits = e.target.value.replace(/\D/g, '')
@@ -468,8 +457,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                     requestAnimationFrame(() => {
                       const el = amountInputRef.current
                       if (!el) return
-                      const len = el.value.length
-                      el.setSelectionRange(len, len)
+                      el.setSelectionRange(el.value.length, el.value.length)
                     })
                   }}
                   inputMode="numeric"
@@ -478,22 +466,20 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                     flex: 1,
                     border: 'none',
                     background: 'transparent',
-                    fontSize: 28,
+                    fontSize: 24,
                     fontWeight: 700,
                     outline: 'none',
-                    fontFamily: 'var(--font-mono)',
-                    color: 'var(--text-primary)'
+                    color: '#fff'
                   }}
                 />
                 
                 <span style={{
-                  padding: '8px 16px',
-                  borderRadius: 12,
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-secondary)',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  letterSpacing: '0.05em'
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  background: '#2a2a3c',
+                  color: '#717190',
+                  fontSize: 13,
+                  fontWeight: 700
                 }}>
                   TRV
                 </span>
@@ -501,15 +487,14 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
             </div>
 
             {/* Description */}
-            <div style={{ marginBottom: 8 }}>
+            <div>
               <label style={{
                 display: 'block',
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 600,
                 marginBottom: 8,
-                color: 'var(--text-secondary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
+                color: '#717190',
+                textTransform: 'uppercase'
               }}>
                 Descrição (opcional)
               </label>
@@ -521,35 +506,38 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 placeholder={isInvoice ? "Ex: Pagamento de serviço" : "Ex: Doação"}
                 style={{
                   width: '100%',
-                  padding: '16px 20px',
-                  background: 'var(--bg-elevated)',
-                  borderRadius: 14,
-                  border: '2px solid var(--border-default)',
+                  padding: '14px 16px',
+                  background: '#12121a',
+                  borderRadius: 12,
+                  border: '2px solid #2a2a3c',
                   fontSize: 15,
                   outline: 'none',
-                  color: 'var(--text-primary)',
-                  transition: 'all 0.2s'
+                  color: '#fff'
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--border-default)'}
               />
             </div>
           </div>
 
           {/* Footer */}
           <div style={{
-            padding: '20px 24px',
-            borderTop: '1px solid var(--border-default)',
-            background: 'var(--bg-elevated)'
+            padding: '16px 20px',
+            borderTop: '1px solid #2a2a3c',
+            background: '#12121a'
           }}>
             <button
               onClick={isInvoice ? handleCreateInvoice : handleCreateLink}
               disabled={!amount.plain || loading}
-              className="btn btn-primary btn-lg"
               style={{
                 width: '100%',
-                opacity: (!amount.plain || loading) ? 0.5 : 1,
-                cursor: (!amount.plain || loading) ? 'not-allowed' : 'pointer'
+                padding: '16px 24px',
+                borderRadius: 12,
+                border: 'none',
+                background: (!amount.plain || loading) ? '#2a2a3c' : 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                color: '#fff',
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: (!amount.plain || loading) ? 'not-allowed' : 'pointer',
+                opacity: (!amount.plain || loading) ? 0.6 : 1
               }}
             >
               {loading ? 'Gerando...' : (isInvoice ? 'Gerar QR Code' : 'Gerar Link')}
@@ -560,51 +548,76 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
     )
   }
 
-  // QR Display Step
-  if (step === 'invoice-qr' || step === 'link-qr') {
-    const isInvoice = step === 'invoice-qr'
+  // Render QR
+  if (view === 'invoice-qr' || view === 'link-qr') {
+    const isInvoice = view === 'invoice-qr'
     return (
       <div 
-        className="modal-overlay" 
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: 16
+        }}
         onClick={handleClose}
-        style={{ zIndex: 9999 }}
       >
         <div 
-          onClick={e => e.stopPropagation()}
           style={{
-            position: 'relative',
-            maxWidth: 400,
             width: '100%',
-            background: 'var(--bg-elevated)',
+            maxWidth: 360,
+            background: '#1a1a25',
             borderRadius: 20,
-            padding: 0,
-            overflow: 'hidden',
-            border: '2px solid var(--border-default)',
-            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-            zIndex: 10000
+            border: '2px solid #2a2a3c',
+            overflow: 'hidden'
           }}
+          onClick={e => e.stopPropagation()}
         >
           {/* Header */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '20px 24px',
-            borderBottom: '1px solid var(--border-default)',
-            background: 'var(--bg-elevated)'
+            padding: '16px 20px',
+            borderBottom: '1px solid #2a2a3c',
+            background: '#12121a'
           }}>
             <button
-              onClick={() => setStep(isInvoice ? 'invoice-form' : 'link-form')}
-              className="btn btn-icon btn-secondary"
-              style={{ width: 36, height: 36 }}
+              onClick={() => setView(isInvoice ? 'invoice-form' : 'link-form')}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                border: 'none',
+                background: '#1a1a25',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#a0a0b8'
+              }}
             >
               <BackIcon />
             </button>
             
             <button
               onClick={handleClose}
-              className="btn btn-icon btn-secondary"
-              style={{ width: 36, height: 36 }}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                border: 'none',
+                background: '#1a1a25',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#a0a0b8'
+              }}
             >
               <CloseIcon />
             </button>
@@ -612,7 +625,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
 
           {/* Content */}
           <div style={{ 
-            padding: '32px 24px',
+            padding: '24px 20px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center'
@@ -620,15 +633,14 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
             {/* QR Code */}
             <div style={{
               background: 'white',
-              padding: 24,
-              borderRadius: 20,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-              marginBottom: 24
+              padding: 20,
+              borderRadius: 16,
+              marginBottom: 20
             }}>
               {qrPayload && (
                 <QRCodeSVG 
                   value={qrPayload}
-                  size={200}
+                  size={180}
                   level="H"
                   bgColor="#ffffff"
                   fgColor="#000000"
@@ -637,24 +649,21 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
             </div>
 
             {/* Amount */}
-            <div style={{ textAlign: 'center', marginBottom: 8 }}>
+            <div style={{ textAlign: 'center', marginBottom: 4 }}>
               <div style={{
-                fontSize: 32,
+                fontSize: 28,
                 fontWeight: 800,
-                fontFamily: 'var(--font-mono)',
-                background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+                color: '#a855f7'
               }}>
                 {amount.formatted || '0,00'} TRV
               </div>
               
               {description && (
                 <div style={{ 
-                  marginTop: 8, 
-                  color: 'var(--text-secondary)',
-                  fontSize: 14,
-                  maxWidth: 280,
+                  marginTop: 6, 
+                  color: '#717190',
+                  fontSize: 13,
+                  maxWidth: 260,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap'
@@ -667,19 +676,26 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
             {/* Actions */}
             <div style={{
               display: 'flex',
-              gap: 12,
+              gap: 10,
               width: '100%',
-              marginTop: 24
+              marginTop: 20
             }}>
               <button
                 onClick={copyLink}
-                className="btn btn-secondary"
                 style={{
                   flex: 1,
+                  padding: '14px 16px',
+                  borderRadius: 12,
+                  border: '1px solid #2a2a3c',
+                  background: '#12121a',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 8
+                  gap: 6
                 }}
               >
                 {copied ? <CheckIcon /> : <CopyIcon />}
@@ -688,13 +704,20 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
               
               <button
                 onClick={share}
-                className="btn btn-primary"
                 style={{
                   flex: 1,
+                  padding: '14px 16px',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                  color: 'white',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 8
+                  gap: 6
                 }}
               >
                 <ShareIcon />
@@ -704,20 +727,17 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
 
             {/* Create New */}
             <button
-              onClick={reset}
+              onClick={() => setView('menu')}
               style={{
-                marginTop: 20,
-                padding: '12px 24px',
-                borderRadius: 12,
+                marginTop: 16,
+                padding: '10px 20px',
+                borderRadius: 10,
                 border: 'none',
                 background: 'transparent',
-                color: 'var(--text-secondary)',
-                fontSize: 14,
-                cursor: 'pointer',
-                transition: 'color 0.2s'
+                color: '#717190',
+                fontSize: 13,
+                cursor: 'pointer'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
             >
               Criar novo
             </button>
