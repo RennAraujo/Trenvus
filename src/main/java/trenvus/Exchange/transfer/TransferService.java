@@ -75,12 +75,14 @@ public class TransferService {
 		outTx.setUserId(fromUserId);
 		outTx.setType(TransactionType.TRANSFER_TRV_OUT);
 		outTx.setTrvAmountCents(amountTrvCents);
+		outTx.setTargetUserId(toUserId);
 		transactions.save(outTx);
 
 		var inTx = new TransactionEntity();
 		inTx.setUserId(toUserId);
 		inTx.setType(TransactionType.TRANSFER_TRV_IN);
 		inTx.setTrvAmountCents(amountTrvCents);
+		inTx.setSourceUserId(fromUserId);
 		transactions.save(inTx);
 
 		var snapshot = walletService.getSnapshot(fromUserId);

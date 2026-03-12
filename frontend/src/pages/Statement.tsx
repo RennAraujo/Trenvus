@@ -540,7 +540,9 @@ export function Statement() {
                       {typeLabel(item.type)}
                       {(item.type === 'TRANSFER_TRV_IN' || item.type === 'TRANSFER_TRV_OUT') && (
                         <span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>
-                          de {item.senderNickname || 'Desconhecido'} para {item.recipientNickname || 'Desconhecido'}
+                          {item.type === 'TRANSFER_TRV_IN' 
+                            ? `de ${item.senderNickname || item.tec}` 
+                            : `para ${item.recipientNickname || item.tec}`}
                         </span>
                       )}
                     </div>
