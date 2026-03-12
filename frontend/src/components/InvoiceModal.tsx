@@ -198,17 +198,26 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
 
   // Menu Step
   if (step === 'menu') {
+    console.log('Rendering menu step')
     return (
-      <div className="modal-overlay" onClick={handleClose}>
+      <div 
+        className="modal-overlay" 
+        onClick={handleClose}
+        style={{ zIndex: 9999 }}
+      >
         <div 
-          className="modal-content" 
           onClick={e => e.stopPropagation()}
           style={{
+            position: 'relative',
             maxWidth: 420,
+            width: '100%',
+            background: 'var(--bg-elevated)',
+            borderRadius: 20,
             padding: 0,
             overflow: 'hidden',
             border: '2px solid var(--border-default)',
-            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+            zIndex: 10000
           }}
         >
           {/* Header */}
@@ -352,16 +361,24 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   if (step === 'invoice-form' || step === 'link-form') {
     const isInvoice = step === 'invoice-form'
     return (
-      <div className="modal-overlay" onClick={handleClose}>
+      <div 
+        className="modal-overlay" 
+        onClick={handleClose}
+        style={{ zIndex: 9999 }}
+      >
         <div 
-          className="modal-content" 
           onClick={e => e.stopPropagation()}
           style={{
+            position: 'relative',
             maxWidth: 440,
+            width: '100%',
+            background: 'var(--bg-elevated)',
+            borderRadius: 20,
             padding: 0,
             overflow: 'hidden',
             border: '2px solid var(--border-default)',
-            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+            zIndex: 10000
           }}
         >
           {/* Header */}
@@ -536,16 +553,24 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   if (step === 'invoice-qr' || step === 'link-qr') {
     const isInvoice = step === 'invoice-qr'
     return (
-      <div className="modal-overlay" onClick={handleClose}>
+      <div 
+        className="modal-overlay" 
+        onClick={handleClose}
+        style={{ zIndex: 9999 }}
+      >
         <div 
-          className="modal-content" 
           onClick={e => e.stopPropagation()}
           style={{
+            position: 'relative',
             maxWidth: 400,
+            width: '100%',
+            background: 'var(--bg-elevated)',
+            borderRadius: 20,
             padding: 0,
             overflow: 'hidden',
             border: '2px solid var(--border-default)',
-            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+            boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+            zIndex: 10000
           }}
         >
           {/* Header */}
