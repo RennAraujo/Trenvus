@@ -4,6 +4,7 @@ import { api, formatUsd, type PrivateStatementItem } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 import { ExportPdfModal } from '../components/ExportPdfModal'
+import logoPdf from '../assets/logo-pdf.png'
 
 // Icons
 const DownloadIcon = () => (
@@ -190,15 +191,22 @@ export function Statement() {
       doc.setFillColor(200, 50, 80)
       doc.triangle(pageWidth - 80, 0, pageWidth - 30, 0, pageWidth - 55, 45, 'F')
       
+      // Logo image and text
+      try {
+        doc.addImage(logoPdf, 'PNG', margin, 20, 45, 45)
+      } catch (e) {
+        // Fallback if image fails to load
+      }
+      
       // Trenvus Logo Text (stylized)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(28)
       doc.setTextColor(255, 255, 255)
-      doc.text('TRENVUS', margin, 55)
+      doc.text('TRENVUS', margin + 55, 55)
       
       // Purple accent line under logo
       doc.setFillColor(124, 58, 237)
-      doc.rect(margin, 62, 80, 3, 'F')
+      doc.rect(margin + 55, 62, 80, 3, 'F')
       
       // Document title
       doc.setFont('helvetica', 'bold')
