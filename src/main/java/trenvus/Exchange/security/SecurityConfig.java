@@ -58,6 +58,8 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> {
 					logger.info("Configuring authorizeHttpRequests");
 					auth.requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/actuator/health")).permitAll()
+						.requestMatchers(AntPathRequestMatcher.antMatcher("/actuator/info")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/register")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/confirm-registration")).permitAll()
 						.requestMatchers(AntPathRequestMatcher.antMatcher("/auth/login")).permitAll()

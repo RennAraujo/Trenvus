@@ -2,6 +2,7 @@ package trenvus.Exchange.user;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,9 @@ public class RegistrationService {
     private static final Logger logger = LoggerFactory.getLogger(RegistrationService.class);
     private static final Duration TOKEN_EXPIRY = Duration.ofHours(24);
     private static final SecureRandom RANDOM = new SecureRandom();
+
+    @Value("${SMTP_ENABLED:true}")
+    private boolean smtpEnabled;
 
     private final PendingRegistrationRepository pendingRepository;
     private final UserRepository userRepository;
@@ -82,12 +86,18 @@ public class RegistrationService {
         logger.info("Pending registration created for: {}", email);
 
         // Envia email de confirmação
-        try {
-            emailService.sendRegistrationConfirmation(email, pending.getToken());
-            logger.info("Confirmation email sent to: {}", email);
-        } catch (Exception e) {
-            logger.error("Failed to send confirmation email to {}: {}", email, e.getMessage());
-            throw new RuntimeException("Failed to send confirmation email", e);
+        if (smtpEnabled) {
+            try {
+                emailService.sendRegistrationConfirmation(email, pending.getToken());
+                logger.info("Confirmation email sent to: {}", email);
+            } catch (Exception e) {
+                logger.error("Failed to send confirmation email to {}: {}", email, e.getMessage());
+                throw new RuntimeException("Failed to send confirmation email", e);
+            }
+        } else {
+            String confirmUrl = System.getProperty("app.base-url", "http://localhost:3000")
+                    + "/confirm-registration?token=" + pending.getToken();
+            logger.warn("SMTP disabled — confirm manually: {}", confirmUrl);
         }
     }
 
@@ -164,12 +174,16 @@ public class RegistrationService {
         pendingRepository.save(pending);
 
         // Reenvia email
-        try {
-            emailService.sendRegistrationConfirmation(email, pending.getToken());
-            logger.info("Confirmation email resent to: {}", email);
-        } catch (Exception e) {
-            logger.error("Failed to resend confirmation email to {}: {}", email, e.getMessage());
-            throw new RuntimeException("Failed to send confirmation email", e);
+        if (smtpEnabled) {
+            try {
+                emailService.sendRegistrationConfirmation(email, pending.getToken());
+                logger.info("Confirmation email resent to: {}", email);
+            } catch (Exception e) {
+                logger.error("Failed to resend confirmation email to {}: {}", email, e.getMessage());
+                throw new RuntimeException("Failed to send confirmation email", e);
+            }
+        } else {
+            logger.warn("SMTP disabled — resend skipped for: {}", email);
         }
     }
 

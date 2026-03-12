@@ -5,6 +5,11 @@ export type AuthResponse = {
   tokenType: string
 }
 
+export type RegistrationResponse = {
+  status: string
+  message: string
+}
+
 export type WalletResponse = {
   usdCents: number
   trvCents: number
@@ -288,7 +293,7 @@ async function request<T>(
 
 export const api = {
   register: (email: string, password: string, nickname: string, phone: string) =>
-    request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, nickname, phone }) }),
+    request<RegistrationResponse>('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, nickname, phone }) }),
   login: (email: string, password: string) =>
     request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   loginTestAccount: (id: number) =>
