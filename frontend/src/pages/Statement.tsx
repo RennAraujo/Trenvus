@@ -332,17 +332,21 @@ export function Statement() {
       doc.setTextColor(80, 80, 100)
       doc.text(dateStr, margin + 12, y + 12)
       
-      // Type - truncated if too long
+      // Type - show both sender and recipient nicknames for transfers
       let typeText = typeLabel(item.type)
-      if (item.type === 'TRANSFER_TRV_IN' && item.senderNickname) {
-        typeText += ` de ${item.senderNickname}`
-      } else if (item.type === 'TRANSFER_TRV_OUT' && item.recipientNickname) {
-        typeText += ` para ${item.recipientNickname}`
+      const isTransfer = item.type === 'TRANSFER_TRV_IN' || item.type === 'TRANSFER_TRV_OUT'
+      
+      if (isTransfer) {
+        const sender = item.senderNickname || 'Desconhecido'
+        const recipient = item.recipientNickname || 'Desconhecido'
+        typeText += ` de ${sender} para ${recipient}`
+      } else if (item.type === 'DEPOSIT_USD') {
+        typeText = 'Depósito USD'
       }
       
       // Truncate long text
-      if (typeText.length > 38) {
-        typeText = typeText.substring(0, 35) + '...'
+      if (typeText.length > 42) {
+        typeText = typeText.substring(0, 39) + '...'
       }
       
       // Type color based on transaction type
@@ -534,14 +538,9 @@ export function Statement() {
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 500, marginBottom: 2 }}>
                       {typeLabel(item.type)}
-                      {item.type === 'TRANSFER_TRV_IN' && item.senderNickname && (
-                        <span style={{ color: 'var(--color-success)', marginLeft: 6 }}>
-                          de {item.senderNickname}
-                        </span>
-                      )}
-                      {item.type === 'TRANSFER_TRV_OUT' && item.recipientNickname && (
-                        <span style={{ color: 'var(--color-danger)', marginLeft: 6 }}>
-                          para {item.recipientNickname}
+                      {(item.type === 'TRANSFER_TRV_IN' || item.type === 'TRANSFER_TRV_OUT') && (
+                        <span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>
+                          de {item.senderNickname || 'Desconhecido'} para {item.recipientNickname || 'Desconhecido'}
                         </span>
                       )}
                     </div>
