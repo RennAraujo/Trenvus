@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { api, formatUsd, type WalletResponse } from '../api'
+import { api, formatUsd, type WalletResponse, type UserLookupResponse } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 import { TransferConfirmationModal } from '../components/TransferConfirmationModal'
@@ -56,12 +56,16 @@ export function Transfer() {
   const { t } = useI18n()
   const [wallet, setWallet] = useState<WalletResponse | null>(null)
   const [toIdentifier, setToIdentifier] = useState('')
+  const [recipient, setRecipient] = useState<UserLookupResponse | null>(null)
+  const [recipientError, setRecipientError] = useState<string | null>(null)
   const [amountDigits, setAmountDigits] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [isLookingUp, setIsLookingUp] = useState(false)
   const amountInputRef = useRef<HTMLInputElement | null>(null)
+  const lookupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const totals = useMemo(() => {
     const usd = wallet?.usdCents ?? 0
@@ -88,6 +92,45 @@ export function Transfer() {
   useEffect(() => {
     void loadWallet()
   }, [])
+
+  // Lookup recipient when identifier changes
+  useEffect(() => {
+    if (lookupTimeoutRef.current) {
+      clearTimeout(lookupTimeoutRef.current)
+    }
+    
+    if (!toIdentifier || toIdentifier.length < 3) {
+      setRecipient(null)
+      setRecipientError(null)
+      return
+    }
+
+    setIsLookingUp(true)
+    lookupTimeoutRef.current = setTimeout(async () => {
+      try {
+        const token = await auth.getValidAccessToken()
+        const data = await api.lookupUser(token, toIdentifier)
+        setRecipient(data)
+        setRecipientError(null)
+      } catch (err: any) {
+        setRecipient(null)
+        const message = err?.message || ''
+        if (message.includes('not found') || message.includes('não encontrado')) {
+          setRecipientError('Destinatário não encontrado')
+        } else {
+          setRecipientError(null)
+        }
+      } finally {
+        setIsLookingUp(false)
+      }
+    }, 500)
+
+    return () => {
+      if (lookupTimeoutRef.current) {
+        clearTimeout(lookupTimeoutRef.current)
+      }
+    }
+  }, [toIdentifier, auth])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -128,6 +171,7 @@ export function Transfer() {
       setWallet({ usdCents: data.usdCents, trvCents: data.trvCents })
       setAmountDigits('')
       setToIdentifier('')
+      setRecipient(null)
       setSuccess(t('transfer.success'))
       setShowConfirmation(false)
     } catch (err: any) {
@@ -245,10 +289,29 @@ export function Transfer() {
                   value={toIdentifier} 
                   onChange={(e) => setToIdentifier(e.target.value)}
                   placeholder={t('transfer.recipientPlaceholder')}
-                  style={{ paddingLeft: 44 }}
+                  style={{ paddingLeft: 44, paddingRight: recipient ? 100 : 44 }}
                   required
                 />
+                {isLookingUp && (
+                  <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} className="animate-spin">
+                    <RefreshIcon />
+                  </span>
+                )}
               </div>
+              {recipientError && (
+                <div style={{ marginTop: 8, fontSize: 13, color: 'var(--color-danger)' }}>
+                  {recipientError}
+                </div>
+              )}
+              {recipient && !recipientError && (
+                <div style={{ marginTop: 8, padding: 10, background: 'var(--color-success-alpha-10)', borderRadius: 8, border: '1px solid var(--color-success-alpha-20)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 13, color: 'var(--color-success)' }}>✓</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{recipient.nickname}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{recipient.tec}</div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="field" style={{ marginTop: 20 }}>
@@ -342,7 +405,8 @@ export function Transfer() {
         isOpen={showConfirmation}
         onClose={() => setShowConfirmation(false)}
         onConfirm={executeTransfer}
-        recipient={toIdentifier}
+        recipient={recipient}
+        recipientIdentifier={toIdentifier}
         amount={amount.formatted}
         isLoading={busy}
       />

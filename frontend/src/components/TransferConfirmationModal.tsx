@@ -1,10 +1,12 @@
 import { useI18n } from '../i18n'
+import type { UserLookupResponse } from '../api'
 
 interface TransferConfirmationModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: () => void
-  recipient: string
+  recipient: UserLookupResponse | null
+  recipientIdentifier: string
   amount: string
   isLoading: boolean
 }
@@ -14,6 +16,7 @@ export function TransferConfirmationModal({
   onClose,
   onConfirm,
   recipient,
+  recipientIdentifier,
   amount,
   isLoading
 }: TransferConfirmationModalProps) {
@@ -40,7 +43,18 @@ export function TransferConfirmationModal({
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
                 {t('transfer.recipientLabel')}
               </div>
-              <div style={{ fontSize: 18, fontWeight: 600 }}>{recipient}</div>
+              {recipient ? (
+                <div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-primary)' }}>
+                    {recipient.nickname}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    {recipient.tec}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 18, fontWeight: 600 }}>{recipientIdentifier}</div>
+              )}
             </div>
 
             <div style={{ marginBottom: 16 }}>

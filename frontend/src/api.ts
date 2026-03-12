@@ -60,6 +60,13 @@ export type MeResponse = {
   avatarDataUrl: string | null
 }
 
+export type UserLookupResponse = {
+  id: number
+  email: string
+  nickname: string
+  tec: string
+}
+
 export type PrivateStatementItem = {
   id: number
   tec: string
@@ -314,6 +321,9 @@ export const api = {
 
   transferTrv: (accessToken: string, toIdentifier: string, amountTrv: string) =>
     request<TransferResponse>('/transfer/trv', { method: 'POST', accessToken, body: JSON.stringify({ toIdentifier, amountTrv }) }),
+  
+  lookupUser: (accessToken: string, identifier: string) =>
+    request<UserLookupResponse>(`/users/lookup?identifier=${encodeURIComponent(identifier)}`, { accessToken }),
 
   getMe: (accessToken: string) => request<MeResponse>('/me', { accessToken }),
   updateMyPhone: (accessToken: string, phone: string) =>
