@@ -184,7 +184,7 @@ export function Statement() {
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const margin = 40
-    let y = margin
+    let y = 140
 
     const now = new Date()
     const nowLabel = formatWhen(now.toISOString()) || now.toISOString()
@@ -206,107 +206,176 @@ export function Statement() {
     }
 
     function ensureSpace(height: number) {
-      if (y + height <= pageHeight - margin) return
+      if (y + height <= pageHeight - margin - 60) return
       doc.addPage()
-      addHeader()
+      addModernHeader()
       y = 100
     }
 
-    function addHeader() {
-      // Logo
-      addTrenvusLogo(doc, margin, 30, 30)
+    function addModernHeader() {
+      // Dark blue gradient header background
+      const gradientSteps = 20
+      for (let i = 0; i < gradientSteps; i++) {
+        const ratio = i / gradientSteps
+        const r = Math.round(26 + (10 - 26) * ratio)
+        const g = Math.round(26 + (20 - 26) * ratio)
+        const b = Math.round(46 + (60 - 46) * ratio)
+        doc.setFillColor(r, g, b)
+        doc.rect(0, i * 3, pageWidth, 3, 'F')
+      }
       
-      // Title
+      // Geometric accent shapes
+      doc.setFillColor(124, 58, 237)
+      doc.triangle(pageWidth - 100, 0, pageWidth, 0, pageWidth, 40, 'F')
+      doc.setFillColor(234, 29, 44)
+      doc.triangle(pageWidth - 60, 0, pageWidth - 20, 0, pageWidth - 40, 25, 'F')
+      
+      // Logo area
+      addTrenvusLogo(doc, margin, 25, 0.8)
+      
+      // Title on the right
       doc.setFont('helvetica', 'bold')
-      doc.setFontSize(20)
-      doc.setTextColor(0, 0, 0)
-      doc.text(t('statement.pdf.title'), margin, 90)
+      doc.setFontSize(28)
+      doc.setTextColor(255, 255, 255)
+      doc.text('EXTRATO', pageWidth - margin - 120, 50, { align: 'right' })
       
-      // Date
+      // Reference number and date
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(10)
-      doc.setTextColor(100, 100, 100)
-      doc.text(`${t('statement.pdf.generated')}: ${nowLabel}`, margin, 105)
+      doc.setTextColor(180, 180, 200)
+      doc.text(`Ref: TEC-${now.getTime().toString().slice(-10)}`, pageWidth - margin - 120, 68, { align: 'right' })
+      doc.text(`Data: ${nowLabel}`, pageWidth - margin - 120, 82, { align: 'right' })
     }
 
-    function addFooter(pageNum: number, totalPages: number) {
+    function addModernFooter(pageNum: number, totalPages: number) {
+      // Dark blue footer
+      doc.setFillColor(26, 26, 46)
+      doc.rect(0, pageHeight - 50, pageWidth, 50, 'F')
+      
+      // Contact info
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(9)
-      doc.setTextColor(150, 150, 150)
-      doc.text(`${t('statement.pdf.page')} ${pageNum} ${t('statement.pdf.of')} ${totalPages}`, pageWidth / 2, pageHeight - 20, { align: 'center' })
+      doc.setTextColor(150, 150, 180)
+      doc.text('Trenvus © 2026 - trenvus.com', margin, pageHeight - 25)
+      doc.text('contato@trenvus.com', margin, pageHeight - 12)
+      
+      // Page number
+      doc.text(`${pageNum} / ${totalPages}`, pageWidth - margin, pageHeight - 25, { align: 'right' })
     }
 
     // First page header
-    addHeader()
-    y = 120
+    addModernHeader()
 
-    // Summary Section
-    doc.setFillColor(245, 245, 250)
-    doc.roundedRect(margin, y, pageWidth - margin * 2, 80, 4, 4, 'F')
-    
+    // Summary Cards Section
+    y += 20
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(12)
-    doc.setTextColor(0, 0, 0)
-    doc.text(t('statement.pdf.summary'), margin + 10, y + 20)
-    
-    // Summary content
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(80, 80, 80)
-    
-    const col1 = margin + 10
-    const col2 = margin + 180
-    const col3 = margin + 350
-    
-    doc.text(`${t('statement.pdf.usdIn')}:`, col1, y + 40)
-    doc.text(`${t('statement.pdf.usdOut')}:`, col1, y + 55)
-    doc.text(`${t('statement.pdf.trvIn')}:`, col2, y + 40)
-    doc.text(`${t('statement.pdf.trvOut')}:`, col2, y + 55)
-    doc.text(`${t('statement.pdf.total')}:`, col3, y + 40)
-    
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(0, 0, 0)
-    doc.text(`+${formatUsd(totalUsdIn)} USD`, col1 + 70, y + 40)
-    doc.text(`-${formatUsd(totalUsdOut)} USD`, col1 + 70, y + 55)
-    doc.text(`+${formatUsd(totalTrvIn)} TRV`, col2 + 70, y + 40)
-    doc.text(`-${formatUsd(totalTrvOut)} TRV`, col2 + 70, y + 55)
-    
-    const totalNet = totalUsdIn - totalUsdOut + totalTrvIn - totalTrvOut
-    doc.text(formatUsd(Math.abs(totalNet)), col3 + 50, y + 40)
-    
-    y += 100
+    doc.setTextColor(50, 50, 70)
+    doc.text('Resumo das Transações', margin, y)
+    y += 25
 
-    // Transactions Table Header
-    doc.setFillColor(0, 102, 204)
-    doc.rect(margin, y, pageWidth - margin * 2, 25, 'F')
+    // Summary cards
+    const cardWidth = (pageWidth - margin * 2 - 20) / 2
+    const cardHeight = 70
+    
+    // Card 1 - Entradas
+    doc.setFillColor(240, 247, 240)
+    doc.roundedRect(margin, y, cardWidth, cardHeight, 8, 8, 'F')
+    doc.setDrawColor(16, 185, 129)
+    doc.setLineWidth(2)
+    doc.line(margin, y + cardHeight - 15, margin + cardWidth, y + cardHeight - 15)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.setTextColor(100, 100, 100)
+    doc.text('Total Entradas', margin + 15, y + 25)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(14)
+    doc.setTextColor(16, 185, 129)
+    doc.text(`+${formatUsd(totalUsdIn + totalTrvIn)}`, margin + 15, y + 50)
+    
+    // Card 2 - Saídas
+    doc.setFillColor(255, 245, 245)
+    doc.roundedRect(margin + cardWidth + 20, y, cardWidth, cardHeight, 8, 8, 'F')
+    doc.setDrawColor(239, 68, 68)
+    doc.line(margin + cardWidth + 20, y + cardHeight - 15, margin + cardWidth * 2 + 20, y + cardHeight - 15)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.setTextColor(100, 100, 100)
+    doc.text('Total Saídas', margin + cardWidth + 35, y + 25)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(14)
+    doc.setTextColor(239, 68, 68)
+    doc.text(`-${formatUsd(totalUsdOut + totalTrvOut)}`, margin + cardWidth + 35, y + 50)
+    
+    y += cardHeight + 35
+
+    // Transactions Table Header - Dark blue modern style
+    const tableWidth = pageWidth - margin * 2
+    doc.setFillColor(26, 26, 46)
+    doc.roundedRect(margin, y, tableWidth, 35, 4, 4, 'F')
+    
+    // Gradient accent
+    const headerGradient = doc.setFillColor(124, 58, 237)
+    doc.rect(margin, y + 30, tableWidth, 5, 'F')
     
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
-    doc.text(t('statement.pdf.date'), margin + 10, y + 16)
-    doc.text(t('statement.pdf.type'), margin + 120, y + 16)
-    doc.text(t('statement.pdf.values'), margin + 280, y + 16)
+    doc.text('Data', margin + 15, y + 22)
+    doc.text('Tipo / Descrição', margin + 120, y + 22)
+    doc.text('Valor', pageWidth - margin - 15, y + 22, { align: 'right' })
     
-    y += 35
+    y += 45
 
-    // Transactions
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(0, 0, 0)
-    
+    // Transactions with alternating row colors
+    let rowIndex = 0
     for (const item of items) {
-      ensureSpace(40)
+      ensureSpace(50)
+      
+      // Alternating row background
+      if (rowIndex % 2 === 0) {
+        doc.setFillColor(250, 250, 255)
+        doc.roundedRect(margin, y - 5, tableWidth, 40, 2, 2, 'F')
+      }
       
       // Date
       const dateStr = formatWhen(item.createdAt?.toString() || null) || '-'
-      doc.setFontSize(8)
-      doc.text(dateStr, margin + 10, y)
-      
-      // Type
+      doc.setFont('helvetica', 'normal')
       doc.setFontSize(9)
-      doc.text(typeLabel(item.type), margin + 120, y)
+      doc.setTextColor(80, 80, 100)
+      doc.text(dateStr, margin + 15, y + 15)
       
-      // Values
+      // Type with icon indicator
+      let typeColor = [100, 100, 100]
+      if (item.type === 'TRANSFER_TRV_IN') typeColor = [16, 185, 129]
+      else if (item.type === 'TRANSFER_TRV_OUT') typeColor = [239, 68, 68]
+      else if (item.type === 'DEPOSIT_USD') typeColor = [59, 130, 246]
+      
+      doc.setTextColor(typeColor[0], typeColor[1], typeColor[2])
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      
+      let typeText = typeLabel(item.type)
+      if (item.type === 'TRANSFER_TRV_IN' && item.senderNickname) {
+        typeText += ` de ${item.senderNickname}`
+      } else if (item.type === 'TRANSFER_TRV_OUT' && item.recipientNickname) {
+        typeText += ` para ${item.recipientNickname}`
+      }
+      
+      // Truncate if too long
+      if (typeText.length > 35) {
+        typeText = typeText.substring(0, 32) + '...'
+      }
+      
+      doc.text(typeText, margin + 120, y + 15)
+      
+      // TEC reference
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(150, 150, 170)
+      doc.text(item.tec, margin + 120, y + 28)
+      
+      // Values on the right
       let valueY = y
       for (const v of item.values) {
         const valueText = formatSigned(v.currency, v.cents)
@@ -314,36 +383,36 @@ export function Statement() {
         if (v.fee) {
           doc.setTextColor(150, 150, 150)
           doc.setFontSize(8)
-          doc.text(`${valueText} (${t('statement.fee').toLowerCase()})`, margin + 280, valueY)
+          doc.text(`${valueText} (taxa)`, pageWidth - margin - 15, valueY + 15, { align: 'right' })
         } else {
-          doc.setTextColor(v.cents >= 0 ? 0 : 200, v.cents >= 0 ? 150 : 0, 0)
-          doc.setFontSize(9)
-          doc.text(valueText, margin + 280, valueY)
+          if (v.cents >= 0) {
+            doc.setTextColor(16, 185, 129)
+          } else {
+            doc.setTextColor(239, 68, 68)
+          }
+          doc.setFont('helvetica', 'bold')
+          doc.setFontSize(11)
+          doc.text(valueText, pageWidth - margin - 15, valueY + 15, { align: 'right' })
         }
         
-        valueY += 12
+        valueY += 14
       }
       
       doc.setTextColor(0, 0, 0)
-      y = Math.max(y + 25, valueY + 5)
-      
-      // Separator line
-      if (y < pageHeight - margin - 50) {
-        doc.setDrawColor(230, 230, 230)
-        doc.line(margin, y - 5, pageWidth - margin, y - 5)
-      }
+      y = Math.max(y + 35, valueY + 10)
+      rowIndex++
     }
 
     // Calculate total pages and add footers
     const totalPages = doc.getNumberOfPages()
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i)
-      addFooter(i, totalPages)
+      addModernFooter(i, totalPages)
     }
 
     // Store PDF data and open modal
     const pdfOutput = doc.output('datauristring')
-    const fileName = `trenvus-statement-${now.toISOString().split('T')[0]}.pdf`
+    const fileName = `trenvus-extrato-${now.toISOString().split('T')[0]}.pdf`
     setPdfData(pdfOutput)
     setPdfFileName(fileName)
     setIsExportModalOpen(true)
