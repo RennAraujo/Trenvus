@@ -20,12 +20,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import trenvus.Exchange.tx.TransactionRepository;
 import trenvus.Exchange.tx.TransactionType;
+import trenvus.Exchange.user.UserEntity;
 import trenvus.Exchange.user.UserRole;
+import trenvus.Exchange.user.UserRepository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/admin")
@@ -35,10 +40,12 @@ public class AdminUserController {
 	
 	private final AdminUserService adminUsers;
 	private final TransactionRepository transactions;
+	private final UserRepository users;
 
-	public AdminUserController(AdminUserService adminUsers, TransactionRepository transactions) {
+	public AdminUserController(AdminUserService adminUsers, TransactionRepository transactions, UserRepository users) {
 		this.adminUsers = adminUsers;
 		this.transactions = transactions;
+		this.users = users;
 	}
 
 	@GetMapping("/users")
@@ -78,9 +85,21 @@ public class AdminUserController {
 		var pageable = PageRequest.of(page, pageSize);
 		var txPage = transactions.findByUserIdOrderByIdDesc(userId, pageable);
 
+		Set<Long> relatedUserIds = txPage.getContent().stream()
+				.flatMap(tx -> Stream.of(tx.getSourceUserId(), tx.getTargetUserId()))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+
+		Map<Long, UserEntity> relatedUsers = users.findAllById(relatedUserIds).stream()
+				.collect(Collectors.toMap(UserEntity::getId, u -> u));
+
 		var items = txPage.getContent().stream().map(tx -> {
 			Long id = tx.getId();
 			String tec = id == null ? "TEC-UNKNOWN" : "TEC-" + String.format("%010d", id);
+			Long sourceUserId = tx.getSourceUserId();
+			Long targetUserId = tx.getTargetUserId();
+			UserEntity sourceUser = sourceUserId != null ? relatedUsers.get(sourceUserId) : null;
+			UserEntity targetUser = targetUserId != null ? relatedUsers.get(targetUserId) : null;
 			return new StatementItem(
 					id,
 					tec,
@@ -89,7 +108,12 @@ public class AdminUserController {
 					tx.getUsdAmountCents(),
 					tx.getTrvAmountCents(),
 					tx.getFeeUsdCents(),
-					tx.getSourceUserId()
+					sourceUserId,
+					targetUserId,
+					sourceUser != null ? sourceUser.getEmail() : null,
+					sourceUser != null ? sourceUser.getNickname() : null,
+					targetUser != null ? targetUser.getEmail() : null,
+					targetUser != null ? targetUser.getNickname() : null
 			);
 		}).collect(Collectors.toList());
 
@@ -138,7 +162,12 @@ public class AdminUserController {
 			Long usdAmountCents,
 			Long trvAmountCents,
 			Long feeUsdCents,
-			Long sourceUserId
+			Long sourceUserId,
+			Long targetUserId,
+			String sourceEmail,
+			String sourceNickname,
+			String targetEmail,
+			String targetNickname
 	) {}
 
 	public record StatementResponse(List<StatementItem> items, boolean hasNext) {}

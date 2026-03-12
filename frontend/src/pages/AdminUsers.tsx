@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf'
 import { api, formatUsd, type AdminFeeIncomeResponse, type AdminUserSummary, type AdminStatementItem } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
+import logoPdf from '../assets/logo-pdf.png'
 
 // Icons
 const UsersIcon = () => (
@@ -74,7 +75,7 @@ const ChevronRightIcon = () => (
 
 export function AdminUsers() {
   const auth = useAuth()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const [query, setQuery] = useState('')
   const [items, setItems] = useState<AdminUserSummary[]>([])
@@ -91,6 +92,39 @@ export function AdminUsers() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const selectedUser = useMemo(() => items.find((u) => u.id === selectedId) || null, [items, selectedId])
+
+  function userLabel(nickname: string | null, email: string | null, id: number | null): string {
+    return nickname || email || (id != null ? `#${id}` : '—')
+  }
+
+  function typeLabel(type: string): string {
+    if (type === 'DEPOSIT_USD') return t('statement.type.deposit')
+    if (type === 'CONVERT_USD_TO_TRV') return t('statement.type.convertUsdToTrv')
+    if (type === 'CONVERT_TRV_TO_USD') return t('statement.type.convertTrvToUsd')
+    if (type === 'TRANSFER_TRV_OUT') return t('statement.type.transferOut')
+    if (type === 'TRANSFER_TRV_IN') return t('statement.type.transferIn')
+    if (type === 'FEE_INCOME_USD') return t('statement.type.feeIncome')
+    if (type === 'ADMIN_ADJUST_WALLET') return t('statement.type.adminAdjust')
+    return type
+  }
+
+  function formatWhen(value: string | null): string | null {
+    if (!value) return null
+    try {
+      const d = new Date(value)
+      return new Intl.DateTimeFormat(locale === 'pt-BR' || locale === 'en' ? locale : 'en', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+        .format(d)
+        .replace(',', ' ·')
+    } catch {
+      return value
+    }
+  }
 
   async function loadUsers(q?: string) {
     setError(null)
@@ -165,173 +199,234 @@ export function AdminUsers() {
     const dateStr = new Date().toISOString().split('T')[0]
     const filename = `statement-${userEmail}-${dateStr}.pdf`
 
-    // Calculate totals
-    let totalUsdIn = 0, totalUsdOut = 0
-    let totalTrvIn = 0, totalTrvOut = 0
-    let totalFees = 0
-
-    for (const tx of statement) {
-      if (tx.usdAmountCents && tx.usdAmountCents > 0) totalUsdIn += tx.usdAmountCents
-      if (tx.usdAmountCents && tx.usdAmountCents < 0) totalUsdOut += Math.abs(tx.usdAmountCents)
-      if (tx.trvAmountCents && tx.trvAmountCents > 0) totalTrvIn += tx.trvAmountCents
-      if (tx.trvAmountCents && tx.trvAmountCents < 0) totalTrvOut += Math.abs(tx.trvAmountCents)
-      if (tx.feeUsdCents) totalFees += tx.feeUsdCents
-    }
-
-    // Create PDF
     const doc = new jsPDF({ unit: 'pt', format: 'a4' })
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
     const margin = 40
-    let y = 40
+    let y = 110
 
-    // Header with user info
-    doc.setFillColor(0, 102, 204)
-    doc.rect(0, 0, pageWidth, 100, 'F')
+    const now = new Date()
+    const nowLabel = formatWhen(now.toISOString()) || now.toISOString()
 
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(24)
-    doc.setTextColor(255, 255, 255)
-    doc.text('Account Statement', margin, 60)
-
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(12)
-    doc.text(`User: ${userName}`, margin, 85)
-    doc.text(`Email: ${userEmail}`, margin + 200, 85)
-
-    y = 120
-
-    // Generated date
-    doc.setFontSize(10)
-    doc.setTextColor(100, 100, 100)
-    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y)
-    y += 30
-
-    // Summary Section
-    doc.setFillColor(245, 245, 250)
-    doc.roundedRect(margin, y, pageWidth - margin * 2, 100, 4, 4, 'F')
-
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
-    doc.setTextColor(0, 0, 0)
-    doc.text('Summary', margin + 10, y + 20)
-
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(80, 80, 80)
-
-    const col1 = margin + 10
-    const col2 = margin + 180
-    const col3 = margin + 350
-
-    doc.text('USD In:', col1, y + 45)
-    doc.text('USD Out:', col1, y + 65)
-    doc.text('TRV In:', col2, y + 45)
-    doc.text('TRV Out:', col2, y + 65)
-    doc.text('Total Fees:', col3, y + 45)
-
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(0, 0, 0)
-    doc.text(`+${formatUsd(totalUsdIn)} USD`, col1 + 70, y + 45)
-    doc.text(`-${formatUsd(totalUsdOut)} USD`, col1 + 70, y + 65)
-    doc.text(`+${formatUsd(totalTrvIn)} TRV`, col2 + 70, y + 45)
-    doc.text(`-${formatUsd(totalTrvOut)} TRV`, col2 + 70, y + 65)
-    doc.text(`${formatUsd(totalFees)} USD`, col3 + 70, y + 45)
-
-    y += 120
-
-    // Transactions Table Header
-    doc.setFillColor(0, 102, 204)
-    doc.rect(margin, y, pageWidth - margin * 2, 25, 'F')
-
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.setTextColor(255, 255, 255)
-    doc.text('Date', margin + 10, y + 16)
-    doc.text('TEC', margin + 120, y + 16)
-    doc.text('Type', margin + 220, y + 16)
-    doc.text('USD', margin + 320, y + 16)
-    doc.text('TRV', margin + 400, y + 16)
-    doc.text('Fee', margin + 480, y + 16)
-
-    y += 35
-
-    // Transactions
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.setTextColor(0, 0, 0)
-
+    let totalUsd = 0, totalTrv = 0
     for (const tx of statement) {
-      // Check if we need a new page
-      if (y > pageHeight - 60) {
-        doc.addPage()
-        y = 40
-
-        // Repeat header on new page
-        doc.setFillColor(0, 102, 204)
-        doc.rect(margin, y, pageWidth - margin * 2, 25, 'F')
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(10)
-        doc.setTextColor(255, 255, 255)
-        doc.text('Date', margin + 10, y + 16)
-        doc.text('TEC', margin + 120, y + 16)
-        doc.text('Type', margin + 220, y + 16)
-        doc.text('USD', margin + 320, y + 16)
-        doc.text('TRV', margin + 400, y + 16)
-        doc.text('Fee', margin + 480, y + 16)
-        y += 35
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        doc.setTextColor(0, 0, 0)
-      }
-
-      // Date
-      const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '-'
-      doc.text(dateStr, margin + 10, y)
-
-      // TEC
-      doc.text(tx.tec, margin + 120, y)
-
-      // Type
-      doc.text(tx.type, margin + 220, y)
-
-      // USD
-      if (tx.usdAmountCents !== null && tx.usdAmountCents !== 0) {
-        const usdValue = (tx.usdAmountCents / 100).toFixed(2)
-        const usdText = tx.usdAmountCents >= 0 ? `+${usdValue}` : usdValue
-        doc.setTextColor(tx.usdAmountCents >= 0 ? 0 : 200, tx.usdAmountCents >= 0 ? 150 : 0, 0)
-        doc.text(`${usdText} USD`, margin + 320, y)
-        doc.setTextColor(0, 0, 0)
-      }
-
-      // TRV
-      if (tx.trvAmountCents !== null && tx.trvAmountCents !== 0) {
-        const trvValue = (tx.trvAmountCents / 100).toFixed(2)
-        const trvText = tx.trvAmountCents >= 0 ? `+${trvValue}` : trvValue
-        doc.setTextColor(tx.trvAmountCents >= 0 ? 0 : 200, tx.trvAmountCents >= 0 ? 150 : 0, 0)
-        doc.text(`${trvText} TRV`, margin + 400, y)
-        doc.setTextColor(0, 0, 0)
-      }
-
-      // Fee
-      if (tx.feeUsdCents !== null && tx.feeUsdCents > 0) {
-        doc.text(`${(tx.feeUsdCents / 100).toFixed(2)} USD`, margin + 480, y)
-      }
-
-      y += 20
+      if (tx.usdAmountCents) totalUsd += tx.usdAmountCents
+      if (tx.trvAmountCents) totalTrv += tx.trvAmountCents
     }
 
-    // Footer
+    function formatSigned(currency: string, cents: number): string {
+      const sign = cents >= 0 ? '+' : '-'
+      return `${sign}${formatUsd(Math.abs(cents))} ${currency}`
+    }
+
+    function ensureSpace(height: number) {
+      if (y + height <= pageHeight - margin - 60) return
+      doc.addPage()
+      addHeader()
+      y = 80
+    }
+
+    function addHeader() {
+      doc.setFillColor(20, 20, 40)
+      doc.rect(0, 0, pageWidth, 90, 'F')
+
+      doc.setFillColor(124, 58, 237)
+      doc.triangle(pageWidth - 150, 0, pageWidth, 0, pageWidth, 70, 'F')
+      doc.setFillColor(200, 50, 80)
+      doc.triangle(pageWidth - 80, 0, pageWidth - 30, 0, pageWidth - 55, 45, 'F')
+
+      try {
+        doc.addImage(logoPdf, 'PNG', margin, 20, 45, 45)
+      } catch {
+      }
+
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(28)
+      doc.setTextColor(255, 255, 255)
+      doc.text('TRENVUS', margin + 55, 55)
+
+      doc.setFillColor(124, 58, 237)
+      doc.rect(margin + 55, 62, 80, 3, 'F')
+
+      const title = (t('statement.pdf.title') || 'STATEMENT').toUpperCase()
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(26)
+      doc.setTextColor(255, 255, 255)
+      doc.text(title, pageWidth - margin, 50, { align: 'right' })
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9)
+      doc.setTextColor(200, 200, 220)
+      const refText = `Ref: TEC-${now.getTime().toString().slice(-10)}`
+      doc.text(refText, pageWidth - margin, 68, { align: 'right' })
+      doc.text(`${t('statement.pdf.generated')}: ${nowLabel}`, pageWidth - margin, 82, { align: 'right' })
+    }
+
+    function addFooter(pageNum: number, totalPages: number) {
+      doc.setFillColor(20, 20, 40)
+      doc.rect(0, pageHeight - 45, pageWidth, 45, 'F')
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9)
+      doc.setTextColor(180, 180, 200)
+      doc.text('Trenvus © 2026 · trenvus.com · contato@trenvus.com', margin, pageHeight - 20)
+
+      doc.text(
+        t('admin.users.statement.pdf.pageOf', { page: pageNum, total: totalPages }),
+        pageWidth - margin,
+        pageHeight - 20,
+        { align: 'right' },
+      )
+    }
+
+    addHeader()
+
+    y += 10
+    doc.setFillColor(248, 248, 252)
+    doc.roundedRect(margin, y, pageWidth - margin * 2, 58, 8, 8, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(60, 60, 80)
+    doc.text(`${t('admin.users.statement.pdf.user')}:`, margin + 14, y + 22)
+    doc.text(`${t('admin.users.statement.pdf.email')}:`, margin + 14, y + 40)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(80, 80, 100)
+    doc.text(userName, margin + 80, y + 22)
+    doc.text(userEmail, margin + 80, y + 40)
+    y += 78
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    doc.setTextColor(60, 60, 80)
+    doc.text(t('statement.pdf.summary'), margin, y)
+    y += 25
+
+    const cardWidth = (pageWidth - margin * 2 - 20) / 2
+
+    doc.setFillColor(245, 248, 255)
+    doc.roundedRect(margin, y, cardWidth, 75, 6, 6, 'F')
+    doc.setFillColor(59, 130, 246)
+    doc.rect(margin, y + 70, cardWidth, 5, 'F')
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    doc.setTextColor(100, 100, 120)
+    doc.text(t('statement.pdf.usdIn'), margin + 15, y + 28)
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(18)
+    doc.setTextColor(59, 130, 246)
+    doc.text(`${totalUsd >= 0 ? '+' : '-'}${formatUsd(Math.abs(totalUsd))}`, margin + 15, y + 55)
+
+    doc.setFillColor(250, 245, 255)
+    doc.roundedRect(margin + cardWidth + 20, y, cardWidth, 75, 6, 6, 'F')
+    doc.setFillColor(124, 58, 237)
+    doc.rect(margin + cardWidth + 20, y + 70, cardWidth, 5, 'F')
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    doc.setTextColor(100, 100, 120)
+    doc.text(t('statement.pdf.trvIn'), margin + cardWidth + 35, y + 28)
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(18)
+    doc.setTextColor(124, 58, 237)
+    doc.text(`${totalTrv >= 0 ? '+' : '-'}${formatUsd(Math.abs(totalTrv))}`, margin + cardWidth + 35, y + 55)
+
+    y += 95
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    doc.setTextColor(60, 60, 80)
+    doc.text(t('statement.movements'), margin, y)
+    y += 20
+
+    const tableWidth = pageWidth - margin * 2
+    doc.setFillColor(30, 30, 50)
+    doc.roundedRect(margin, y, tableWidth, 32, 3, 3, 'F')
+    doc.setFillColor(124, 58, 237)
+    doc.rect(margin, y + 27, tableWidth, 5, 'F')
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(255, 255, 255)
+    doc.text(t('statement.pdf.date'), margin + 12, y + 19)
+    doc.text(t('statement.pdf.type'), margin + 160, y + 19)
+    doc.text(t('statement.pdf.values'), pageWidth - margin - 12, y + 19, { align: 'right' })
+    y += 42
+
+    let rowIndex = 0
+    for (const tx of statement) {
+      ensureSpace(45)
+
+      if (rowIndex % 2 === 0) {
+        doc.setFillColor(248, 248, 252)
+        doc.roundedRect(margin, y - 4, tableWidth, 38, 2, 2, 'F')
+      }
+
+      const dateStr = formatWhen(tx.createdAt) || '-'
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(80, 80, 100)
+      doc.text(dateStr, margin + 12, y + 12)
+
+      let typeText = typeLabel(tx.type)
+      const isTransfer = tx.type === 'TRANSFER_TRV_IN' || tx.type === 'TRANSFER_TRV_OUT'
+      if (isTransfer) {
+        const from = userLabel(tx.sourceNickname, tx.sourceEmail, tx.sourceUserId)
+        const to = userLabel(tx.targetNickname, tx.targetEmail, tx.targetUserId)
+        typeText += ` ${t('statement.transfer.from', { name: from })} ${t('statement.transfer.to', { name: to })}`
+      }
+      if (typeText.length > 42) typeText = typeText.substring(0, 39) + '...'
+
+      let typeColor = [80, 80, 100]
+      if (tx.type === 'TRANSFER_TRV_IN') typeColor = [16, 185, 129]
+      else if (tx.type === 'TRANSFER_TRV_OUT') typeColor = [239, 68, 68]
+      else if (tx.type === 'DEPOSIT_USD') typeColor = [59, 130, 246]
+      else if (tx.type.includes('CONVERT')) typeColor = [124, 58, 237]
+
+      doc.setTextColor(typeColor[0], typeColor[1], typeColor[2])
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.text(typeText, margin + 160, y + 12)
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(120, 120, 140)
+      doc.text(tx.tec, margin + 160, y + 26)
+
+      let valueY = y
+      const values: Array<{ currency: string; cents: number; fee: boolean }> = []
+      if (tx.usdAmountCents !== null && tx.usdAmountCents !== 0) values.push({ currency: 'USD', cents: tx.usdAmountCents, fee: false })
+      if (tx.trvAmountCents !== null && tx.trvAmountCents !== 0) values.push({ currency: 'TRV', cents: tx.trvAmountCents, fee: false })
+      if (tx.feeUsdCents !== null && tx.feeUsdCents > 0) values.push({ currency: 'USD', cents: -tx.feeUsdCents, fee: true })
+
+      for (const v of values) {
+        const valueText = formatSigned(v.currency, v.cents)
+        if (v.fee) {
+          doc.setTextColor(140, 140, 160)
+          doc.setFontSize(7)
+          doc.text(`${valueText} (${t('statement.fee')})`, pageWidth - margin - 12, valueY + 10, { align: 'right' })
+        } else {
+          if (v.cents >= 0) doc.setTextColor(16, 185, 129)
+          else doc.setTextColor(239, 68, 68)
+          doc.setFont('helvetica', 'bold')
+          doc.setFontSize(10)
+          doc.text(valueText, pageWidth - margin - 12, valueY + 12, { align: 'right' })
+        }
+        valueY += 13
+      }
+
+      y = Math.max(y + 32, valueY + 5)
+      rowIndex++
+    }
+
     const totalPages = doc.getNumberOfPages()
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i)
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(9)
-      doc.setTextColor(150, 150, 150)
-      doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 20, { align: 'center' })
+      addFooter(i, totalPages)
     }
 
-    // Download
     doc.save(filename.replace(/[^a-zA-Z0-9.-]/g, '_'))
   }
 
@@ -563,7 +658,7 @@ export function AdminUsers() {
                         <DollarIcon />
                         <span className="font-semibold">{t('admin.users.fees.title')}</span>
                         <span className="badge badge-success">
-                          Total: {feeIncome ? `${formatUsd(feeIncome.totalUsdCents)} USD` : '—'}
+                          {t('admin.users.fees.total')}: {feeIncome ? `${formatUsd(feeIncome.totalUsdCents)} USD` : '—'}
                         </span>
                         <button className="btn btn-ghost btn-sm ml-auto" disabled={busy} onClick={() => loadFeeIncome(selectedUser.id)}>
                           <RefreshIcon />
@@ -585,7 +680,7 @@ export function AdminUsers() {
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                                 <span className="font-mono text-xs text-tertiary">{it.tec}</span>
                                 <span className="text-xs text-muted">
-                                  {it.createdAt ? new Date(it.createdAt).toLocaleString() : '—'}
+                                  {formatWhen(it.createdAt) || '—'}
                                 </span>
                               </div>
                               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -593,7 +688,7 @@ export function AdminUsers() {
                                   +{formatUsd(it.usdCents)} USD
                                 </span>
                                 <span className="text-xs text-secondary">
-                                  From: {it.sourceEmail || (it.sourceUserId ? `#${it.sourceUserId}` : '—')}
+                                  {t('admin.users.fees.source')}: {it.sourceEmail || (it.sourceUserId ? `#${it.sourceUserId}` : '—')}
                                 </span>
                               </div>
                             </div>
@@ -610,7 +705,7 @@ export function AdminUsers() {
                     <div style={{ padding: 16, background: 'var(--bg-subtle)', borderRadius: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                         <FileTextIcon />
-                        <span className="font-semibold">{t('admin.users.statement.title') || 'Account Statement'}</span>
+                        <span className="font-semibold">{t('admin.users.statement.title')}</span>
                         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                           <button 
                             className="btn btn-primary btn-sm" 
@@ -618,9 +713,9 @@ export function AdminUsers() {
                             onClick={exportStatementToPdf}
                           >
                             <DownloadIcon />
-                            {t('admin.users.statement.export') || 'Export'}
+                            {t('admin.users.statement.export')}
                           </button>
-                          <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => loadStatement(selectedUser.id, 0, statementSize)}>
+                          <button className="btn btn-ghost btn-sm" title={t('actions.refresh')} disabled={busy} onClick={() => loadStatement(selectedUser.id, 0, statementSize)}>
                             <RefreshIcon />
                           </button>
                         </div>
@@ -628,7 +723,7 @@ export function AdminUsers() {
 
                       {/* Pagination Size Selector */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                        <span className="text-xs text-tertiary">Items per page:</span>
+                        <span className="text-xs text-tertiary">{t('statement.itemsPerPage')}:</span>
                         <select 
                           className="input input-sm" 
                           value={statementSize} 
@@ -659,8 +754,15 @@ export function AdminUsers() {
                             >
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                                 <span className="font-mono text-xs text-tertiary">{tx.tec}</span>
-                                <span className="badge badge-secondary">{tx.type}</span>
+                                <span className="badge badge-secondary" title={tx.type}>{typeLabel(tx.type)}</span>
                               </div>
+                              {(tx.type === 'TRANSFER_TRV_IN' || tx.type === 'TRANSFER_TRV_OUT') && (
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                                  <span>{t('statement.transfer.from', { name: userLabel(tx.sourceNickname, tx.sourceEmail, tx.sourceUserId) })}</span>
+                                  <span>·</span>
+                                  <span>{t('statement.transfer.to', { name: userLabel(tx.targetNickname, tx.targetEmail, tx.targetUserId) })}</span>
+                                </div>
+                              )}
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', gap: 8 }}>
                                   {tx.usdAmountCents !== null && tx.usdAmountCents !== 0 && (
@@ -675,19 +777,19 @@ export function AdminUsers() {
                                   )}
                                   {tx.feeUsdCents !== null && tx.feeUsdCents > 0 && (
                                     <span className="badge badge-warning">
-                                      Fee: {formatUsd(tx.feeUsdCents)} USD
+                                      {t('statement.fee')}: {formatUsd(tx.feeUsdCents)} USD
                                     </span>
                                   )}
                                 </div>
                                 <span className="text-xs text-muted">
-                                  {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '—'}
+                                  {formatWhen(tx.createdAt) || '—'}
                                 </span>
                               </div>
                             </div>
                           ))
                         ) : (
                           <div className="text-center text-muted" style={{ padding: 40 }}>
-                            {t('admin.users.statement.empty') || 'No transactions found'}
+                            {t('admin.users.statement.empty')}
                           </div>
                         )}
                       </div>
@@ -701,17 +803,17 @@ export function AdminUsers() {
                             onClick={() => loadStatement(selectedUser.id, statementPage - 1, statementSize)}
                           >
                             <ChevronLeftIcon />
-                            Previous
+                            {t('actions.previous')}
                           </button>
                           <span className="text-sm text-secondary">
-                            Page {statementPage + 1}
+                            {t('statement.pdf.page')} {statementPage + 1}
                           </span>
                           <button 
                             className="btn btn-secondary btn-sm" 
                             disabled={busy || !statementHasNext}
                             onClick={() => loadStatement(selectedUser.id, statementPage + 1, statementSize)}
                           >
-                            Next
+                            {t('actions.next')}
                             <ChevronRightIcon />
                           </button>
                         </div>
@@ -725,7 +827,7 @@ export function AdminUsers() {
                     <UsersIcon />
                   </div>
                   <h3 className="empty-state-title">{t('admin.users.selectUser')}</h3>
-                  <p className="empty-state-desc">Select a user from the list to view their details.</p>
+                  <p className="empty-state-desc">{t('admin.users.selectUserDesc')}</p>
                 </div>
               )}
             </div>

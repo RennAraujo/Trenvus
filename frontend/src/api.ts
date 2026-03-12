@@ -92,6 +92,11 @@ export type AdminStatementItem = {
   trvAmountCents: number | null
   feeUsdCents: number | null
   sourceUserId: number | null
+  targetUserId: number | null
+  sourceEmail: string | null
+  sourceNickname: string | null
+  targetEmail: string | null
+  targetNickname: string | null
 }
 
 export type AdminUserSummary = {
