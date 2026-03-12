@@ -1,7 +1,34 @@
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { api } from '../api'
 import { useAuth } from '../auth'
+
+// Helper functions for amount formatting
+function groupInt(value: string): string {
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
+function formatMoneyDigits(digits: string): { formatted: string; cents: bigint | null; plain: string | null } {
+  const cleaned = digits.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+  if (!cleaned) return { formatted: '', cents: null, plain: null }
+
+  let cents: bigint
+  try {
+    cents = BigInt(cleaned)
+  } catch {
+    return { formatted: '', cents: null, plain: null }
+  }
+  if (cents <= 0n) return { formatted: '', cents: null, plain: null }
+
+  const whole = cents / 100n
+  const frac = cents % 100n
+  const wholeRaw = whole.toString()
+  const fracTwo = frac.toString().padStart(2, '0')
+
+  const formatted = `${groupInt(wholeRaw)},${fracTwo}`
+  const plain = `${wholeRaw}.${fracTwo}`
+  return { formatted, cents, plain }
+}
 
 // Icons
 const CloseIcon = () => (
@@ -73,20 +100,23 @@ type Step = 'menu' | 'invoice-form' | 'invoice-qr' | 'link-form' | 'link-qr'
 export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   const auth = useAuth()
   const [step, setStep] = useState<Step>('menu')
-  const [amount, setAmount] = useState('')
+  const [amountDigits, setAmountDigits] = useState('')
   const [description, setDescription] = useState('')
   const [qrPayload, setQrPayload] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
+  const amountInputRef = useRef<HTMLInputElement | null>(null)
 
   if (!isOpen) return null
 
+  const amount = useMemo(() => formatMoneyDigits(amountDigits), [amountDigits])
+
   const handleCreateInvoice = async () => {
-    const amountNum = parseFloat(amount)
-    if (!amount || isNaN(amountNum) || amountNum <= 0) {
+    if (!amount.plain) {
       alert('Please enter a valid amount greater than 0')
       return
     }
+    const amountNum = parseFloat(amount.plain)
     if (amountNum > 1000000) {
       alert('Maximum invoice amount is 1,000,000')
       return
@@ -95,7 +125,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
     setLoading(true)
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, amount, 'TRV', description || 'Invoice payment')
+      const response = await api.generateInvoice(token, amount.plain, 'TRV', description || 'Invoice payment')
       setQrPayload(response.qrPayload)
       setStep('invoice-qr')
     } catch (err: any) {
@@ -107,11 +137,11 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
   }
 
   const handleCreateLink = async () => {
-    const amountNum = parseFloat(amount)
-    if (!amount || isNaN(amountNum) || amountNum <= 0) {
+    if (!amount.plain) {
       alert('Please enter a valid amount greater than 0')
       return
     }
+    const amountNum = parseFloat(amount.plain)
     if (amountNum > 1000000) {
       alert('Maximum invoice amount is 1,000,000')
       return
@@ -120,7 +150,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
     setLoading(true)
     try {
       const token = await auth.getValidAccessToken()
-      const response = await api.generateInvoice(token, amount, 'TRV', description || 'Payment link')
+      const response = await api.generateInvoice(token, amount.plain, 'TRV', description || 'Payment link')
       setQrPayload(response.qrPayload)
       setStep('link-qr')
     } catch (err: any) {
@@ -145,7 +175,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
     if (navigator.share && qrPayload) {
       navigator.share({
         title: `Payment request`,
-        text: `Payment request for ${amount} TRV`,
+        text: `Payment request for ${amount.formatted} TRV`,
         url: `${window.location.origin}/pay?invoice=${encodeURIComponent(qrPayload)}`
       })
     } else {
@@ -155,7 +185,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
 
   const reset = () => {
     setStep('menu')
-    setAmount('')
+    setAmountDigits('')
     setDescription('')
     setQrPayload(null)
     setCopied(false)
@@ -383,16 +413,39 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 transition: 'all 0.2s'
               }}>
                 <span style={{ 
-                  fontSize: 24, 
-                  fontWeight: 700,
-                  color: 'var(--color-primary)'
+                  fontSize: 32, 
+                  fontWeight: 800,
+                  color: 'var(--color-primary)',
+                  lineHeight: 1
                 }}>₮</span>
                 
                 <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
+                  ref={amountInputRef}
+                  value={amount.formatted}
+                  onFocus={() => {
+                    const el = amountInputRef.current
+                    if (!el) return
+                    const len = el.value.length
+                    el.setSelectionRange(len, len)
+                  }}
+                  onClick={() => {
+                    const el = amountInputRef.current
+                    if (!el) return
+                    const len = el.value.length
+                    el.setSelectionRange(len, len)
+                  }}
+                  onChange={(e) => {
+                    const nextDigits = e.target.value.replace(/\D/g, '')
+                    setAmountDigits(nextDigits)
+                    requestAnimationFrame(() => {
+                      const el = amountInputRef.current
+                      if (!el) return
+                      const len = el.value.length
+                      el.setSelectionRange(len, len)
+                    })
+                  }}
+                  inputMode="numeric"
+                  placeholder="0,00"
                   style={{
                     flex: 1,
                     border: 'none',
@@ -406,12 +459,13 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 />
                 
                 <span style={{
-                  padding: '6px 14px',
-                  borderRadius: 20,
+                  padding: '8px 16px',
+                  borderRadius: 12,
                   background: 'var(--bg-subtle)',
                   color: 'var(--text-secondary)',
-                  fontSize: 13,
-                  fontWeight: 700
+                  fontSize: 14,
+                  fontWeight: 700,
+                  letterSpacing: '0.05em'
                 }}>
                   TRV
                 </span>
@@ -462,12 +516,12 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
           }}>
             <button
               onClick={isInvoice ? handleCreateInvoice : handleCreateLink}
-              disabled={!amount || parseFloat(amount) <= 0 || loading}
+              disabled={!amount.plain || loading}
               className="btn btn-primary btn-lg"
               style={{
                 width: '100%',
-                opacity: (!amount || parseFloat(amount) <= 0 || loading) ? 0.5 : 1,
-                cursor: (!amount || parseFloat(amount) <= 0 || loading) ? 'not-allowed' : 'pointer'
+                opacity: (!amount.plain || loading) ? 0.5 : 1,
+                cursor: (!amount.plain || loading) ? 'not-allowed' : 'pointer'
               }}
             >
               {loading ? 'Gerando...' : (isInvoice ? 'Gerar QR Code' : 'Gerar Link')}
@@ -556,7 +610,7 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
-                {parseFloat(amount || '0').toFixed(2)} TRV
+                {amount.formatted || '0,00'} TRV
               </div>
               
               {description && (
