@@ -29,14 +29,13 @@ public class UserController {
 		var trimmed = identifier.trim();
 		var user = users.findByEmail(trimmed)
 				.or(() -> users.findByNickname(trimmed))
-				.or(() -> users.findByTec(trimmed))
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		return ResponseEntity.ok(new UserLookupResponse(
 			user.getId(),
 			user.getEmail(),
 			user.getNickname() != null ? user.getNickname() : user.getEmail(),
-			user.getTec() != null ? user.getTec() : "TEC-" + String.format("%010d", user.getId())
+			"TEC-" + String.format("%010d", user.getId())
 		));
 	}
 
