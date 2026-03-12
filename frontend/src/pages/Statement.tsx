@@ -151,34 +151,6 @@ export function Statement() {
     return `${sign}${formatUsd(Math.abs(cents))} ${currency}`
   }
 
-  // Trenvus Logo as SVG path for PDF
-  function addTrenvusLogo(doc: jsPDF, x: number, y: number, height: number) {
-    const scale = height / 40
-    
-    // Draw the building/shape part of logo (blue gradient representation)
-    doc.setFillColor(0, 102, 204) // Blue color
-    
-    // Left tall building
-    doc.triangle(x + 5*scale, y + 35*scale, x + 15*scale, y + 35*scale, x + 15*scale, y + 5*scale, 'F')
-    doc.triangle(x + 5*scale, y + 35*scale, x + 5*scale, y + 15*scale, x + 15*scale, y + 5*scale, 'F')
-    
-    // Middle building
-    doc.setFillColor(0, 136, 255)
-    doc.triangle(x + 18*scale, y + 35*scale, x + 28*scale, y + 35*scale, x + 28*scale, y + 12*scale, 'F')
-    doc.triangle(x + 18*scale, y + 35*scale, x + 18*scale, y + 22*scale, x + 28*scale, y + 12*scale, 'F')
-    
-    // Right building
-    doc.setFillColor(51, 153, 255)
-    doc.triangle(x + 31*scale, y + 35*scale, x + 42*scale, y + 35*scale, x + 42*scale, y + 20*scale, 'F')
-    doc.triangle(x + 31*scale, y + 35*scale, x + 31*scale, y + 28*scale, x + 42*scale, y + 20*scale, 'F')
-    
-    // Draw text "TRENVUS"
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(24 * scale)
-    doc.setTextColor(0, 0, 0)
-    doc.text('TRENVUS', x + 50*scale, y + 28*scale)
-  }
-
   function exportPdf() {
     const doc = new jsPDF({ unit: 'pt', format: 'a4' })
     const pageWidth = doc.internal.pageSize.getWidth()
@@ -188,9 +160,6 @@ export function Statement() {
 
     const now = new Date()
     const nowLabel = formatWhen(now.toISOString()) || now.toISOString()
-    
-    // Get wallet balances from current state
-    const wallet = items.length > 0 ? { usdCents: 0, trvCents: 0 } : { usdCents: 0, trvCents: 0 }
     
     // Calculate totals from items
     let totalUsd = 0, totalTrv = 0
