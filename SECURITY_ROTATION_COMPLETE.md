@@ -70,15 +70,15 @@ dncd hyeh mqhi vmav
 
 ### Status Atual
 ```
-✅ exchange-db       - Rodando (PostgreSQL)
-✅ exchange-backend  - Rodando (Spring Boot)
-✅ exchange-frontend - Rodando (React + Nginx)
+✅ db       - Rodando (PostgreSQL)
+✅ backend  - Rodando (Spring Boot)
+✅ frontend - Rodando (React + Vite)
 ```
 
 ### Portas
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8080
-- Banco de Dados: localhost:5432
+- Banco de Dados: localhost:5433
 
 ---
 

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth'
 import { LanguageSwitcher, useI18n } from './i18n'
+import { useProfileComplete } from './profileComplete'
 import brandLogo from './assets/brand-mark.png'
 
 // Icons
@@ -84,6 +85,8 @@ const XIcon = () => (
 export function Shell() {
   const auth = useAuth()
   const { t } = useI18n()
+  const { isComplete } = useProfileComplete()
+  const navigate = useNavigate()
   const location = useLocation()
   const invoicesActive = location.pathname.startsWith('/app/invoices')
   const [invoicesOpen, setInvoicesOpen] = useState(false)
@@ -297,6 +300,31 @@ export function Shell() {
           </div>
         </nav>
       </div>
+
+      {/* Incomplete profile banner */}
+      {!auth.isAdmin && !isComplete && location.pathname !== '/app/account' && (
+        <div style={{
+          background: 'rgba(245,158,11,0.12)',
+          borderBottom: '1px solid rgba(245,158,11,0.3)',
+          padding: '10px 0',
+        }}>
+          <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#f59e0b' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>
+              </svg>
+              <span>{t('profile.banner.message')}</span>
+            </div>
+            <button
+              className="btn btn-sm"
+              onClick={() => navigate('/app/account')}
+              style={{ background: '#f59e0b', color: '#000', border: 'none', fontWeight: 600, fontSize: 12 }}
+            >
+              {t('profile.banner.action')}
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="main">
         <div className="container">

@@ -14,10 +14,12 @@ O **Trenvus Exchange** é uma aplicação de exchange de criptomoedas com suport
 - **Conversão de Moedas**: USD ↔ TRV com taxa de 1% e cotação 1:1
 - **Transferências**: Envio de TRV entre usuários (por email ou apelido/nickname)
 - **Pagamentos QR Code**: Geração e pagamento de invoices via QR Code
+- **Vouchers**: Sistema de vouchers/QR code para identificação de perfil
 - **Dados de Mercado**: Cotações em tempo real (integração OKX via proxy Coinext)
 - **Painel Administrativo**: Gestão de usuários, ajuste de saldos e visualização de taxas
 - **Integração Mercado Pago**: Pagamentos em BRL
 - **Verificação de Email**: Fluxo completo de registro com confirmação por email
+- **Internacionalização**: Suporte a pt-BR e en
 
 ### Arquitetura
 
@@ -58,6 +60,7 @@ O projeto segue uma arquitetura de duas camadas:
 | React Router DOM | 6.22.x | Roteamento SPA |
 | jsPDF | 4.2.x | Geração de PDFs |
 | libphonenumber-js | 1.12.x | Validação de telefones |
+| qrcode.react | 4.2.0 | Geração de QR codes |
 | ESLint | 8.57.x | Linting |
 
 ### Infraestrutura
@@ -81,6 +84,7 @@ O projeto segue uma arquitetura de duas camadas:
 ├── docker-compose.yml          # Orquestração completa (db + backend + frontend)
 ├── .env                        # Variáveis de ambiente (não versionado)
 ├── .env.example                # Template de variáveis de ambiente
+├── .env.backend                # Variáveis de ambiente do backend (env_file)
 ├── mvnw / mvnw.cmd             # Maven Wrapper
 │
 ├── src/
@@ -141,6 +145,7 @@ O projeto segue uma arquitetura de duas camadas:
 │   │   │   └── StatementEmailController.java
 │   │   ├── user/                         # Usuários (entidade, repositório, /me)
 │   │   │   ├── MeController.java
+│   │   │   ├── UserController.java
 │   │   │   ├── UserEntity.java
 │   │   │   ├── UserRepository.java
 │   │   │   ├── UserRole.java
@@ -150,6 +155,11 @@ O projeto segue uma arquitetura de duas camadas:
 │   │   │   ├── ConfirmationTokenRepository.java
 │   │   │   ├── PendingRegistration.java
 │   │   │   └── PendingRegistrationRepository.java
+│   │   ├── voucher/                      # Vouchers/QR code de perfil
+│   │   │   ├── VoucherController.java
+│   │   │   ├── VoucherEntity.java
+│   │   │   ├── VoucherRepository.java
+│   │   │   └── VoucherService.java
 │   │   └── wallet/                       # Carteiras (entidade, serviço)
 │   │       ├── WalletController.java
 │   │       ├── WalletEntity.java
@@ -172,7 +182,10 @@ O projeto segue uma arquitetura de duas camadas:
 │   │       ├── V9__create_pending_registrations.sql
 │   │       ├── V10__create_revoked_tokens.sql
 │   │       ├── V11__add_notes_to_transactions.sql
-│   │       └── V12__add_unique_nickname_constraint.sql
+│   │       ├── V12__add_unique_nickname_constraint.sql
+│   │       ├── V13__create_vouchers_table.sql
+│   │       ├── V14__add_verified_to_users.sql
+│   │       └── V15__add_target_user_id_to_transactions.sql
 │   └── test/java/                        # Testes unitários e de integração
 │       └── trenvus/Exchange/
 │           ├── ExchangeApplicationTests.java       # Teste de contexto Spring
@@ -198,6 +211,7 @@ O projeto segue uma arquitetura de duas camadas:
         ├── api.ts              # Cliente HTTP e tipos da API
         ├── auth.tsx            # Contexto de autenticação React
         ├── phone.ts            # Validação de telefone
+        ├── profileComplete.tsx # Contexto de perfil completo
         ├── i18n.tsx            # Configuração de internacionalização
         ├── i18n.messages.ptBR.ts   # Mensagens em português
         ├── i18n.messages.en.ts     # Mensagens em inglês
@@ -206,28 +220,36 @@ O projeto segue uma arquitetura de duas camadas:
         ├── Shell.tsx           # Layout principal com navegação
         ├── ProtectedRoute.tsx  # Guarda de rotas autenticadas
         ├── AdminRoute.tsx      # Guarda de rotas de admin
+        ├── index.css           # Estilos globais e CSS variables
         ├── components/         # Componentes reutilizáveis
         │   ├── ConvertConfirmationModal.tsx
         │   ├── DeleteAccountModal.tsx
         │   ├── ExportPdfModal.tsx
+        │   ├── InvoiceModal.tsx
         │   ├── MercadoPagoModal.tsx
         │   ├── MercadoPagoReturnHandler.tsx
+        │   ├── ProfileIncompleteOverlay.tsx
+        │   ├── TermsModal.tsx
         │   └── TransferConfirmationModal.tsx
-        └── pages/              # Componentes de página
-            ├── Account.tsx
-            ├── AdminUsers.tsx
-            ├── ConfirmRegistration.tsx
-            ├── Dashboard.tsx
-            ├── InvoicesReceive.tsx
-            ├── InvoicesSend.tsx
-            ├── Landing.tsx
-            ├── Login.tsx
-            ├── Manifesto.tsx
-            ├── Market.tsx
-            ├── Register.tsx
-            ├── Security.tsx
-            ├── Statement.tsx
-            └── Transfer.tsx
+        ├── pages/              # Componentes de página
+        │   ├── Account.tsx
+        │   ├── AdminUsers.tsx
+        │   ├── ConfirmRegistration.tsx
+        │   ├── Dashboard.tsx
+        │   ├── InvoicesReceive.tsx
+        │   ├── InvoicesSend.tsx
+        │   ├── Landing.tsx
+        │   ├── Login.tsx
+        │   ├── Manifesto.tsx
+        │   ├── Market.tsx
+        │   ├── PayInvoice.tsx
+        │   ├── Register.tsx
+        │   ├── Security.tsx
+        │   ├── Statement.tsx
+        │   ├── Transfer.tsx
+        │   ├── VoucherCard.tsx
+        │   └── VoucherView.tsx
+        └── assets/             # Imagens e recursos estáticos
 ```
 
 ---
@@ -338,6 +360,33 @@ Após iniciar com Docker:
 6. **API**: Todas as chamadas centralizadas em `api.ts`
 7. **Mensagens i18n**: Chaves em camelCase com prefixo de contexto (ex: `dashboard.convert.title`)
 
+### Design System (CSS)
+
+Variáveis CSS definidas em `frontend/src/index.css`:
+
+```css
+:root {
+  --color-primary: #a855f7;
+  --color-secondary: #6366f1;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --bg-elevated: #252542;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --text-muted: #606070;
+}
+```
+
+Classes de componentes:
+- **Botões**: `btn btn-primary`, `btn btn-secondary`, `btn-success`, `btn-danger`, `btn-ghost`
+- **Cards**: `card`, `card-header`, `card-body`, `card-footer`
+- **Formulários**: `field`, `field-label`, `input`, `field-error`
+
 ---
 
 ## Estratégia de Testes
@@ -345,7 +394,7 @@ Após iniciar com Docker:
 ### Backend
 
 - **Framework**: JUnit 5 + Spring Boot Test
-- **Banco de testes**: H2 em memória (configurado em `src/test/resources/application.properties`)
+- **Banco de testes**: H2 em memória (configurado em `src/test/resources/application-test.properties`)
 - **Anotações principais**:
   - `@SpringBootTest` - Teste de integração completo
   - `@ActiveProfiles("test")` - Usa configuração de teste
@@ -406,7 +455,7 @@ O projeto usa **Flyway** para migrações versionadas. Os scripts estão em `src
 **Tabela `users`**:
 - `id` (BIGSERIAL PK), `email` (VARCHAR 255 UNIQUE), `password_hash` (VARCHAR 255)
 - `nickname` (VARCHAR 64 UNIQUE), `phone` (VARCHAR 32), `avatar_data_url` (TEXT)
-- `role` (VARCHAR 16), `created_at` (TIMESTAMP)
+- `role` (VARCHAR 16), `verified` (BOOLEAN), `created_at` (TIMESTAMP)
 
 **Tabela `wallets`**:
 - `id` (BIGSERIAL PK), `user_id` (BIGINT FK), `currency` (VARCHAR 16)
@@ -417,6 +466,7 @@ O projeto usa **Flyway** para migrações versionadas. Os scripts estão em `src
 - `id` (BIGSERIAL PK), `user_id` (BIGINT FK), `type` (VARCHAR 32)
 - `usd_amount_cents` (BIGINT), `trv_amount_cents` (BIGINT), `fee_usd_cents` (BIGINT)
 - `idempotency_key` (VARCHAR 128), `created_at` (TIMESTAMP), `source_user_id` (BIGINT)
+- `target_user_id` (BIGINT), `notes` (TEXT)
 - Índice único: `ux_tx_user_idempotency_key` em (user_id, idempotency_key)
 
 **Tabela `refresh_tokens`**:
@@ -440,6 +490,11 @@ O projeto usa **Flyway** para migrações versionadas. Os scripts estão em `src
 - `created_at` (TIMESTAMP), `expires_at` (TIMESTAMP)
 - Índices: `idx_pending_registration_token`, `idx_pending_registration_email`
 
+**Tabela `vouchers`**:
+- `id` (BIGSERIAL PK), `code` (VARCHAR 64 UNIQUE), `user_id` (BIGINT FK)
+- `active` (BOOLEAN), `created_at` (TIMESTAMP), `expires_at` (TIMESTAMP)
+- Índice: `idx_voucher_user` em (user_id)
+
 ### Histórico de Migrações
 
 | Versão | Arquivo | Descrição |
@@ -457,6 +512,9 @@ O projeto usa **Flyway** para migrações versionadas. Os scripts estão em `src
 | V10 | V10__create_revoked_tokens.sql | Tabela de tokens revogados (blacklist) |
 | V11 | V11__add_notes_to_transactions.sql | Campo notes em transactions |
 | V12 | V12__add_unique_nickname_constraint.sql | Constraint UNIQUE em nickname |
+| V13 | V13__create_vouchers_table.sql | Tabela de vouchers |
+| V14 | V14__add_verified_to_users.sql | Campo verified em users |
+| V15 | V15__add_target_user_id_to_transactions.sql | Campo target_user_id em transactions |
 
 ---
 
@@ -474,6 +532,7 @@ O projeto usa **Flyway** para migrações versionadas. Os scripts estão em `src
 - `/auth/register`, `/auth/confirm-registration`, `/auth/login`, `/auth/test-login`, `/auth/admin-login`
 - `/auth/refresh`, `/auth/logout`, `/auth/test-accounts-status`, `/auth/resend-confirmation`
 - `/mercadopago/public-key`
+- `/voucher/profile/{code}`
 - `/swagger-ui/**`, `/v3/api-docs/**`, `/error`
 
 ### Autorização
@@ -511,9 +570,16 @@ POSTGRES_PASSWORD=postgres
 # JWT (Base64 encoded PEM)
 JWT_PRIVATE_KEY_B64=...
 JWT_PUBLIC_KEY_B64=...
+JWT_ISSUER=Trenvus
+JWT_ACCESS_TTL_SECONDS=900
+JWT_REFRESH_TTL_SECONDS=2592000
 
 # CORS
 APP_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+
+# Application URLs
+APP_BASE_URL=http://localhost:3000
+API_BASE_URL=http://localhost:8080
 
 # Contas de teste (desenvolvimento)
 TEST_ACCOUNT_ENABLED=true
@@ -528,7 +594,7 @@ ADMIN_PASSWORD=admin123
 # Mercado Pago
 MERCADOPAGO_ACCESS_TOKEN=TEST-...
 MERCADOPAGO_PUBLIC_KEY=TEST-...
-MERCADOPAGO_RETURN_URL=http://localhost:5173/mercadopago/return
+MERCADOPAGO_RETURN_URL=http://localhost:3000/mercadopago/return
 
 # Email (SMTP)
 SMTP_HOST=smtp.gmail.com
@@ -536,8 +602,13 @@ SMTP_PORT=587
 SMTP_USERNAME=...
 SMTP_PASSWORD=...
 SMTP_FROM=noreply@trenvus.com
-APP_BASE_URL=http://localhost:3000
-API_BASE_URL=http://localhost:8080
+
+# Market Configuration
+MARKET_ASSETS=BTC,ETH,USDT,SOL,ADA,DOT
+MARKET_CACHE_TTL_SECONDS=60
+
+# Security
+ALLOWED_ORIGINS=*
 ```
 
 ### Gerando Chaves JWT
@@ -619,7 +690,7 @@ Exemplos: `dashboard.convert.title`, `errors.loadBalance`, `actions.save`
 | GET | `/admin/users/{id}/fees` | Taxas recebidas |
 | GET | `/admin/users/{id}/statement` | Extrato do usuário |
 
-### Mercado
+### Market
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | GET | `/market/tickers` | Preços |
@@ -634,6 +705,14 @@ Exemplos: `dashboard.convert.title`, `errors.loadBalance`, `actions.save`
 | POST | `/invoices/generate` | Gerar QR code |
 | POST | `/invoices/pay` | Pagar invoice |
 | POST | `/invoices/simulate-pay` | Simular pagamento |
+
+### Vouchers
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/voucher/generate` | Gerar voucher |
+| GET | `/voucher/my` | Meu voucher atual |
+| DELETE | `/voucher/my` | Desativar voucher |
+| GET | `/voucher/profile/{code}` | Ver perfil público pelo voucher |
 
 ### Mercado Pago
 | Método | Endpoint | Descrição |

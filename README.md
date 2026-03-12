@@ -1,4 +1,4 @@
-# Trenvus Exchange
+﻿﻿# Trenvus Exchange
 
 Aplicação de exchange de criptomoedas com suporte a múltiplas moedas, carteiras digitais e sistema de pagamentos integrado.
 
@@ -41,32 +41,39 @@ O projeto já vem com configurações padrão no `docker-compose.yml`, mas você
 POSTGRES_DB=exchange
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
+POSTGRES_PORT_PUBLISHED=5433
+BACKEND_PORT_PUBLISHED=8080
 
-# JWT (chaves já configuradas no docker-compose)
-# SMTP (já configurado no docker-compose)
-# Test Accounts (já configurado no docker-compose)
+# JWT / SMTP / contas de teste e admin (configure no seu .env)
 ```
 
 ### 3. Inicie a aplicação
 
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 A aplicação estará disponível em:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8080
+- Banco de Dados (host): localhost:5433
 
 ## 👥 Contas de Teste
 
-O sistema já vem configurado com contas de teste:
+Contas de teste e admin são opcionais e podem ser habilitadas via `.env`:
+
+- TEST_ACCOUNT_ENABLED=true
+- TEST_ACCOUNTS=user1@test.com:123:USER;user2@test.com:123:USER;user3@test.com:123:USER
+- ADMIN_ACCOUNT_ENABLED=true
+- ADMIN_LOGIN_ENABLED=true
+- ADMIN_EMAIL=admin@trenvus.com
+- ADMIN_PASSWORD=defina_uma_senha_forte
 
 | Email | Senha | Role |
 |-------|-------|------|
-| user1@test.com | 123 | ADMIN |
+| user1@test.com | 123 | USER |
 | user2@test.com | 123 | USER |
 | user3@test.com | 123 | USER |
-| admin@trenvus.com | admin123 | ADMIN |
 
 ## 📧 Fluxo de Registro com Confirmação por Email
 

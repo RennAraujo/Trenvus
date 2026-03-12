@@ -4,6 +4,8 @@ import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 import { buildE164Phone, digitsOnly, getPhoneCountryOptions, splitE164Phone } from '../phone'
 import { DeleteAccountModal } from '../components/DeleteAccountModal'
+import { TermsModal } from '../components/TermsModal'
+import { useProfileComplete } from '../profileComplete'
 import type { CountryCode } from 'libphonenumber-js'
 
 // Icons
@@ -55,9 +57,44 @@ const TrashIcon = () => (
   </svg>
 )
 
+const ClipboardIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+    <path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>
+  </svg>
+)
+
+const CheckCircleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+)
+
+const ExternalLinkIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/>
+  </svg>
+)
+
 export function Account() {
   const auth = useAuth()
   const { t } = useI18n()
+  const { isComplete, profileData, completeProfile } = useProfileComplete()
+
+  // Profile completion form state
+  const [fullName, setFullName] = useState(() => profileData?.fullName ?? '')
+  const [address, setAddress] = useState(() => profileData?.address ?? '')
+  const [termsAccepted, setTermsAccepted] = useState(() => profileData?.termsAccepted ?? false)
+  const [showTerms, setShowTerms] = useState(false)
+  const [completionSuccess, setCompletionSuccess] = useState(false)
+
+  const canCompleteProfile = fullName.trim().length > 0 && address.trim().length > 0 && termsAccepted
+
+  function onCompleteProfile(e: React.FormEvent) {
+    e.preventDefault()
+    completeProfile({ fullName: fullName.trim(), address: address.trim(), termsAccepted })
+    setCompletionSuccess(true)
+  }
 
   const [me, setMe] = useState<MeResponse | null>(null)
   const [phoneCountry, setPhoneCountry] = useState<CountryCode>('BR')
@@ -236,6 +273,148 @@ export function Account() {
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
           {success}
+        </div>
+      )}
+
+      {/* Profile Completion Card */}
+      {!auth.isAdmin && (
+        <div
+          className="card"
+          style={{
+            marginBottom: 24,
+            border: isComplete
+              ? '1px solid var(--color-success-alpha-30, rgba(34,197,94,0.3))'
+              : '1px solid rgba(245,158,11,0.4)',
+          }}
+        >
+          <div className="card-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10,
+                background: isComplete ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)',
+                color: isComplete ? '#22c55e' : '#f59e0b',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {isComplete ? <CheckCircleIcon /> : <ClipboardIcon />}
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
+                  {isComplete ? t('profile.complete.titleDone') : t('profile.complete.title')}
+                </h3>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                  {isComplete ? t('profile.complete.subtitleDone') : t('profile.complete.subtitle')}
+                </p>
+              </div>
+              {isComplete && (
+                <span style={{
+                  marginLeft: 'auto',
+                  background: 'rgba(34,197,94,0.12)',
+                  color: '#22c55e',
+                  borderRadius: 20,
+                  padding: '4px 12px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}>
+                  {t('profile.complete.badge')}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {isComplete ? (
+            <div className="card-body">
+              {completionSuccess && (
+                <div className="alert alert-success" style={{ marginBottom: 16 }}>
+                  <CheckCircleIcon />
+                  {t('profile.complete.done')}
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <div className="text-xs text-tertiary" style={{ textTransform: 'uppercase', letterSpacing: 0.05, marginBottom: 4 }}>
+                    {t('profile.complete.fullName')}
+                  </div>
+                  <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>
+                    {profileData?.fullName}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-tertiary" style={{ textTransform: 'uppercase', letterSpacing: 0.05, marginBottom: 4 }}>
+                    {t('profile.complete.address')}
+                  </div>
+                  <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>
+                    {profileData?.address}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="card-body">
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.6 }}>
+                {t('profile.complete.description')}
+              </p>
+              <form onSubmit={onCompleteProfile}>
+                <div className="field">
+                  <label className="field-label">{t('profile.complete.fullName')} *</label>
+                  <input
+                    className="input"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder={t('profile.complete.fullNamePlaceholder')}
+                    required
+                  />
+                </div>
+
+                <div className="field" style={{ marginTop: 16 }}>
+                  <label className="field-label">{t('profile.complete.address')} *</label>
+                  <input
+                    className="input"
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder={t('profile.complete.addressPlaceholder')}
+                    required
+                  />
+                </div>
+
+                <div style={{ marginTop: 20, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <input
+                    id="terms-check"
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    style={{ marginTop: 2, cursor: 'pointer', width: 16, height: 16, flexShrink: 0 }}
+                  />
+                  <label htmlFor="terms-check" style={{ fontSize: 14, color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: 1.5 }}>
+                    {t('profile.complete.terms')}{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowTerms(true)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--color-primary)', textDecoration: 'underline',
+                        fontSize: 14, padding: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
+                      }}
+                    >
+                      {t('profile.complete.termsLink')}
+                      <ExternalLinkIcon />
+                    </button>
+                  </label>
+                </div>
+
+                <button
+                  className="btn btn-primary"
+                  type="submit"
+                  disabled={!canCompleteProfile}
+                  style={{ marginTop: 20 }}
+                >
+                  <CheckCircleIcon />
+                  {t('profile.complete.submit')}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       )}
 
@@ -533,6 +712,9 @@ export function Account() {
         isLoading={busy}
         error={error}
       />
+
+      {/* Terms of Service Modal */}
+      <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
     </div>
   )
 }
