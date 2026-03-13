@@ -445,6 +445,7 @@ export const messagesPtBR: Record<string, string> = {
   'errors.adminAccountDisabled': 'Conta admin desabilitada. Defina ADMIN_ACCOUNT_ENABLED=true, ADMIN_EMAIL e ADMIN_PASSWORD e reinicie a API.',
   'errors.loginAdminDisabled': 'Login admin desabilitado no backend. Configure ADMIN_EMAIL/ADMIN_PASSWORD e reinicie a API.',
   'errors.loginTestAccount': 'Falha ao entrar com conta de teste',
+  'errors.upstreamUnavailable': 'Serviço temporariamente indisponível (HTTP {status}).',
   'errors.register': 'E-mail já cadastrado',
   'errors.nicknameTaken': 'Apelido já está em uso',
   'errors.passwordMismatch': 'As senhas não coincidem',

@@ -274,6 +274,14 @@ async function request<T>(
   if (!response.ok) {
     let message = 'Request error'
     const raw = await response.text().catch(() => '')
+    const contentType = response.headers.get('content-type') || ''
+    const rawTrimmed = raw.trimStart()
+    const isHtml =
+      contentType.includes('text/html') ||
+      rawTrimmed.startsWith('<!DOCTYPE') ||
+      rawTrimmed.startsWith('<html') ||
+      rawTrimmed.startsWith('<head') ||
+      rawTrimmed.startsWith('<body')
     if (raw) {
       try {
         const body = JSON.parse(raw)
@@ -282,6 +290,9 @@ async function request<T>(
       } catch {
         message = raw
       }
+    }
+    if (isHtml) {
+      message = ''
     }
     throw new ApiError({ message, status: response.status, url, body: raw })
   }

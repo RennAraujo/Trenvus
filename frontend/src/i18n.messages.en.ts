@@ -445,6 +445,7 @@ export const messagesEn: Record<string, string> = {
   'errors.adminAccountDisabled': 'Admin account is disabled. Set ADMIN_ACCOUNT_ENABLED=true, ADMIN_EMAIL and ADMIN_PASSWORD and restart the API.',
   'errors.loginAdminDisabled': 'Admin login is disabled on the backend. Set ADMIN_EMAIL/ADMIN_PASSWORD and restart the API.',
   'errors.loginTestAccount': 'Test account login failed',
+  'errors.upstreamUnavailable': 'Service temporarily unavailable (HTTP {status}).',
   'errors.register': 'Email already registered',
   'errors.nicknameTaken': 'Nickname already taken',
   'errors.passwordMismatch': 'Passwords do not match',

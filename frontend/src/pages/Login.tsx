@@ -78,7 +78,11 @@ export function Login() {
       }
     } catch (err: any) {
       console.error('[Login] Test login failed:', err)
-      const errorMsg = err?.message || t('errors.loginTestAccount')
+      const status = typeof err?.status === 'number' ? (err.status as number) : null
+      const retryableStatus = status === 502 || status === 503 || status === 504
+      const errorMsg = retryableStatus
+        ? t('errors.upstreamUnavailable', { status })
+        : (err?.message || t('errors.loginTestAccount'))
       setError(`Test Account ${id}: ${errorMsg}`)
     } finally {
       setBusy(false)
@@ -129,7 +133,9 @@ export function Login() {
       sessionStorage.removeItem('redirectAfterLogin')
       navigate(redirectUrl || '/app', { replace: true })
     } catch (err: any) {
-      setError(err?.message || t('errors.login'))
+      const status = typeof err?.status === 'number' ? (err.status as number) : null
+      const retryableStatus = status === 502 || status === 503 || status === 504
+      setError(retryableStatus ? t('errors.upstreamUnavailable', { status }) : (err?.message || t('errors.login')))
     } finally {
       setBusy(false)
     }
