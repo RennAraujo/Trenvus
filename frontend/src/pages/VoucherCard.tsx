@@ -54,6 +54,38 @@ export function VoucherCard() {
     }
   }
 
+  async function copyVoucherLink(url: string) {
+    try {
+      // Try modern clipboard API first (requires HTTPS or localhost)
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        // Fallback for HTTP contexts
+        const textArea = document.createElement('textarea')
+        textArea.value = url
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+        
+        if (!successful) {
+          throw new Error('execCommand failed')
+        }
+      }
+      
+      alert(t('voucher.copied'))
+    } catch (err) {
+      console.error('Failed to copy:', err)
+      // Show the link in a prompt as last resort
+      window.prompt(t('voucher.copyFallback'), url)
+    }
+  }
+
   useEffect(() => {
     void loadVoucher()
   }, [])
@@ -228,10 +260,7 @@ export function VoucherCard() {
                 }}>
                   <button 
                     className="btn btn-primary"
-                    onClick={() => {
-                      navigator.clipboard.writeText(voucherUrl)
-                      alert(t('voucher.copied'))
-                    }}
+                    onClick={() => copyVoucherLink(voucherUrl)}
                   >
                     {t('voucher.copyLink')}
                   </button>

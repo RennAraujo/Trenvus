@@ -573,4 +573,5 @@ export const messagesEn: Record<string, string> = {
   'voucher.invalidTitle': 'Invalid Voucher',
   'voucher.invalidDesc': 'This voucher does not exist, has expired, or has been deactivated.',
   'voucher.copied': 'Link copied!',
+  'voucher.copyFallback': 'Copy this link manually:'
 }
