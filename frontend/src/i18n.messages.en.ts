@@ -128,6 +128,7 @@ export const messagesEn: Record<string, string> = {
   'invoiceModal.qr.copied': 'Copied!',
   'invoiceModal.qr.share': 'Share',
   'invoiceModal.qr.createNew': 'Create new',
+  'invoiceModal.copyFallback': 'Copy this link manually:',
 
   'payInvoice.loading': 'Loading...',
   'payInvoice.errors.invalidOrMissing': 'Invalid or missing invoice code',

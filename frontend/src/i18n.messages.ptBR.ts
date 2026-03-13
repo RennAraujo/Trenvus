@@ -128,6 +128,7 @@ export const messagesPtBR: Record<string, string> = {
   'invoiceModal.qr.copied': 'Copiado!',
   'invoiceModal.qr.share': 'Compartilhar',
   'invoiceModal.qr.createNew': 'Criar novo',
+  'invoiceModal.copyFallback': 'Copie este link manualmente:'
 
   'payInvoice.loading': 'Carregando...',
   'payInvoice.errors.invalidOrMissing': 'Código de invoice inválido ou ausente',

@@ -171,13 +171,41 @@ export function InvoiceModal({ isOpen, onClose }: InvoiceModalProps) {
     }
   }
 
-  const copyLink = () => {
-    if (qrPayload) {
-      const baseUrl = window.location.origin
-      const link = `${baseUrl}/pay?invoice=${encodeURIComponent(qrPayload)}`
-      navigator.clipboard.writeText(link)
+  const copyLink = async () => {
+    if (!qrPayload) return
+    
+    const baseUrl = window.location.origin
+    const link = `${baseUrl}/pay?invoice=${encodeURIComponent(qrPayload)}`
+    
+    try {
+      // Try modern clipboard API first (requires HTTPS or localhost)
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(link)
+      } else {
+        // Fallback for HTTP contexts
+        const textArea = document.createElement('textarea')
+        textArea.value = link
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+        
+        if (!successful) {
+          throw new Error('execCommand failed')
+        }
+      }
+      
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+      // Show the link in a prompt as last resort
+      window.prompt(t('invoiceModal.copyFallback'), link)
     }
   }
 
