@@ -25,7 +25,13 @@ public class MercadoPagoController {
      * Retorna a chave pública do Mercado Pago
      */
     @GetMapping("/public-key")
-    public ResponseEntity<PublicKeyResponse> getPublicKey() {
+    public ResponseEntity<?> getPublicKey() {
+        if (!MercadoPagoConfiguration.isConfigured()) {
+            return ResponseEntity.status(503).body(Map.of(
+                    "code", "MERCADOPAGO_NOT_CONFIGURED",
+                    "message", "Mercado Pago is not configured"
+            ));
+        }
         return ResponseEntity.ok(new PublicKeyResponse(mercadoPagoService.getPublicKey()));
     }
 
@@ -42,6 +48,13 @@ public class MercadoPagoController {
             @RequestBody MercadoPagoPreferenceRequest request,
             @AuthenticationPrincipal Jwt jwt,
             Locale locale) {
+
+        if (!MercadoPagoConfiguration.isConfigured()) {
+            return ResponseEntity.status(503).body(Map.of(
+                    "code", "MERCADOPAGO_NOT_CONFIGURED",
+                    "message", "Mercado Pago is not configured"
+            ));
+        }
 
         Long userId = Long.valueOf(jwt.getSubject());
 
@@ -90,8 +103,15 @@ public class MercadoPagoController {
      * Verifica o status de um pagamento
      */
     @GetMapping("/payment/{paymentId}")
-    public ResponseEntity<MercadoPagoPaymentResponse> getPayment(
+    public ResponseEntity<?> getPayment(
             @PathVariable Long paymentId) {
+
+        if (!MercadoPagoConfiguration.isConfigured()) {
+            return ResponseEntity.status(503).body(Map.of(
+                    "code", "MERCADOPAGO_NOT_CONFIGURED",
+                    "message", "Mercado Pago is not configured"
+            ));
+        }
 
         try {
             MercadoPagoService.MercadoPagoPaymentResponse payment = mercadoPagoService.getPayment(paymentId);
@@ -120,7 +140,13 @@ public class MercadoPagoController {
      * Webhook para receber notificações do Mercado Pago
      */
     @PostMapping("/webhook")
-    public ResponseEntity<Void> webhook(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> webhook(@RequestBody Map<String, Object> payload) {
+        if (!MercadoPagoConfiguration.isConfigured()) {
+            return ResponseEntity.status(503).body(Map.of(
+                    "code", "MERCADOPAGO_NOT_CONFIGURED",
+                    "message", "Mercado Pago is not configured"
+            ));
+        }
         // Processa a notificação do Mercado Pago
         // TODO: Implementar lógica de webhook para atualizar saldo automaticamente
         return ResponseEntity.ok().build();
