@@ -148,6 +148,14 @@ export type CandlePoint = {
   close: number
 }
 
+export type ProfileResponse = {
+  fullName: string
+  address: string
+  termsAccepted: boolean
+  termsAcceptedAt: string | null
+  createdAt: string
+}
+
 export class ApiError extends Error {
   readonly status: number
   readonly url: string
@@ -439,6 +447,14 @@ export const api = {
       accessToken,
       body: JSON.stringify({ qrPayload, amount, currency }),
     }),
+
+  // User Profile
+  getProfile: (accessToken: string) =>
+    request<ProfileResponse>('/me/profile', { accessToken }),
+  saveProfile: (accessToken: string, data: { fullName: string; address: string; termsAccepted: boolean }) =>
+    request<ProfileResponse>('/me/profile', { method: 'POST', accessToken, body: JSON.stringify(data) }),
+  getProfileStatus: (accessToken: string) =>
+    request<{ isComplete: boolean }>('/me/profile/status', { accessToken }),
 }
 
 export function formatUsd(cents: number): string {

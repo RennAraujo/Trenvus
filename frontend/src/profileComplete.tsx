@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { useAuth } from './auth'
+import { api } from './api'
 
 export type ProfileData = {
   fullName: string
@@ -11,34 +12,53 @@ export type ProfileData = {
 type ProfileCompleteContextValue = {
   isComplete: boolean
   profileData: ProfileData | null
-  completeProfile: (data: Omit<ProfileData, 'completedAt'>) => void
+  completeProfile: (data: Omit<ProfileData, 'completedAt'>) => Promise<void>
+  loading: boolean
+  error: string | null
 }
 
 const ProfileCompleteContext = createContext<ProfileCompleteContextValue | null>(null)
 
-function storageKey(email: string) {
-  return `trenvus.profile.${email}`
-}
-
-function loadFromStorage(email: string): ProfileData | null {
-  if (!email) return null
-  try {
-    const raw = localStorage.getItem(storageKey(email))
-    if (!raw) return null
-    return JSON.parse(raw) as ProfileData
-  } catch {
-    return null
-  }
-}
-
 export function ProfileCompleteProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth()
-  const email = auth.userEmail ?? ''
-  const [profileData, setProfileData] = useState<ProfileData | null>(() => loadFromStorage(email))
+  const [profileData, setProfileData] = useState<ProfileData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
+  // Load profile from API on mount
   useEffect(() => {
-    setProfileData(loadFromStorage(email))
-  }, [email])
+    async function loadProfile() {
+      if (!auth.isAuthenticated) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+        const token = await auth.getValidAccessToken()
+        const data = await api.getProfile(token)
+        setProfileData({
+          fullName: data.fullName,
+          address: data.address,
+          termsAccepted: data.termsAccepted,
+          completedAt: data.createdAt || new Date().toISOString()
+        })
+      } catch (err: any) {
+        if (err?.status === 404) {
+          // Profile not found, user hasn't completed it yet
+          setProfileData(null)
+        } else {
+          setError(err?.message || 'Failed to load profile')
+          console.error('Failed to load profile:', err)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [auth.isAuthenticated])
 
   const isComplete = Boolean(
     profileData?.fullName?.trim() &&
@@ -47,17 +67,31 @@ export function ProfileCompleteProvider({ children }: { children: React.ReactNod
   )
 
   const completeProfile = useCallback(
-    (data: Omit<ProfileData, 'completedAt'>) => {
-      if (!email) return
-      const full: ProfileData = { ...data, completedAt: new Date().toISOString() }
-      localStorage.setItem(storageKey(email), JSON.stringify(full))
-      setProfileData(full)
+    async (data: Omit<ProfileData, 'completedAt'>) => {
+      try {
+        setLoading(true)
+        setError(null)
+        const token = await auth.getValidAccessToken()
+        const saved = await api.saveProfile(token, data)
+        setProfileData({
+          fullName: saved.fullName,
+          address: saved.address,
+          termsAccepted: saved.termsAccepted,
+          completedAt: saved.createdAt || new Date().toISOString()
+        })
+      } catch (err: any) {
+        setError(err?.message || 'Failed to save profile')
+        console.error('Failed to save profile:', err)
+        throw err
+      } finally {
+        setLoading(false)
+      }
     },
-    [email],
+    [auth]
   )
 
   return (
-    <ProfileCompleteContext.Provider value={{ isComplete, profileData, completeProfile }}>
+    <ProfileCompleteContext.Provider value={{ isComplete, profileData, completeProfile, loading, error }}>
       {children}
     </ProfileCompleteContext.Provider>
   )
